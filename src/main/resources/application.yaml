@@ -1,3 +1,6 @@
 spring:
   application:
     name: digilo
+
+  profiles:
+    active: dev
