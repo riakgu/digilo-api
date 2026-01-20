@@ -1,6 +1,7 @@
 package com.riakgu.digilo.user;
 
 import com.riakgu.digilo.common.dto.ApiResponse;
+import com.riakgu.digilo.user.dto.ChangePasswordRequest;
 import com.riakgu.digilo.user.dto.UpdateProfileRequest;
 import com.riakgu.digilo.user.dto.UserResponse;
 import jakarta.validation.Valid;
@@ -33,6 +34,18 @@ public class UserController {
         UserResponse user = userService.updateProfile(userId, request);
 
         return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(user));
+    }
+
+    @PatchMapping("/me/password")
+    public ResponseEntity<ApiResponse> changePassword(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
+       UserResponse user = userService.changePassword(userId, request);
+
+       return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(user));
     }

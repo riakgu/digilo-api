@@ -1,11 +1,13 @@
 package com.riakgu.digilo.user;
 
 import com.riakgu.digilo.auth.dto.AuthResponse;
+import com.riakgu.digilo.user.dto.ChangePasswordRequest;
 import com.riakgu.digilo.user.dto.UpdateProfileRequest;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,6 +20,8 @@ import java.util.Locale;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public UserResponse getCurrentUser(Long userId) {
@@ -34,7 +38,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        log.info(request.getName());
         if (request.getName() != null) {
             user.setName(request.getName());
         }
@@ -58,6 +61,20 @@ public class UserService {
         return UserResponse.fromEntity(user);
     }
 
+    @Transactional
+    public UserResponse changePassword(Long userId, ChangePasswordRequest request) {
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Old passwords don't match");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return UserResponse.fromEntity(user);
+    }
 
 }
