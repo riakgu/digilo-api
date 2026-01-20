@@ -18,7 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthService {
 
     private final UserRepository userRepository;
-
+    private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
     public AuthResponse register(RegisterRequest request) {
@@ -36,8 +36,13 @@ public class AuthService {
 
         userRepository.save(user);
 
+        String accessToken = jwtService.generateAccessToken(user.getId());
+        String refreshToken = jwtService.generateRefreshToken(user.getId());
+
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 
@@ -50,8 +55,13 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
+        String accessToken = jwtService.generateAccessToken(user.getId());
+        String refreshToken = jwtService.generateRefreshToken(user.getId());
+
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
                 .build();
 
     }

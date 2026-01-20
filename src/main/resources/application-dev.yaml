@@ -21,6 +21,14 @@ spring:
       port: 6379
       timeout: 60000ms
 
+jwt:
+  access-secret: dev-access-secret
+  access-expiration: 86400000
+  refresh-secret: dev-refresh-secret
+  refresh-expiration: 604800000
+  issuer: digilo
+
 logging:
   level:
     org.hibernate.SQL: debug
+    org.springframework.security: debug
