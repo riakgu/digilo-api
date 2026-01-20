@@ -1,7 +1,8 @@
 package com.riakgu.digilo.auth;
 
+import com.riakgu.digilo.auth.dto.AuthResponse;
+import com.riakgu.digilo.auth.dto.LoginRequest;
 import com.riakgu.digilo.auth.dto.RegisterRequest;
-import com.riakgu.digilo.auth.dto.RegisterResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +21,19 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> register(@Valid @RequestBody RegisterRequest request) {
-        RegisterResponse registerResponse = authService.register(request);
+        AuthResponse register = authService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(registerResponse));
+                .body(ApiResponse.success(register));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse login = authService.login(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(login));
     }
 }

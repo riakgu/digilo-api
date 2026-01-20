@@ -1,7 +1,8 @@
 package com.riakgu.digilo.auth;
 
+import com.riakgu.digilo.auth.dto.AuthResponse;
+import com.riakgu.digilo.auth.dto.LoginRequest;
 import com.riakgu.digilo.auth.dto.RegisterRequest;
-import com.riakgu.digilo.auth.dto.RegisterResponse;
 import com.riakgu.digilo.user.Role;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
@@ -20,7 +21,7 @@ public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public RegisterResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
         }
@@ -35,9 +36,24 @@ public class AuthService {
 
         userRepository.save(user);
 
-        return RegisterResponse.builder()
+        return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .build();
+    }
+
+    public AuthResponse login(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        }
+
+        return AuthResponse.builder()
+                .user(UserResponse.fromEntity(user))
+                .build();
+
     }
 
 }
