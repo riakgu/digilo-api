@@ -1,7 +1,9 @@
 package com.riakgu.digilo.auth;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.riakgu.digilo.auth.dto.AuthResponse;
 import com.riakgu.digilo.auth.dto.LoginRequest;
+import com.riakgu.digilo.auth.dto.RefreshRequest;
 import com.riakgu.digilo.auth.dto.RegisterRequest;
 import com.riakgu.digilo.user.Role;
 import com.riakgu.digilo.user.User;
@@ -12,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.security.PublicKey;
 
 @Service
 @RequiredArgsConstructor
@@ -63,6 +67,18 @@ public class AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+
+    }
+
+    public AuthResponse refresh(RefreshRequest request) {
+
+        DecodedJWT decoded = jwtService.verifyRefreshToken(request.getRefreshToken());
+
+        Long userId = Long.valueOf(decoded.getSubject());
+
+        String accessToken = jwtService.generateAccessToken(userId);
+
+        return AuthResponse.refresh(accessToken);
 
     }
 

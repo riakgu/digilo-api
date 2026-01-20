@@ -2,6 +2,7 @@ package com.riakgu.digilo.auth;
 
 import com.riakgu.digilo.auth.dto.AuthResponse;
 import com.riakgu.digilo.auth.dto.LoginRequest;
+import com.riakgu.digilo.auth.dto.RefreshRequest;
 import com.riakgu.digilo.auth.dto.RegisterRequest;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -35,5 +36,14 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success(login));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+        AuthResponse refresh = authService.refresh(request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success(refresh));
     }
 }
