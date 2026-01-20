@@ -17,10 +17,11 @@ public class JwtService {
     private final JwtProperties props;
     private final StringRedisTemplate redisTemplate;
 
-    public String generateAccessToken(Long userId) {
+    public String generateAccessToken(Long userId, String role) {
         return JWT.create()
                 .withIssuer(props.getIssuer())
                 .withSubject(userId.toString())
+                .withClaim("role", role)
                 .withClaim("type", "access")
                 .withExpiresAt(Instant.now().plusSeconds(props.getAccessExpiration()))
                 .sign(Algorithm.HMAC256(props.getAccessSecret()));
@@ -70,6 +71,35 @@ public class JwtService {
         }
 
         return decoded;
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+        DecodedJWT decoded = verifyRefreshToken(refreshToken);
+
+        Long userId = Long.valueOf(decoded.getSubject());
+        String role =  decoded.getClaim("role").asString();
+
+        return generateAccessToken(userId, role);
+    }
+
+    public void blacklistAccessToken(String token) {
+        DecodedJWT decoded = JWT.decode(token);
+
+        long ttl = decoded.getExpiresAt().toInstant().getEpochSecond()
+                - Instant.now().getEpochSecond();
+
+        if (ttl > 0) {
+            redisTemplate.opsForValue()
+                    .set("blacklist:" + token, "true", Duration.ofSeconds(ttl));
+        }
+    }
+
+    public boolean isBlacklisted(String token) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + token));
+    }
+
+    public void revokeUserTokens(Long userId) {
+        redisTemplate.delete("refresh:" + userId);
     }
 
 }

@@ -15,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.PublicKey;
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -40,13 +38,10 @@ public class AuthService {
 
         userRepository.save(user);
 
-        String accessToken = jwtService.generateAccessToken(user.getId());
-        String refreshToken = jwtService.generateRefreshToken(user.getId());
-
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
+                .refreshToken(jwtService.generateRefreshToken(user.getId()))
                 .build();
     }
 
@@ -59,27 +54,39 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        String accessToken = jwtService.generateAccessToken(user.getId());
-        String refreshToken = jwtService.generateRefreshToken(user.getId());
-
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
+                .refreshToken(jwtService.generateRefreshToken(user.getId()))
                 .build();
 
     }
 
     public AuthResponse refresh(RefreshRequest request) {
 
-        DecodedJWT decoded = jwtService.verifyRefreshToken(request.getRefreshToken());
+        return AuthResponse.builder()
+                .accessToken(jwtService.refreshAccessToken(request.getRefreshToken()))
+                .build();
 
-        Long userId = Long.valueOf(decoded.getSubject());
+    }
 
-        String accessToken = jwtService.generateAccessToken(userId);
+    public void logout(String authHeader) {
 
-        return AuthResponse.refresh(accessToken);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
 
+            if (jwtService.isBlacklisted(token)) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+            }
+
+            DecodedJWT decoded = jwtService.verifyAccessToken(token);
+
+            Long userId = Long.valueOf(decoded.getSubject());
+
+            jwtService.blacklistAccessToken(token);
+            jwtService.revokeUserTokens(userId);
+
+        }
     }
 
 }
