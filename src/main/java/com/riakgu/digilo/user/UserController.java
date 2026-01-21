@@ -4,6 +4,7 @@ import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.user.dto.ChangePasswordRequest;
 import com.riakgu.digilo.user.dto.UpdateProfileRequest;
+import com.riakgu.digilo.user.dto.UpdateRoleRequest;
 import com.riakgu.digilo.user.dto.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -70,5 +71,18 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Get all users successful", users));
+    }
+
+    @PatchMapping("/admin/users/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> changeRole(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateRoleRequest request
+    ) {
+        UserResponse user = userService.updateRole(id, request);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("UPDATED", "Change role successful", user));
     }
 }

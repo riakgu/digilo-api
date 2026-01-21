@@ -7,6 +7,7 @@ import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.user.dto.ChangePasswordRequest;
 import com.riakgu.digilo.user.dto.UpdateProfileRequest;
+import com.riakgu.digilo.user.dto.UpdateRoleRequest;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,6 +86,17 @@ public class UserService {
     public Page<UserResponse> getAll(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .map(UserResponse::fromEntity);
+    }
+
+    @Transactional
+    public UserResponse updateRole(Long userId, UpdateRoleRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        user.setRole(request.getRole());
+        userRepository.save(user);
+
+        return UserResponse.fromEntity(user);
     }
 
 }
