@@ -1,5 +1,7 @@
 package com.riakgu.digilo.product;
 
+import com.riakgu.digilo.category.Category;
+import com.riakgu.digilo.category.CategoryRepository;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
@@ -18,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
     
     private final ProductRepository productRepository;
+
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public ProductResponse create(ProductRequest request) {
@@ -41,6 +45,21 @@ public class ProductService {
                 .build();
 
         productRepository.save(product);
+
+        if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+            for (Long categoryId : request.getCategoryIds()) {
+                Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new NotFoundException("Category with id " + categoryId + " not found"));
+
+                ProductCategory productCategory = new ProductCategory();
+                ProductCategoryId pcId = new ProductCategoryId(null, categoryId);
+                productCategory.setId(pcId);
+                productCategory.setProduct(product);
+                productCategory.setCategory(category);
+
+                product.getCategories().add(productCategory);
+            }
+        }
 
         return ProductResponse.fromEntity(product);
     }
@@ -86,6 +105,23 @@ public class ProductService {
         product.setDescription(request.getDescription());
 
         productRepository.save(product);
+
+        product.getCategories().clear();
+
+        if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+            for (Long categoryId : request.getCategoryIds()) {
+                Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new NotFoundException("Category with id " + categoryId + " not found"));
+
+                ProductCategory productCategory = new ProductCategory();
+                ProductCategoryId pcId = new ProductCategoryId(product.getId(), categoryId);
+                productCategory.setId(pcId);
+                productCategory.setProduct(product);
+                productCategory.setCategory(category);
+
+                product.getCategories().add(productCategory);
+            }
+        }
 
         return ProductResponse.fromEntity(product);
     }

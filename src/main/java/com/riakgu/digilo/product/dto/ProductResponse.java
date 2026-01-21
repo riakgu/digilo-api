@@ -1,5 +1,6 @@
 package com.riakgu.digilo.product.dto;
 
+import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.product.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -21,6 +24,7 @@ public class ProductResponse {
     private Boolean isActive;
     private Instant createdAt;
     private Instant updatedAt;
+    private List<String> categories;
 
     public static ProductResponse fromEntity(Product product) {
         return ProductResponse.builder()
@@ -31,6 +35,9 @@ public class ProductResponse {
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
+                .categories(product.getCategories().stream()
+                        .map(pc -> pc.getCategory().getSlug())
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

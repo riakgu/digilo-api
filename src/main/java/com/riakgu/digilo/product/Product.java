@@ -1,10 +1,7 @@
 package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.common.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
@@ -20,8 +17,9 @@ import java.util.Set;
 @Table(name = "products")
 public class Product extends BaseEntity {
 
-    @OneToMany(mappedBy = "product")
-    private Set<ProductCategory> categories = new HashSet<>();
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+@Builder.Default
+private Set<ProductCategory> categories = new HashSet<>();
 
     @Column(nullable = false, unique = true, length = 100)
     private String name;
