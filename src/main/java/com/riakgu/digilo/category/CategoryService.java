@@ -3,6 +3,8 @@ package com.riakgu.digilo.category;
 import com.riakgu.digilo.category.dto.CategoryRequest;
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
+import com.riakgu.digilo.common.exception.NotFoundException;
+import com.riakgu.digilo.common.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,13 @@ public class CategoryService {
                 .build();
 
         categoryRepository.save(category);
+
+        return CategoryResponse.fromEntity(category);
+    }
+
+    public CategoryResponse getBySlug(String slug) {
+        Category category = categoryRepository.findBySlug(slug)
+                .orElseThrow(() -> new NotFoundException("Category with slug " + slug + " not found")) ;
 
         return CategoryResponse.fromEntity(category);
     }
