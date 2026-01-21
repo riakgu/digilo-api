@@ -6,6 +6,7 @@ import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
+import com.riakgu.digilo.product.dto.ProductImageRequest;
 import com.riakgu.digilo.product.dto.ProductRequest;
 import com.riakgu.digilo.product.dto.ProductResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class ProductService {
     
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductImageRepository productImageRepository;
 
     @Transactional
     public ProductResponse create(ProductRequest request) {
@@ -161,5 +163,58 @@ public class ProductService {
 
         return categoryRepository.findAllByProductsProductSlugAndIsActive(slug, true, pageable)
                 .map(CategoryResponse::fromEntity);
+    }
+
+    @Transactional
+    public void addImage(Long productId, ProductImageRequest request) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        if (request.getIsPrimary()) {
+            product.getImages().forEach(img -> img.setIsPrimary(false));
+        }
+
+        ProductImage image = ProductImage.builder()
+                .product(product)
+                .imageUrl(request.getImageUrl())
+                .isPrimary(request.getIsPrimary())
+                .build();
+
+        product.getImages().add(image);
+        productRepository.save(product);
+    }
+
+    @Transactional
+    public void setPrimaryImage(Long productId, Long imageId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        ProductImage image = productImageRepository.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("Image with id " + imageId + " not found"));
+
+        if (!image.getProduct().getId().equals(productId)) {
+            throw new IllegalArgumentException("Image does not belong to this product");
+        }
+
+        product.getImages().forEach(img -> img.setIsPrimary(false));
+
+        image.setIsPrimary(true);
+        productImageRepository.save(image);
+    }
+
+    @Transactional
+    public void deleteImage(Long productId, Long imageId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        ProductImage image = productImageRepository.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("Image with id " + imageId + " not found"));
+
+        if (!image.getProduct().getId().equals(productId)) {
+            throw new IllegalArgumentException("Image does not belong to this product");
+        }
+
+        product.getImages().remove(image);
+        productImageRepository.delete(image);
     }
 }

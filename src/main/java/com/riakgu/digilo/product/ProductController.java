@@ -2,6 +2,7 @@ package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
+import com.riakgu.digilo.product.dto.ProductImageRequest;
 import com.riakgu.digilo.product.dto.ProductRequest;
 import com.riakgu.digilo.product.dto.ProductResponse;
 import jakarta.validation.Valid;
@@ -139,5 +140,35 @@ public class ProductController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Get all products successful", products));
+    }
+
+    @PostMapping("/admin/products/{id}/images")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> addImage(
+            @PathVariable Long id,
+            @RequestBody ProductImageRequest request
+    ) {
+        productService.addImage(id, request);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Image added"));
+    }
+
+    @PatchMapping("/admin/products/{productId}/images/{imageId}/primary")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> setPrimaryImage(
+            @PathVariable Long productId,
+            @PathVariable Long imageId
+    ) {
+        productService.setPrimaryImage(productId, imageId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Primary image set"));
+    }
+
+    @DeleteMapping("/admin/products/{productId}/images/{imageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteImage(
+            @PathVariable Long productId,
+            @PathVariable Long imageId
+    ) {
+        productService.deleteImage(productId, imageId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Image deleted"));
     }
 }
