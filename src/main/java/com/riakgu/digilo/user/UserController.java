@@ -18,16 +18,16 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse> getCurrentUser(@AuthenticationPrincipal Long userId) {
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@AuthenticationPrincipal Long userId) {
         UserResponse user = userService.getCurrentUser(userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(user));
+                .body(ApiResponse.success("OK", "Get current user successful", user));
     }
 
     @PatchMapping("/me/profile")
-    public ResponseEntity<ApiResponse> updateProfile(
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody UpdateProfileRequest request
     ) {
@@ -35,11 +35,11 @@ public class UserController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(user));
+                .body(ApiResponse.success("UPDATED", "Update profile successful", user));
     }
 
     @PatchMapping("/me/password")
-    public ResponseEntity<ApiResponse> changePassword(
+    public ResponseEntity<ApiResponse<UserResponse>> changePassword(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
@@ -47,6 +47,6 @@ public class UserController {
 
        return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(user));
+                .body(ApiResponse.success("UPDATED", "Change password successful", user));
     }
 }
