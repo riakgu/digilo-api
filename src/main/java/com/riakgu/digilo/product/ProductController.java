@@ -3,6 +3,7 @@ package com.riakgu.digilo.product;
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.product.dto.ProductImageRequest;
+import com.riakgu.digilo.product.dto.ProductImageResponse;
 import com.riakgu.digilo.product.dto.ProductRequest;
 import com.riakgu.digilo.product.dto.ProductResponse;
 import jakarta.validation.Valid;
@@ -170,5 +171,13 @@ public class ProductController {
     ) {
         productService.deleteImage(productId, imageId);
         return ResponseEntity.ok(ApiResponse.success("OK", "Image deleted"));
+    }
+
+    @GetMapping("/public/products/{id}/images")
+    public ResponseEntity<ApiResponse<List<ProductImageResponse>>> getImages(
+            @PathVariable Long id
+    ) {
+        List<ProductImageResponse> images = productService.getImagesByProduct(id);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Images retrieved successfully", images));
     }
 }

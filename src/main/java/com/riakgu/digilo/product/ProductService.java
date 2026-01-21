@@ -7,6 +7,7 @@ import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
 import com.riakgu.digilo.product.dto.ProductImageRequest;
+import com.riakgu.digilo.product.dto.ProductImageResponse;
 import com.riakgu.digilo.product.dto.ProductRequest;
 import com.riakgu.digilo.product.dto.ProductResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -216,5 +220,15 @@ public class ProductService {
 
         product.getImages().remove(image);
         productImageRepository.delete(image);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductImageResponse> getImagesByProduct(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        return product.getImages().stream()
+                .map(ProductImageResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 }
