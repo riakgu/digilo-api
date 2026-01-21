@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,6 +24,8 @@ public class ApiResponse<T> {
     private String path;
     private LocalDateTime timestamp;
     
+    private Pagination pagination;
+
     public static <T> ApiResponse<T> success(String code, String message) {
         return ApiResponse.<T>builder()
                 .code(code)
@@ -35,6 +39,16 @@ public class ApiResponse<T> {
                 .code(code)
                 .message(message)
                 .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<List<T>> success(String code, String message, Page<T> page) {
+        return ApiResponse.<java.util.List<T>>builder()
+                .code(code)
+                .message(message)
+                .data(page.getContent())
+                .pagination(Pagination.from(page))
                 .timestamp(LocalDateTime.now())
                 .build();
     }
