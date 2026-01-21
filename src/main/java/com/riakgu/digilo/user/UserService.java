@@ -25,7 +25,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public UserResponse getCurrentUser(Long userId) {
+    public UserResponse getProfile(Long userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));

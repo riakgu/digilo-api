@@ -8,25 +8,28 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@AuthenticationPrincipal Long userId) {
-        UserResponse user = userService.getCurrentUser(userId);
+    @GetMapping("/user/profile")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> getProfile(@AuthenticationPrincipal Long userId) {
+        UserResponse user = userService.getProfile(userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Get current user successful", user));
     }
 
-    @PatchMapping("/me/profile")
+    @PatchMapping("/user/profile")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody UpdateProfileRequest request
@@ -38,7 +41,8 @@ public class UserController {
                 .body(ApiResponse.success("UPDATED", "Update profile successful", user));
     }
 
-    @PatchMapping("/me/password")
+    @PatchMapping("/user/password")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> changePassword(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ChangePasswordRequest request
