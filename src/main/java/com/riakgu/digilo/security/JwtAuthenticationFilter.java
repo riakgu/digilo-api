@@ -32,29 +32,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             try {
-                DecodedJWT decoded = jwtService.verifyAccessToken(token);
+                if (!jwtService.isBlacklisted(token)) {
+                    DecodedJWT decoded = jwtService.verifyAccessToken(token);
+                    Long userId = Long.valueOf(decoded.getSubject());
+                    String role = decoded.getClaim("role").asString();
 
-                if (jwtService.isBlacklisted(token)) {
-                    filterChain.doFilter(request, response);
-                    return;
+                    Authentication authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userId,
+                                    null,
+                                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                            );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    SecurityContextHolder.clearContext();
                 }
-
-                Long userId = Long.valueOf(decoded.getSubject());
-                String role = decoded.getClaim("role").asString();
-
-                Authentication authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
-                        );
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();
             }
-
         }
 
         filterChain.doFilter(request, response);

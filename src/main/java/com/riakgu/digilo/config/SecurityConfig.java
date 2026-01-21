@@ -1,5 +1,6 @@
 package com.riakgu.digilo.config;
 
+import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 
@@ -21,6 +23,7 @@ import java.time.Instant;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,39 +35,15 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json");
-
-                            String body = """
-                            {
-                              "code": "UNAUTHORIZED",
-                              "message": "Invalid or expired token",
-                              "path": "%s",
-                              "timestamp": "%s"
-                            }
-                            """.formatted(
-                                    request.getRequestURI(),
-                                    Instant.now().toString()
-                            );
-
-                            response.getWriter().write(body);
+                            ApiResponse<Object> apiResponse = ApiResponse.error("UNAUTHORIZED", "Invalid or expired token", request.getRequestURI());
+                            response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
                         })
 
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType("application/json");
-
-                            String body = """
-                            {
-                              "code": "FORBIDDEN",
-                              "message": "You don't have permission",
-                              "path": "%s",
-                              "timestamp": "%s"
-                            }
-                            """.formatted(
-                                    request.getRequestURI(),
-                                    Instant.now().toString()
-                            );
-
-                            response.getWriter().write(body);
+                            ApiResponse<Object> apiResponse = ApiResponse.error("ACCESS_DENIED", "Access denied", request.getRequestURI());
+                            response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
                         })
                 )
                 .authorizeHttpRequests((requests) -> requests
