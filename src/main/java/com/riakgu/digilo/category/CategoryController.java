@@ -31,7 +31,7 @@ public class CategoryController {
     }
 
     @GetMapping("/public/categories/{slug}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> findBySlug(
+    public ResponseEntity<ApiResponse<CategoryResponse>> getBySlug(
             @PathVariable String slug
     ) {
         CategoryResponse category = categoryService.getBySlug(slug);
@@ -43,7 +43,7 @@ public class CategoryController {
 
     @GetMapping("/admin/categories/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CategoryResponse>> findById(
+    public ResponseEntity<ApiResponse<CategoryResponse>> getById(
             @PathVariable Long id
     ) {
         CategoryResponse category = categoryService.getById(id);
@@ -51,5 +51,18 @@ public class CategoryController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Category found successfully", category));
+    }
+
+    @PutMapping("/admin/categories/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryResponse>> update(
+            @PathVariable Long id,
+            @Valid @RequestBody CategoryRequest request
+    ) {
+        CategoryResponse category = categoryService.update(request, id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Category updated successfully", category));
     }
 }

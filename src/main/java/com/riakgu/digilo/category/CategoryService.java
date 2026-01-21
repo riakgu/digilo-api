@@ -5,6 +5,7 @@ import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.exception.UnauthorizedException;
+import com.riakgu.digilo.common.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,17 +19,20 @@ public class CategoryService {
 
     public CategoryResponse create(CategoryRequest request) {
 
-        if (categoryRepository.existsByName(request.getName())) {
-            throw new DuplicateResourceException("Category with name " + request.getName() + " already exists");
+        String newName = request.getName().trim();
+        String newSlug = SlugUtil.normalize(request.getSlug());
+
+        if (categoryRepository.existsByName(newName)) {
+            throw new DuplicateResourceException("Category with name " + newName + " already exists");
         }
 
-        if (categoryRepository.existsBySlug(request.getSlug())) {
-            throw new DuplicateResourceException("Category with slug " + request.getSlug() + " already exists");
+        if (categoryRepository.existsBySlug(newSlug)) {
+            throw new DuplicateResourceException("Category with slug " + newSlug + " already exists");
         }
 
         Category category = Category.builder()
-                .name(request.getName())
-                .slug(request.getSlug())
+                .name(newName)
+                .slug(newSlug)
                 .description(request.getDescription())
                 .build();
 
@@ -47,6 +51,34 @@ public class CategoryService {
     public CategoryResponse getById(Long id) {
         Category category= categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
+
+        return CategoryResponse.fromEntity(category);
+    }
+
+    public CategoryResponse update(CategoryRequest request, Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
+
+        String newName = request.getName().trim();
+        String newSlug = SlugUtil.normalize(request.getSlug());
+
+        if (!category.getName().equalsIgnoreCase(newName)) {
+            if (categoryRepository.existsByName(newName)) {
+                throw new DuplicateResourceException("Category with name " + newName + " already exists");
+            }
+        }
+
+        if (!category.getSlug().equalsIgnoreCase(newSlug)) {
+            if (categoryRepository.existsBySlug(newSlug)) {
+                throw new DuplicateResourceException("Category with slug " + newSlug + " already exists");
+            }
+        }
+
+        category.setName(newName);
+        category.setSlug(newSlug);
+        category.setDescription(request.getDescription());
+
+        categoryRepository.save(category);
 
         return CategoryResponse.fromEntity(category);
     }
