@@ -1,5 +1,6 @@
 package com.riakgu.digilo.product;
 
+import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.product.dto.ProductRequest;
 import com.riakgu.digilo.product.dto.ProductResponse;
@@ -53,6 +54,16 @@ public class ProductController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Search results", products));
+    }
+
+    @GetMapping("/public/products/{slug}/categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategoriesByProduct(
+            @PathVariable String slug,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<CategoryResponse> categories = productService.getCategoriesByProduct(slug, pageable);
+
+        return ResponseEntity.ok(ApiResponse.success("OK", "Categories found", categories));
     }
 
     @PostMapping("/admin/products")

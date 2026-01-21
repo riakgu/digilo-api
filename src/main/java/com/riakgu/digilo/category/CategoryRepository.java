@@ -1,5 +1,6 @@
 package com.riakgu.digilo.category;
 
+import com.riakgu.digilo.product.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,5 +23,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Page<Category> findAllByIsActive(Boolean isActive, Pageable pageable);
 
     Page<Category> findAll(Pageable pageable);
+
+    Page<Category> findAllByProductsProductSlugAndIsActive(String productSlug, Boolean isActive, Pageable pageable);
 
 }

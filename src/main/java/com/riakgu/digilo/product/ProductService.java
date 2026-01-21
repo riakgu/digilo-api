@@ -2,6 +2,7 @@ package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.category.Category;
 import com.riakgu.digilo.category.CategoryRepository;
+import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
@@ -20,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService {
     
     private final ProductRepository productRepository;
-
     private final CategoryRepository categoryRepository;
 
     @Transactional
@@ -152,5 +152,14 @@ public class ProductService {
     public Page<ProductResponse> search(String query, Pageable pageable) {
         return productRepository.searchProducts(query, pageable)
                 .map(ProductResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CategoryResponse> getCategoriesByProduct(String slug, Pageable pageable) {
+        productRepository.findBySlugAndIsActive(slug, true)
+                .orElseThrow(() -> new NotFoundException("Product with slug " + slug + " not found"));
+
+        return categoryRepository.findAllByProductsProductSlugAndIsActive(slug, true, pageable)
+                .map(CategoryResponse::fromEntity);
     }
 }
