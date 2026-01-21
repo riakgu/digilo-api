@@ -180,4 +180,15 @@ public class ProductController {
         List<ProductImageResponse> images = productService.getImagesByProduct(id);
         return ResponseEntity.ok(ApiResponse.success("OK", "Images retrieved successfully", images));
     }
+
+    @PutMapping("/admin/products/{productId}/images/{imageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> updateImage(
+            @PathVariable Long productId,
+            @PathVariable Long imageId,
+            @Valid @RequestBody ProductImageRequest request
+    ) {
+        productService.updateImage(productId, imageId, request);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Image updated successfully"));
+    }
 }

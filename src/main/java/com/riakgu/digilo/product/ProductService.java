@@ -3,6 +3,7 @@ package com.riakgu.digilo.product;
 import com.riakgu.digilo.category.Category;
 import com.riakgu.digilo.category.CategoryRepository;
 import com.riakgu.digilo.category.dto.CategoryResponse;
+import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
@@ -64,6 +65,18 @@ public class ProductService {
                 productCategory.setCategory(category);
 
                 product.getCategories().add(productCategory);
+            }
+        }
+
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            for (int i = 0; i < request.getImageUrls().size(); i++) {
+                ProductImage image = ProductImage.builder()
+                        .product(product)
+                        .imageUrl(request.getImageUrls().get(i))
+                        .isPrimary(i == 0)
+                        .build();
+
+                product.getImages().add(image);
             }
         }
 
@@ -129,6 +142,19 @@ public class ProductService {
             }
         }
 
+        product.getImages().clear();
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            for (int i = 0; i < request.getImageUrls().size(); i++) {
+                ProductImage image = ProductImage.builder()
+                        .product(product)
+                        .imageUrl(request.getImageUrls().get(i))
+                        .isPrimary(i == 0)
+                        .build();
+
+                product.getImages().add(image);
+            }
+        }
+
         return ProductResponse.fromEntity(product);
     }
 
@@ -174,14 +200,16 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
 
-        if (request.getIsPrimary()) {
+        boolean shouldBePrimary = product.getImages().isEmpty() || request.getIsPrimary();
+
+        if (shouldBePrimary) {
             product.getImages().forEach(img -> img.setIsPrimary(false));
         }
 
         ProductImage image = ProductImage.builder()
                 .product(product)
                 .imageUrl(request.getImageUrl())
-                .isPrimary(request.getIsPrimary())
+                .isPrimary(shouldBePrimary)
                 .build();
 
         product.getImages().add(image);
@@ -197,7 +225,7 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Image with id " + imageId + " not found"));
 
         if (!image.getProduct().getId().equals(productId)) {
-            throw new IllegalArgumentException("Image does not belong to this product");
+            throw new BadRequestException("Image does not belong to this product");
         }
 
         product.getImages().forEach(img -> img.setIsPrimary(false));
@@ -215,11 +243,17 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Image with id " + imageId + " not found"));
 
         if (!image.getProduct().getId().equals(productId)) {
-            throw new IllegalArgumentException("Image does not belong to this product");
+            throw new BadRequestException("Image does not belong to this product");
         }
 
+        boolean wasPrimary = image.getIsPrimary();
         product.getImages().remove(image);
         productImageRepository.delete(image);
+
+        if (wasPrimary && !product.getImages().isEmpty()) {
+            product.getImages().iterator().next().setIsPrimary(true);
+            productRepository.save(product);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -230,5 +264,27 @@ public class ProductService {
         return product.getImages().stream()
                 .map(ProductImageResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateImage(Long productId, Long imageId, ProductImageRequest request) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        ProductImage image = productImageRepository.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("Image with id " + imageId + " not found"));
+
+        if (!image.getProduct().getId().equals(productId)) {
+            throw new BadRequestException("Image does not belong to this product");
+        }
+
+        image.setImageUrl(request.getImageUrl());
+
+        if (request.getIsPrimary() && !image.getIsPrimary()) {
+            product.getImages().forEach(img -> img.setIsPrimary(false));
+            image.setIsPrimary(true);
+        }
+
+        productImageRepository.save(image);
     }
 }
