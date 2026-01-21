@@ -5,15 +5,15 @@ import com.riakgu.digilo.auth.dto.AuthResponse;
 import com.riakgu.digilo.auth.dto.LoginRequest;
 import com.riakgu.digilo.auth.dto.RefreshRequest;
 import com.riakgu.digilo.auth.dto.RegisterRequest;
+import com.riakgu.digilo.common.exception.DuplicateResourceException;
+import com.riakgu.digilo.common.exception.UnauthorizedException;
 import com.riakgu.digilo.user.Role;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
+            throw new DuplicateResourceException("Email already exists");
         }
 
         User user = User.builder()
@@ -48,10 +48,10 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            throw new UnauthorizedException("Invalid credentials");
         }
 
         return AuthResponse.builder()
@@ -76,7 +76,7 @@ public class AuthService {
             String token = authHeader.substring(7);
 
             if (jwtService.isBlacklisted(token)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token");
+                throw new UnauthorizedException("Invalid token");
             }
 
             DecodedJWT decoded = jwtService.verifyAccessToken(token);

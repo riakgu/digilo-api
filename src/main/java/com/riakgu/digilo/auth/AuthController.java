@@ -18,39 +18,39 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse register = authService.register(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(register));
+                .body(ApiResponse.success("CREATED", "Register successful", register));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse login = authService.login(request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(login));
+                .body(ApiResponse.success("OK", "Login successful", login));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse> refresh(@Valid @RequestBody RefreshRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
         AuthResponse refresh = authService.refresh(request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success(refresh));
+                .body(ApiResponse.success("OK", "Refresh token successful", refresh));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<ApiResponse<Object>> logout(@RequestHeader("Authorization") String authHeader) {
         authService.logout(authHeader);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("Logged out successfully"));
+                .body(ApiResponse.success("OK", "Logged out successfully"));
     }
 
 }
