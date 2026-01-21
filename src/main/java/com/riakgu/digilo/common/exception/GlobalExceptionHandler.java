@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -143,8 +144,27 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-        @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<Object>> handleInvalidJson(HttpMessageNotReadableException ex, HttpServletRequest request) {
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Object>> handleInvalidJson(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        Throwable cause = ex.getCause();
+
+        if (cause instanceof InvalidFormatException ife
+                && ife.getTargetType().isEnum()) {
+
+            Object[] allowedValues = ife.getTargetType().getEnumConstants();
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(
+                            "INVALID_ENUM",
+                            "Invalid value. Allowed values: " + java.util.Arrays.toString(allowedValues),
+                            request.getRequestURI()
+                    ));
+        }
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(
