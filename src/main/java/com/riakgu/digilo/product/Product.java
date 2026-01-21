@@ -18,8 +18,12 @@ import java.util.Set;
 public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-@Builder.Default
-private Set<ProductCategory> categories = new HashSet<>();
+    @Builder.Default
+    private Set<ProductCategory> categories = new HashSet<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<ProductImage> images = new HashSet<>();
 
     @Column(nullable = false, unique = true, length = 100)
     private String name;
