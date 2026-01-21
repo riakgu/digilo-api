@@ -1,6 +1,7 @@
 package com.riakgu.digilo.user;
 
 import com.riakgu.digilo.auth.dto.AuthResponse;
+import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
@@ -9,6 +10,8 @@ import com.riakgu.digilo.user.dto.UpdateProfileRequest;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +79,12 @@ public class UserService {
         userRepository.save(user);
 
         return UserResponse.fromEntity(user);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserResponse> getAll(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(UserResponse::fromEntity);
     }
 
 }

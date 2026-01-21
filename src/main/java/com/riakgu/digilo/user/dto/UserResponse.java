@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,6 +19,8 @@ public class UserResponse {
     private String email;
     private String phone;
     private String role;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public static UserResponse fromEntity(User user) {
         return UserResponse.builder()
@@ -25,6 +29,8 @@ public class UserResponse {
                 .phone(user.getPhone())
                 .name(user.getName())
                 .role(user.getRole().name())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }
