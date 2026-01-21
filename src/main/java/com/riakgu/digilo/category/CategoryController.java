@@ -3,6 +3,7 @@ package com.riakgu.digilo.category;
 import com.riakgu.digilo.category.dto.CategoryRequest;
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
+import com.riakgu.digilo.product.dto.ProductResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,37 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    @GetMapping("/public/categories/{slug}")
+    public ResponseEntity<ApiResponse<CategoryResponse>> getBySlug(
+            @PathVariable String slug
+    ) {
+        CategoryResponse category = categoryService.getActiveBySlug(slug);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Category found successfully", category));
+    }
+
+    @GetMapping("/public/categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllActive(
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<CategoryResponse> categories = categoryService.getAllActive(pageable);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Get all active categories successful", categories));
+    }
+
+    @GetMapping("/public/categories/{slug}/products")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getProductsByCategory(
+            @PathVariable String slug,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<ProductResponse> products = categoryService.getProductsByCategory(slug, pageable);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Products found", products));
+    }
+
     @PostMapping("/admin/categories")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CategoryResponse>> create(
@@ -33,17 +65,6 @@ public class CategoryController {
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("CREATED", "Category created successfully", category));
 
-    }
-
-    @GetMapping("/public/categories/{slug}")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getBySlug(
-            @PathVariable String slug
-    ) {
-        CategoryResponse category = categoryService.getActiveBySlug(slug);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Category found successfully", category));
     }
 
     @GetMapping("/admin/categories/{id}")
@@ -95,18 +116,6 @@ public class CategoryController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Category deactivated successfully"));
     }
-
-    @GetMapping("/public/categories")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllActive(
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
-        Page<CategoryResponse> categories = categoryService.getAllActive(pageable);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get all active categories successful", categories));
-    }
-
 
     @GetMapping("/admin/categories")
     @PreAuthorize("hasRole('ADMIN')")

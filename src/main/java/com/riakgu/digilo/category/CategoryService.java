@@ -5,6 +5,8 @@ import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
+import com.riakgu.digilo.product.ProductRepository;
+import com.riakgu.digilo.product.dto.ProductResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,7 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Transactional
     public CategoryResponse create(CategoryRequest request) {
@@ -112,5 +115,14 @@ public class CategoryService {
     public Page<CategoryResponse> getAll(Pageable pageable) {
         return categoryRepository.findAll(pageable)
                 .map(CategoryResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> getProductsByCategory(String slug, Pageable pageable) {
+        categoryRepository.findBySlugAndIsActive(slug, true)
+                .orElseThrow(() -> new NotFoundException("Category with slug " + slug + " not found"));
+
+        return productRepository.findAllByCategoriesCategorySlugAndIsActive(slug, true, pageable)
+                .map(ProductResponse::fromEntity);
     }
 }
