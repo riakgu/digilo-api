@@ -7,6 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,6 +19,9 @@ public class CategoryResponse {
     private String name;
     private String slug;
     private String description;
+    private Boolean isActive;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public static CategoryResponse fromEntity(Category category) {
         return CategoryResponse.builder()
@@ -23,6 +29,9 @@ public class CategoryResponse {
                 .name(category.getName())
                 .slug(category.getSlug())
                 .description(category.getDescription())
+                .isActive(category.getIsActive())
+                .createdAt(category.getCreatedAt())
+                .updatedAt(category.getUpdatedAt())
                 .build();
     }
 }

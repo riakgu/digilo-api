@@ -4,11 +4,11 @@ import com.riakgu.digilo.category.dto.CategoryRequest;
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
-import com.riakgu.digilo.common.exception.UnauthorizedException;
 import com.riakgu.digilo.common.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -17,6 +17,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @Transactional
     public CategoryResponse create(CategoryRequest request) {
 
         String newName = request.getName().trim();
@@ -34,6 +35,7 @@ public class CategoryService {
                 .name(newName)
                 .slug(newSlug)
                 .description(request.getDescription())
+                .isActive(true)
                 .build();
 
         categoryRepository.save(category);
@@ -41,13 +43,15 @@ public class CategoryService {
         return CategoryResponse.fromEntity(category);
     }
 
-    public CategoryResponse getBySlug(String slug) {
-        Category category = categoryRepository.findBySlug(slug)
+    @Transactional(readOnly = true)
+    public CategoryResponse getActiveBySlug(String slug) {
+        Category category = categoryRepository.findBySlugAndIsActive(slug, Boolean.TRUE)
                 .orElseThrow(() -> new NotFoundException("Category with slug " + slug + " not found")) ;
 
         return CategoryResponse.fromEntity(category);
     }
 
+    @Transactional(readOnly = true)
     public CategoryResponse getById(Long id) {
         Category category= categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
@@ -55,6 +59,7 @@ public class CategoryService {
         return CategoryResponse.fromEntity(category);
     }
 
+    @Transactional
     public CategoryResponse update(CategoryRequest request, Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
@@ -81,5 +86,15 @@ public class CategoryService {
         categoryRepository.save(category);
 
         return CategoryResponse.fromEntity(category);
+    }
+
+    @Transactional
+    public void updateStatus(Long id, boolean isActive) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
+
+        category.setIsActive(isActive);
+        categoryRepository.save(category);
+
     }
 }

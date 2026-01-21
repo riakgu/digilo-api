@@ -34,7 +34,7 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryResponse>> getBySlug(
             @PathVariable String slug
     ) {
-        CategoryResponse category = categoryService.getBySlug(slug);
+        CategoryResponse category = categoryService.getActiveBySlug(slug);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -64,5 +64,30 @@ public class CategoryController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Category updated successfully", category));
+    }
+
+
+    @PatchMapping("/admin/categories/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryResponse>> activate(
+            @PathVariable Long id
+    ) {
+        categoryService.updateStatus(id, true);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Category activated successfully"));
+    }
+
+    @PatchMapping("/admin/categories/{id}/deactivate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryResponse>> deactivate(
+            @PathVariable Long id
+    ) {
+        categoryService.updateStatus(id, false);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Category deactivated successfully"));
     }
 }
