@@ -22,7 +22,6 @@ public class ProductController {
 
     private final ProductService productService;
 
-
     @GetMapping("/public/products/{slug}")
     public ResponseEntity<ApiResponse<ProductResponse>> getBySlug(
             @PathVariable String slug
@@ -43,6 +42,17 @@ public class ProductController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Get all active products successful", products));
+    }
+
+    @GetMapping("/public/products/search")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> search(
+            @RequestParam String q,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<ProductResponse> products = productService.search(q, pageable);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Search results", products));
     }
 
     @PostMapping("/admin/products")

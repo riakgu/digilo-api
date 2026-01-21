@@ -147,4 +147,10 @@ public class ProductService {
         return productRepository.findAll(pageable)
                 .map(ProductResponse::fromEntity);
     }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> search(String query, Pageable pageable) {
+        return productRepository.searchProducts(query, pageable)
+                .map(ProductResponse::fromEntity);
+    }
 }
