@@ -1,7 +1,10 @@
 package com.riakgu.digilo.category;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
@@ -15,4 +18,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findById(Long id);
 
     Optional<Category> findBySlugAndIsActive(String slug, Boolean isActive);
+
+    Page<Category> findAllByIsActive(Boolean isActive, Pageable pageable);
+
+    Page<Category> findAll(Pageable pageable);
+
 }

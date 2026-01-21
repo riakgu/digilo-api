@@ -7,8 +7,12 @@ import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -96,5 +100,17 @@ public class CategoryService {
         category.setIsActive(isActive);
         categoryRepository.save(category);
 
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CategoryResponse> getAllActive(Pageable pageable) {
+        return categoryRepository.findAllByIsActive(true, pageable)
+                .map(CategoryResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CategoryResponse> getAll(Pageable pageable) {
+        return categoryRepository.findAll(pageable)
+                .map(CategoryResponse::fromEntity);
     }
 }
