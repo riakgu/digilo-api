@@ -43,4 +43,11 @@ public class CategoryService {
 
         return CategoryResponse.fromEntity(category);
     }
+
+    public CategoryResponse getById(Long id) {
+        Category category= categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
+
+        return CategoryResponse.fromEntity(category);
+    }
 }

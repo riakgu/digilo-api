@@ -40,4 +40,16 @@ public class CategoryController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Category found successfully", category));
     }
+
+    @GetMapping("/admin/categories/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<CategoryResponse>> findById(
+            @PathVariable Long id
+    ) {
+        CategoryResponse category = categoryService.getById(id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Category found successfully", category));
+    }
 }
