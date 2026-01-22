@@ -1,4 +1,4 @@
-package com.riakgu.digilo.common.entity;
+package com.riakgu.digilo.common.base;
 
 import jakarta.persistence.*;
 import lombok.*;

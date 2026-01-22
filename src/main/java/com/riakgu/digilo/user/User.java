@@ -1,6 +1,6 @@
 package com.riakgu.digilo.user;
 
-import com.riakgu.digilo.common.entity.BaseEntity;
+import com.riakgu.digilo.common.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

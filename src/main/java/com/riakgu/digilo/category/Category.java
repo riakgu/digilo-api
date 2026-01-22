@@ -1,6 +1,6 @@
 package com.riakgu.digilo.category;
 
-import com.riakgu.digilo.common.entity.BaseEntity;
+import com.riakgu.digilo.common.base.BaseEntity;
 import com.riakgu.digilo.product.ProductCategory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
