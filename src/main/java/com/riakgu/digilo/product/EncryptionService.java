@@ -2,6 +2,7 @@ package com.riakgu.digilo.product;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.riakgu.digilo.config.EncryptionProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
@@ -15,11 +16,8 @@ public class EncryptionService {
     private final TextEncryptor encryptor;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public EncryptionService(
-            @Value("${app.encryption.password}") String password,
-            @Value("${app.encryption.salt}") String salt
-    ) {
-        this.encryptor = Encryptors.text(password, salt);
+    public EncryptionService(EncryptionProperties properties) {
+        this.encryptor = Encryptors.text(properties.getPassword(), properties.getSalt());
     }
 
     public String encrypt(Map<String, Object> data) {
