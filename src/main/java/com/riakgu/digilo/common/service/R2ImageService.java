@@ -1,6 +1,6 @@
 package com.riakgu.digilo.common.service;
 
-import com.riakgu.digilo.common.config.R2Properties;
+import com.riakgu.digilo.config.R2Properties;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
