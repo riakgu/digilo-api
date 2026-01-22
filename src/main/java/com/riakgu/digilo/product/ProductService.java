@@ -6,6 +6,7 @@ import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
+import com.riakgu.digilo.common.service.R2ImageService;
 import com.riakgu.digilo.common.util.SlugUtil;
 import com.riakgu.digilo.product.dto.ProductImageRequest;
 import com.riakgu.digilo.product.dto.ProductImageResponse;
@@ -29,6 +30,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductImageRepository productImageRepository;
+    private final R2ImageService r2ImageService;
 
     @Transactional
     public ProductResponse create(ProductRequest request) {
@@ -246,7 +248,15 @@ public class ProductService {
             throw new BadRequestException("Image does not belong to this product");
         }
 
+
         boolean wasPrimary = image.getIsPrimary();
+
+        String imageUrl = image.getImageUrl();
+        String fileName = r2ImageService.extractFileNameIfR2(imageUrl);
+        if (fileName != null) {
+            r2ImageService.deleteImage(fileName);
+        }
+        
         product.getImages().remove(image);
         productImageRepository.delete(image);
 
