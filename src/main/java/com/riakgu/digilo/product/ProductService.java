@@ -6,7 +6,6 @@ import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
-import com.riakgu.digilo.common.service.R2ImageService;
 import com.riakgu.digilo.common.util.SlugUtil;
 import com.riakgu.digilo.product.dto.ProductImageRequest;
 import com.riakgu.digilo.product.dto.ProductImageResponse;

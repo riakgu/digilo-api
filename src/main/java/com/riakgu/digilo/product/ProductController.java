@@ -2,7 +2,6 @@ package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
-import com.riakgu.digilo.common.service.R2ImageService;
 import com.riakgu.digilo.product.dto.ProductImageRequest;
 import com.riakgu.digilo.product.dto.ProductImageResponse;
 import com.riakgu.digilo.product.dto.ProductRequest;

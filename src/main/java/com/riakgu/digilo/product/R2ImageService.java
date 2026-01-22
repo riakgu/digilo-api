@@ -1,4 +1,4 @@
-package com.riakgu.digilo.common.service;
+package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.config.R2Properties;
 import com.riakgu.digilo.common.exception.BadRequestException;
