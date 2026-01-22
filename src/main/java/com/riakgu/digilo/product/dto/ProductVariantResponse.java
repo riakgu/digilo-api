@@ -16,7 +16,6 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductVariantResponse {
 
     private Long id;

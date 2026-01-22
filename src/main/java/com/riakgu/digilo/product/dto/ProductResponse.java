@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductResponse {
 
     private Long id;
@@ -25,6 +25,8 @@ public class ProductResponse {
     private String slug;
     private String description;
     private String imageUrl;
+    private BigDecimal minPrice;
+    private BigDecimal maxPrice;
     private Boolean isActive;
     private Instant createdAt;
     private Instant updatedAt;
@@ -33,6 +35,15 @@ public class ProductResponse {
     private List<ProductVariantResponse> variants;
 
     public static ProductResponse fromEntity(Product product, List<ProductVariantResponse> variants) {
+        BigDecimal minPrice = variants.stream()
+                .map(ProductVariantResponse::getPrice)
+                .min(BigDecimal::compareTo)
+                .orElse(null);
+        BigDecimal maxPrice = variants.stream()
+                .map(ProductVariantResponse::getPrice)
+                .max(BigDecimal::compareTo)
+                .orElse(null);
+        
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -43,6 +54,8 @@ public class ProductResponse {
                         .map(ProductImage::getImageUrl)
                         .findFirst()
                         .orElse(null))
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
