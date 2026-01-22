@@ -41,6 +41,12 @@ cloudflare:
     bucket-name: digilo
     public-url: https://pub-xxxxx.r2.dev
 
+midtrans:
+  server-key: YOUR_SERVER_KEY
+  client-key: YOUR_CLIENT_KEY
+  base-url: https://api.sandbox.midtrans.com
+  production: false
+
 logging:
   level:
     org.hibernate.SQL: debug
