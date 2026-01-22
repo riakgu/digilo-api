@@ -1,3 +1,8 @@
+app:
+  encryption:
+    password: "your-strong-password-here"
+    salt: "deadbeef12345678"  # 16 hex chars (8 bytes)
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/digilo
