@@ -15,6 +15,7 @@ import com.riakgu.digilo.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,31 +46,14 @@ public class OrderService {
             throw new BadRequestException("Cart is empty");
         }
 
-        // Validate stock for AUTO delivery variants (HYBRID can proceed with partial/no stock)
-        for (CartItem cartItem : cart.getItems()) {
-            DeliveryType deliveryType = cartItem.getVariant().getDeliveryType();
-
-            if (deliveryType == DeliveryType.AUTO) {
-                long availableStock = inventoryRepository.countByVariantIdAndStatus(
-                        cartItem.getVariant().getId(), InventoryStatus.AVAILABLE);
-                if (availableStock < cartItem.getQuantity()) {
-                    throw new BadRequestException("Not enough stock for " + cartItem.getVariant().getName());
-                }
-            }
-            // MANUAL: No validation needed - always allow
-            // HYBRID: No validation needed - will auto-deliver if stock available, manual if not
-        }
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        // Calculate total
         BigDecimal totalAmount = cart.getItems().stream()
                 .map(item -> item.getVariant().getPrice()
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Create order
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .user(user)
@@ -80,7 +64,6 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        // Create order items with price snapshot
         for (CartItem cartItem : cart.getItems()) {
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
@@ -94,34 +77,32 @@ public class OrderService {
             order.getItems().add(orderItem);
         }
 
-        // Reserve inventory based on delivery type
-        for (CartItem cartItem : cart.getItems()) {
-            DeliveryType deliveryType = cartItem.getVariant().getDeliveryType();
-            Long variantId = cartItem.getVariant().getId();
-            int quantity = cartItem.getQuantity();
+        for (OrderItem orderItem : order.getItems()) {
+            DeliveryType deliveryType = orderItem.getVariant().getDeliveryType();
+            Long variantId = orderItem.getVariant().getId();
+            int quantity = orderItem.getQuantity();
 
             if (deliveryType == DeliveryType.AUTO) {
-                // AUTO: Must reserve all
-                reserveInventory(variantId, quantity);
+                reserveInventory(orderItem.getId(), variantId, quantity);
+
             } else if (deliveryType == DeliveryType.HYBRID) {
-                // HYBRID: Reserve as many as available
                 long availableStock = inventoryRepository.countByVariantIdAndStatus(
                         variantId, InventoryStatus.AVAILABLE);
+
                 int toReserve = (int) Math.min(availableStock, quantity);
+
                 if (toReserve > 0) {
-                    reserveInventory(variantId, toReserve);
+                    reserveInventory(orderItem.getId(), variantId, toReserve);
                 }
-                // Rest will be fulfilled manually by admin
             }
-            // MANUAL: No reservation - admin will provide manually
         }
 
-        // Clear cart after order created
         cart.getItems().clear();
         cartRepository.save(cart);
 
         return OrderResponse.fromEntity(order);
     }
+
 
     @Transactional(readOnly = true)
     public OrderResponse getById(Long orderId, Long userId) {
@@ -199,55 +180,51 @@ public class OrderService {
         return OrderResponse.fromEntity(order);
     }
 
-    private void reserveInventory(Long variantId, int quantity) {
+    private void reserveInventory(Long orderItemId, Long variantId, int quantity) {
         for (int i = 0; i < quantity; i++) {
+
             ProductInventory inventory = inventoryRepository
-                    .findFirstByVariantIdAndStatus(variantId, InventoryStatus.AVAILABLE)
-                    .orElseThrow(() -> new BadRequestException("No available inventory"));
+                    .findAvailableForUpdate(
+                            variantId,
+                            PageRequest.of(0, 1)
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException("Out of Stock"));
 
             inventory.setStatus(InventoryStatus.RESERVED);
+            inventory.setOrderItemId(orderItemId);
             inventory.setReservedAt(Instant.now());
+
             inventoryRepository.save(inventory);
         }
     }
 
     private void markInventoryAsSold(Order order) {
         for (OrderItem item : order.getItems()) {
-            DeliveryType deliveryType = item.getVariant().getDeliveryType();
 
-            if (deliveryType == DeliveryType.AUTO || deliveryType == DeliveryType.HYBRID) {
-                // Mark reserved inventory as sold
-                List<ProductInventory> reserved = inventoryRepository
-                        .findByVariantIdAndStatus(item.getVariant().getId(), InventoryStatus.RESERVED);
+            List<ProductInventory> reserved = inventoryRepository
+                    .findByOrderItemIdAndStatus(item.getId(), InventoryStatus.RESERVED);
 
-                int count = 0;
-                for (ProductInventory inv : reserved) {
-                    if (count >= item.getQuantity()) break;
-                    inv.setStatus(InventoryStatus.SOLD);
-                    inv.setSoldAt(Instant.now());
-                    inv.setOrderItemId(item.getId());
-                    inventoryRepository.save(inv);
-                    count++;
-                }
+            for (ProductInventory inv : reserved) {
+                inv.setStatus(InventoryStatus.SOLD);
+                inv.setSoldAt(Instant.now());
+                inventoryRepository.save(inv);
             }
-            // MANUAL: No inventory to mark - admin provides manually
         }
     }
 
     private void releaseInventory(Order order) {
         for (OrderItem item : order.getItems()) {
-            if (item.getVariant().getDeliveryType() == DeliveryType.AUTO) {
-                List<ProductInventory> reserved = inventoryRepository
-                        .findByVariantIdAndStatus(item.getVariant().getId(), InventoryStatus.RESERVED);
 
-                int count = 0;
-                for (ProductInventory inv : reserved) {
-                    if (count >= item.getQuantity()) break;
-                    inv.setStatus(InventoryStatus.AVAILABLE);
-                    inv.setReservedAt(null);
-                    inventoryRepository.save(inv);
-                    count++;
-                }
+            List<ProductInventory> reserved = inventoryRepository
+                    .findByOrderItemIdAndStatus(item.getId(), InventoryStatus.RESERVED);
+
+            for (ProductInventory inv : reserved) {
+                inv.setStatus(InventoryStatus.AVAILABLE);
+                inv.setReservedAt(null);
+                inv.setOrderItemId(null);
+                inventoryRepository.save(inv);
             }
         }
     }
@@ -276,4 +253,5 @@ public class OrderService {
 
         return orderNumber;
     }
+
 }
