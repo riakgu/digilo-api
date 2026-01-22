@@ -32,7 +32,7 @@ public class ProductResponse {
     private List<String> images;
     private List<ProductVariantResponse> variants;
 
-    public static ProductResponse fromEntity(Product product) {
+    public static ProductResponse fromEntity(Product product, List<ProductVariantResponse> variants) {
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -52,9 +52,7 @@ public class ProductResponse {
                 .images(product.getImages().stream()
                         .map(ProductImage::getImageUrl)
                         .collect(Collectors.toList()))
-                .variants(product.getVariants().stream()
-                        .map(ProductVariantResponse::fromEntitySimple)
-                        .collect(Collectors.toList()))
+                .variants(variants)
                 .build();
     }
 }

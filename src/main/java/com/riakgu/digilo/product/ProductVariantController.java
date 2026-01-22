@@ -84,7 +84,7 @@ public class ProductVariantController {
     public ResponseEntity<ApiResponse<List<ProductVariantResponse>>> getActiveVariantsByProduct(
             @PathVariable Long productId
     ) {
-        List<ProductVariantResponse> variants = productVariantService.getActiveByProductId(productId);
+        List<ProductVariantResponse> variants = productVariantService.getActiveByProductIdWithStock(productId);
         return ResponseEntity.ok(ApiResponse.success("OK", "Variants retrieved", variants));
     }
 

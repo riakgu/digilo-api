@@ -21,6 +21,7 @@ public class ProductVariantService {
 
     private final ProductVariantRepository productVariantRepository;
     private final ProductRepository productRepository;
+    private final ProductInventoryRepository inventoryRepository;
 
     @Transactional
     public ProductVariantResponse create(Long productId, ProductVariantRequest request) {
@@ -46,7 +47,8 @@ public class ProductVariantService {
         productVariantRepository.save(variant);
         product.getVariants().add(variant);
 
-        return ProductVariantResponse.fromEntity(variant);
+        long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+        return ProductVariantResponse.fromEntity(variant, stock);
     }
 
     @Transactional(readOnly = true)
@@ -54,7 +56,8 @@ public class ProductVariantService {
         ProductVariant variant = productVariantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Variant with id " + id + " not found"));
 
-        return ProductVariantResponse.fromEntity(variant);
+        long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+        return ProductVariantResponse.fromEntity(variant, stock);
     }
 
     @Transactional(readOnly = true)
@@ -62,7 +65,8 @@ public class ProductVariantService {
         ProductVariant variant = productVariantRepository.findBySku(sku)
                 .orElseThrow(() -> new NotFoundException("Variant with SKU " + sku + " not found"));
 
-        return ProductVariantResponse.fromEntity(variant);
+        long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+        return ProductVariantResponse.fromEntity(variant, stock);
     }
 
     @Transactional(readOnly = true)
@@ -71,14 +75,20 @@ public class ProductVariantService {
                 .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
 
         return productVariantRepository.findByProductId(productId).stream()
-                .map(ProductVariantResponse::fromEntity)
+                .map(variant -> {
+                    long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+                    return ProductVariantResponse.fromEntity(variant, stock);
+                })
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public Page<ProductVariantResponse> getAll(Pageable pageable) {
         return productVariantRepository.findAll(pageable)
-                .map(ProductVariantResponse::fromEntity);
+                .map(variant -> {
+                    long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+                    return ProductVariantResponse.fromEntity(variant, stock);
+                });
     }
 
     @Transactional
@@ -105,7 +115,8 @@ public class ProductVariantService {
 
         productVariantRepository.save(variant);
 
-        return ProductVariantResponse.fromEntity(variant);
+        long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+        return ProductVariantResponse.fromEntity(variant, stock);
     }
 
     @Transactional
@@ -132,7 +143,36 @@ public class ProductVariantService {
                 .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
 
         return productVariantRepository.findByProductIdAndIsActive(productId, true).stream()
-                .map(ProductVariantResponse::fromEntity)
+                .map(variant -> {
+                    long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+                    return ProductVariantResponse.fromEntity(variant, stock);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductVariantResponse> getByProductIdWithStock(Long productId) {
+        productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        return productVariantRepository.findByProductId(productId).stream()
+                .map(variant -> {
+                    long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+                    return ProductVariantResponse.fromEntity(variant, stock);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductVariantResponse> getActiveByProductIdWithStock(Long productId) {
+        productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        return productVariantRepository.findByProductIdAndIsActive(productId, true).stream()
+                .map(variant -> {
+                    long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+                    return ProductVariantResponse.fromEntity(variant, stock);
+                })
                 .collect(Collectors.toList());
     }
 }

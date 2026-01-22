@@ -28,12 +28,18 @@ public class ProductVariantResponse {
     private DeliveryType deliveryType;
     private Integer durationDays;
     private Integer warrantyDays;
+    private Integer availableStock;
+    private Boolean isAvailable;
     private Boolean isActive;
     private Map<String, Object> metadata;
     private Instant createdAt;
     private Instant updatedAt;
 
-    public static ProductVariantResponse fromEntity(ProductVariant variant) {
+    public static ProductVariantResponse fromEntity(ProductVariant variant, long availableStock) {
+        boolean isAvailable = switch (variant.getDeliveryType()) {
+            case AUTO -> availableStock > 0;
+            case MANUAL, HYBRID -> true;
+        };
         return ProductVariantResponse.builder()
                 .id(variant.getId())
                 .productId(variant.getProduct().getId())
@@ -44,23 +50,12 @@ public class ProductVariantResponse {
                 .deliveryType(variant.getDeliveryType())
                 .durationDays(variant.getDurationDays())
                 .warrantyDays(variant.getWarrantyDays())
+                .availableStock((int) availableStock)
+                .isAvailable(isAvailable)
                 .isActive(variant.getIsActive())
                 .metadata(variant.getMetadata())
                 .createdAt(variant.getCreatedAt())
                 .updatedAt(variant.getUpdatedAt())
-                .build();
-    }
-
-    public static ProductVariantResponse fromEntitySimple(ProductVariant variant) {
-        return ProductVariantResponse.builder()
-                .id(variant.getId())
-                .sku(variant.getSku())
-                .name(variant.getName())
-                .price(variant.getPrice())
-                .deliveryType(variant.getDeliveryType())
-                .durationDays(variant.getDurationDays())
-                .warrantyDays(variant.getWarrantyDays())
-                .isActive(variant.getIsActive())
                 .build();
     }
 }

@@ -5,8 +5,11 @@ import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
+import com.riakgu.digilo.product.InventoryStatus;
+import com.riakgu.digilo.product.ProductInventoryRepository;
 import com.riakgu.digilo.product.ProductRepository;
 import com.riakgu.digilo.product.dto.ProductResponse;
+import com.riakgu.digilo.product.dto.ProductVariantResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,6 +27,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final ProductInventoryRepository inventoryRepository;
 
     @Transactional
     public CategoryResponse create(CategoryRequest request) {
@@ -123,6 +128,14 @@ public class CategoryService {
                 .orElseThrow(() -> new NotFoundException("Category with slug " + slug + " not found"));
 
         return productRepository.findAllByCategoriesCategorySlugAndIsActive(slug, true, pageable)
-                .map(ProductResponse::fromEntity);
+                .map(product -> {
+                    List<ProductVariantResponse> variants = product.getVariants().stream()
+                            .map(variant -> {
+                                long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+                                return ProductVariantResponse.fromEntity(variant, stock);
+                            })
+                            .collect(Collectors.toList());
+                    return ProductResponse.fromEntity(product, variants);
+                });
     }
 }
