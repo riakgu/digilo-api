@@ -125,4 +125,14 @@ public class ProductVariantService {
         variant.getProduct().getVariants().remove(variant);
         productVariantRepository.delete(variant);
     }
+
+    @Transactional(readOnly = true)
+    public List<ProductVariantResponse> getActiveByProductId(Long productId) {
+        productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        return productVariantRepository.findByProductIdAndIsActive(productId, true).stream()
+                .map(ProductVariantResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 }
