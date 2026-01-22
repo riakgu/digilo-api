@@ -201,7 +201,10 @@ public class OrderService {
     }
 
     private void markInventoryAsSold(Order order) {
-        for (OrderItem item : order.getItems()) {
+
+        List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+
+        for (OrderItem item : items) {
 
             List<ProductInventory> reserved = inventoryRepository
                     .findByOrderItemIdAndStatus(item.getId(), InventoryStatus.RESERVED);
@@ -213,6 +216,7 @@ public class OrderService {
             }
         }
     }
+
 
     private void releaseInventory(Order order) {
         for (OrderItem item : order.getItems()) {
