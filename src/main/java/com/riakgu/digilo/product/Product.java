@@ -25,6 +25,10 @@ public class Product extends BaseEntity {
     @Builder.Default
     private Set<ProductImage> images = new HashSet<>();
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<ProductVariant> variants = new HashSet<>();
+
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
