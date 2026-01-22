@@ -1,5 +1,6 @@
 package com.riakgu.digilo.product.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.riakgu.digilo.product.DeliveryType;
 import com.riakgu.digilo.product.ProductVariant;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductVariantResponse {
 
     private Long id;
@@ -46,6 +48,19 @@ public class ProductVariantResponse {
                 .metadata(variant.getMetadata())
                 .createdAt(variant.getCreatedAt())
                 .updatedAt(variant.getUpdatedAt())
+                .build();
+    }
+
+    public static ProductVariantResponse fromEntitySimple(ProductVariant variant) {
+        return ProductVariantResponse.builder()
+                .id(variant.getId())
+                .sku(variant.getSku())
+                .name(variant.getName())
+                .price(variant.getPrice())
+                .deliveryType(variant.getDeliveryType())
+                .durationDays(variant.getDurationDays())
+                .warrantyDays(variant.getWarrantyDays())
+                .isActive(variant.getIsActive())
                 .build();
     }
 }
