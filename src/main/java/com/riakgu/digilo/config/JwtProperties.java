@@ -1,4 +1,4 @@
-package com.riakgu.digilo.auth;
+package com.riakgu.digilo.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
