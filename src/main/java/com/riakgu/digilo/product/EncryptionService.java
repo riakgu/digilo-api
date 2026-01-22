@@ -1,4 +1,4 @@
-package com.riakgu.digilo.common.util;
+package com.riakgu.digilo.product;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
