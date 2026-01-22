@@ -97,4 +97,13 @@ public class OrderController {
         OrderResponse order = orderService.updateStatus(orderId, request);
         return ResponseEntity.ok(ApiResponse.success("OK", "Order status updated", order));
     }
+
+    @GetMapping("/user/orders/{orderId}/credentials")
+    public ResponseEntity<ApiResponse<List<OrderCredentialResponse>>> getOrderCredentials(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long orderId
+    ) {
+        List<OrderCredentialResponse> credentials = orderService.getOrderCredentials(orderId, userId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Credentials retrieved", credentials));
+    }
 }

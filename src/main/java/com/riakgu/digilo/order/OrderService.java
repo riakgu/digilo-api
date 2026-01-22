@@ -6,10 +6,7 @@ import com.riakgu.digilo.cart.CartRepository;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.order.dto.*;
-import com.riakgu.digilo.product.DeliveryType;
-import com.riakgu.digilo.product.InventoryStatus;
-import com.riakgu.digilo.product.ProductInventory;
-import com.riakgu.digilo.product.ProductInventoryRepository;
+import com.riakgu.digilo.product.*;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +21,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,6 +35,7 @@ public class OrderService {
     private final CartRepository cartRepository;
     private final ProductInventoryRepository inventoryRepository;
     private final UserRepository userRepository;
+    private final EncryptionService encryptionService;
 
     @Transactional
     public OrderResponse createFromCart(Long userId, CreateOrderRequest request) {
@@ -178,6 +178,47 @@ public class OrderService {
         log.info("Order {} status changed from {} to {}", order.getOrderNumber(), oldStatus, newStatus);
 
         return OrderResponse.fromEntity(order);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderCredentialResponse> getOrderCredentials(Long orderId, Long userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        if (!order.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Order does not belong to you");
+        }
+
+        if (order.getStatus() != OrderStatus.PAID && order.getStatus() != OrderStatus.COMPLETED) {
+            throw new BadRequestException("Credentials are only available for paid orders");
+        }
+
+        return order.getItems().stream()
+                .map(this::buildCredentialResponse)
+                .filter(response -> !response.getCredentials().isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    private OrderCredentialResponse buildCredentialResponse(OrderItem item) {
+        List<ProductInventory> soldInventories = inventoryRepository
+                .findByOrderItemIdAndStatus(item.getId(), InventoryStatus.SOLD);
+
+        List<OrderCredentialResponse.CredentialItem> credentials = soldInventories.stream()
+                .map(inv -> {
+                    Map<String, Object> decrypted = encryptionService.decrypt(inv.getCredential());
+                    return OrderCredentialResponse.CredentialItem.builder()
+                            .inventoryId(inv.getId())
+                            .credential(decrypted)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return OrderCredentialResponse.builder()
+                .orderItemId(item.getId())
+                .variantName(item.getVariantName())
+                .quantity(item.getQuantity())
+                .credentials(credentials)
+                .build();
     }
 
     private void reserveInventory(Long orderItemId, Long variantId, int quantity) {
