@@ -25,7 +25,6 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-    private final R2ImageService r2ImageService;
 
     @GetMapping("/public/products/{slug}")
     public ResponseEntity<ApiResponse<ProductResponse>> getBySlug(
@@ -145,69 +144,4 @@ public class ProductController {
                 .body(ApiResponse.success("OK", "Get all products successful", products));
     }
 
-    @PostMapping("/admin/products/{id}/images")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> addImage(
-            @PathVariable Long id,
-            @RequestBody ProductImageRequest request
-    ) {
-        productService.addImage(id, request);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Image added"));
-    }
-
-    @PatchMapping("/admin/products/{productId}/images/{imageId}/primary")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> setPrimaryImage(
-            @PathVariable Long productId,
-            @PathVariable Long imageId
-    ) {
-        productService.setPrimaryImage(productId, imageId);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Primary image set"));
-    }
-
-    @DeleteMapping("/admin/products/{productId}/images/{imageId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteImage(
-            @PathVariable Long productId,
-            @PathVariable Long imageId
-    ) {
-        productService.deleteImage(productId, imageId);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Image deleted"));
-    }
-
-    @GetMapping("/public/products/{id}/images")
-    public ResponseEntity<ApiResponse<List<ProductImageResponse>>> getImages(
-            @PathVariable Long id
-    ) {
-        List<ProductImageResponse> images = productService.getImagesByProduct(id);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Images retrieved successfully", images));
-    }
-
-    @PutMapping("/admin/products/{productId}/images/{imageId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> updateImage(
-            @PathVariable Long productId,
-            @PathVariable Long imageId,
-            @Valid @RequestBody ProductImageRequest request
-    ) {
-        productService.updateImage(productId, imageId, request);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Image updated successfully"));
-    }
-
-    @PostMapping("/admin/products/{id}/images/upload")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> uploadImage(
-            @PathVariable Long id,
-            @RequestParam("file") MultipartFile file
-    ) {
-        String imageUrl = r2ImageService.uploadImage(file);
-
-        ProductImageRequest request = new ProductImageRequest();
-        request.setImageUrl(imageUrl);
-        request.setIsPrimary(false);
-
-        productService.addImage(id, request);
-
-        return ResponseEntity.ok(ApiResponse.success("OK", "Image uploaded successfully", imageUrl));
-    }
 }
