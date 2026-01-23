@@ -1,4 +1,8 @@
 app:
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:3001
   encryption:
     password: "local-dev-password"
     salt: "deadbeef12345678"

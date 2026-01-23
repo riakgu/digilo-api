@@ -1,4 +1,6 @@
 app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS}
   encryption:
     password: ${APP_ENCRYPTION_PASSWORD}
     salt: ${APP_ENCRYPTION_SALT}
