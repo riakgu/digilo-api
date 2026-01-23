@@ -1,0 +1,48 @@
+app:
+  encryption:
+    password: ${APP_ENCRYPTION_PASSWORD}
+    salt: ${APP_ENCRYPTION_SALT}
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 3
+      maximum-pool-size: 15
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+
+  data:
+    redis:
+      timeout: 60000ms
+
+jwt:
+  access-secret: ${JWT_ACCESS_SECRET}
+  access-expiration: ${JWT_ACCESS_EXPIRATION:86400000}
+  refresh-secret: ${JWT_REFRESH_SECRET}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  issuer: digilo
+
+cloudflare:
+  r2:
+    access-key-id: ${CLOUDFLARE_R2_ACCESS_KEY_ID}
+    secret-access-key: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
+    endpoint: ${CLOUDFLARE_R2_ENDPOINT}
+    bucket-name: ${CLOUDFLARE_R2_BUCKET_NAME}
+    public-url: ${CLOUDFLARE_R2_PUBLIC_URL}
+
+midtrans:
+  server-key: ${MIDTRANS_SERVER_KEY}
+  client-key: ${MIDTRANS_CLIENT_KEY}
+  base-url: https://api.sandbox.midtrans.com
+  production: false
+
+logging:
+  level:
+    org.hibernate.SQL: info
+    org.springframework.security: info

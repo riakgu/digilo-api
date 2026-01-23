@@ -1,13 +1,13 @@
 app:
   encryption:
-    password: "your-strong-password-here"
-    salt: "deadbeef12345678"  # 16 hex chars (8 bytes)
+    password: "local-dev-password"
+    salt: "deadbeef12345678"
 
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/digilo
     username: postgres
-    password:
+    password: postgres
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 2
@@ -27,23 +27,23 @@ spring:
       timeout: 60000ms
 
 jwt:
-  access-secret: dev-access-secret
+  access-secret: local-access-secret-key-for-development
   access-expiration: 86400000
-  refresh-secret: dev-refresh-secret
+  refresh-secret: local-refresh-secret-key-for-development
   refresh-expiration: 604800000
   issuer: digilo
 
 cloudflare:
   r2:
-    account-id: your_account_id
     access-key-id: your_key
     secret-access-key: your_secret
-    bucket-name: digilo
+    endpoint: https://xxx.r2.cloudflarestorage.com
+    bucket-name: digilo-local
     public-url: https://pub-xxxxx.r2.dev
 
 midtrans:
-  server-key: YOUR_SERVER_KEY
-  client-key: YOUR_CLIENT_KEY
+  server-key: SB-Mid-server-xxxx
+  client-key: SB-Mid-client-xxxx
   base-url: https://api.sandbox.midtrans.com
   production: false
 
