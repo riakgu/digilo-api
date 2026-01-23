@@ -35,9 +35,9 @@ jwt:
 
 cloudflare:
   r2:
+    account-id: your_account_id
     access-key-id: your_key
     secret-access-key: your_secret
-    endpoint: https://xxx.r2.cloudflarestorage.com
     bucket-name: digilo-local
     public-url: https://pub-xxxxx.r2.dev
 

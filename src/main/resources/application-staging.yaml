@@ -30,9 +30,9 @@ jwt:
 
 cloudflare:
   r2:
+    account-id: ${CLOUDFLARE_R2_ACCOUNT_ID}
     access-key-id: ${CLOUDFLARE_R2_ACCESS_KEY_ID}
     secret-access-key: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
-    endpoint: ${CLOUDFLARE_R2_ENDPOINT}
     bucket-name: ${CLOUDFLARE_R2_BUCKET_NAME}
     public-url: ${CLOUDFLARE_R2_PUBLIC_URL}
 

@@ -30,9 +30,9 @@ jwt:
 
 cloudflare:
   r2:
+    account-id: test-account-id
     access-key-id: test-key
     secret-access-key: test-secret
-    endpoint: https://test.r2.cloudflarestorage.com
     bucket-name: digilo-test
     public-url: https://test.r2.dev
 
