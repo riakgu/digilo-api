@@ -1,0 +1,48 @@
+app:
+  encryption:
+    password: test-encryption-password
+    salt: 1234567890abcdef
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+
+  data:
+    redis:
+      timeout: 60000ms
+
+jwt:
+  access-secret: test-access-secret-for-testing-only
+  access-expiration: 3600000
+  refresh-secret: test-refresh-secret-for-testing-only
+  refresh-expiration: 86400000
+  issuer: digilo-test
+
+cloudflare:
+  r2:
+    access-key-id: test-key
+    secret-access-key: test-secret
+    endpoint: https://test.r2.cloudflarestorage.com
+    bucket-name: digilo-test
+    public-url: https://test.r2.dev
+
+midtrans:
+  server-key: SB-Mid-server-test
+  client-key: SB-Mid-client-test
+  base-url: https://api.sandbox.midtrans.com
+  production: false
+
+logging:
+  level:
+    org.hibernate.SQL: warn
+    org.springframework.security: warn
