@@ -7,6 +7,8 @@ It features product management, shopping cart, order processing, Midtrans QRIS p
 ### Built With
 [![Java][Java]][Java-url] [![Spring Boot][Spring-Boot]][Spring-Boot-url] [![PostgreSQL][PostgreSQL]][PostgreSQL-url] [![Redis][Redis]][Redis-url] [![Midtrans][Midtrans]][Midtrans-url]
 
+[![CI](https://github.com/riakgu/digilo-api/actions/workflows/ci.yml/badge.svg)](https://github.com/riakgu/digilo-api/actions/workflows/ci.yml)
+
 
 ## Features
 
@@ -86,6 +88,7 @@ It features product management, shopping cart, order processing, Midtrans QRIS p
 | `dev` | Docker development | Environment variables |
 | `staging` | Pre-production testing | Environment variables |
 | `prod` | Production | Environment variables |
+| `test` | CI/Testing | Hardcoded test values |
 
 ```sh
 # Set profile via environment variable
