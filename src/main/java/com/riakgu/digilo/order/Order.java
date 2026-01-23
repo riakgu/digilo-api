@@ -34,6 +34,9 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private OrderStatus status = OrderStatus.PENDING;
 
+    @Column(name = "subtotal", precision = 12, scale = 2)
+    private BigDecimal subtotal;
+
     @Column(name = "discount_amount", precision = 12, scale = 2)
     private BigDecimal discountAmount = BigDecimal.ZERO;
 

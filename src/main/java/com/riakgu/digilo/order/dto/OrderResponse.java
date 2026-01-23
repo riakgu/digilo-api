@@ -21,8 +21,9 @@ public class OrderResponse {
     private Long id;
     private String orderNumber;
     private OrderStatus status;
-    private BigDecimal totalAmount;
+    private BigDecimal subtotal;
     private BigDecimal discountAmount;
+    private BigDecimal totalAmount;
     private String promoCode;
     private String promoName;
     private String notes;
@@ -39,8 +40,9 @@ public class OrderResponse {
                 .id(order.getId())
                 .orderNumber(order.getOrderNumber())
                 .status(order.getStatus())
-                .totalAmount(order.getTotalAmount())
+                .subtotal(order.getSubtotal())
                 .discountAmount(order.getDiscountAmount())
+                .totalAmount(order.getTotalAmount())
                 .promoCode(order.getPromo() != null ? order.getPromo().getCode() : null)
                 .promoName(order.getPromo() != null ? order.getPromo().getName() : null)
                 .notes(order.getNotes())

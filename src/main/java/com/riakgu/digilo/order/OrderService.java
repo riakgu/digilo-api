@@ -52,30 +52,32 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        BigDecimal totalAmount = cart.getItems().stream()
+        // Calculate subtotal
+        BigDecimal subtotal = cart.getItems().stream()
                 .map(item -> item.getVariant().getPrice()
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Apply promo if provided
+        // Apply promo
         Promo promo = null;
         BigDecimal discountAmount = BigDecimal.ZERO;
 
         if (request != null && request.getPromoCode() != null) {
-            promo = promoService.getValidPromo(request.getPromoCode(), userId, totalAmount);
-            discountAmount = promoService.calculateDiscount(promo, totalAmount);
+            promo = promoService.getValidPromo(request.getPromoCode(), userId, subtotal);
+            discountAmount = promoService.calculateDiscount(promo, subtotal);
         }
 
-        BigDecimal finalAmount = totalAmount.subtract(discountAmount);
+        BigDecimal totalAmount = subtotal.subtract(discountAmount);
 
-        // Create order with promo
+        // Create order
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .user(user)
                 .status(OrderStatus.PENDING)
-                .totalAmount(finalAmount)
-                .promo(promo)
+                .subtotal(subtotal)
                 .discountAmount(discountAmount)
+                .totalAmount(totalAmount)
+                .promo(promo)
                 .notes(request != null ? request.getNotes() : null)
                 .build();
 
