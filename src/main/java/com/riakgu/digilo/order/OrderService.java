@@ -52,6 +52,17 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
+        // Validate stock for AUTO delivery BEFORE creating order
+        for (CartItem cartItem : cart.getItems()) {
+            if (cartItem.getVariant().getDeliveryType() == DeliveryType.AUTO) {
+                long availableStock = inventoryRepository.countByVariantIdAndStatus(
+                        cartItem.getVariant().getId(), InventoryStatus.AVAILABLE);
+                if (availableStock < cartItem.getQuantity()) {
+                    throw new BadRequestException("Not enough stock for " + cartItem.getVariant().getName());
+                }
+            }
+        }
+
         // Calculate subtotal
         BigDecimal subtotal = cart.getItems().stream()
                 .map(item -> item.getVariant().getPrice()
