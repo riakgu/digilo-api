@@ -1,6 +1,7 @@
 package com.riakgu.digilo.order;
 
 import com.riakgu.digilo.common.base.BaseEntity;
+import com.riakgu.digilo.promo.Promo;
 import com.riakgu.digilo.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,6 +19,10 @@ import java.util.Set;
 @Table(name = "orders")
 public class Order extends BaseEntity {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promo_id")
+    private Promo promo;
+
     @Column(name = "order_number", nullable = false, unique = true, length = 50)
     private String orderNumber;
 
@@ -28,6 +33,9 @@ public class Order extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status = OrderStatus.PENDING;
+
+    @Column(name = "discount_amount", precision = 12, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;

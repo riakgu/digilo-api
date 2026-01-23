@@ -6,4 +6,6 @@ import lombok.Data;
 public class CreateOrderRequest {
 
     private String notes;
+    private String promoCode;
+
 }

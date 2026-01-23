@@ -22,6 +22,9 @@ public class OrderResponse {
     private String orderNumber;
     private OrderStatus status;
     private BigDecimal totalAmount;
+    private BigDecimal discountAmount;
+    private String promoCode;
+    private String promoName;
     private String notes;
     private List<OrderItemResponse> items;
     private Instant createdAt;
@@ -37,6 +40,9 @@ public class OrderResponse {
                 .orderNumber(order.getOrderNumber())
                 .status(order.getStatus())
                 .totalAmount(order.getTotalAmount())
+                .discountAmount(order.getDiscountAmount())
+                .promoCode(order.getPromo() != null ? order.getPromo().getCode() : null)
+                .promoName(order.getPromo() != null ? order.getPromo().getName() : null)
                 .notes(order.getNotes())
                 .items(items)
                 .createdAt(order.getCreatedAt())

@@ -7,6 +7,8 @@ import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.order.dto.*;
 import com.riakgu.digilo.product.*;
+import com.riakgu.digilo.promo.Promo;
+import com.riakgu.digilo.promo.PromoService;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class OrderService {
     private final ProductInventoryRepository inventoryRepository;
     private final UserRepository userRepository;
     private final EncryptionService encryptionService;
+    private final PromoService promoService;
 
     @Transactional
     public OrderResponse createFromCart(Long userId, CreateOrderRequest request) {
@@ -54,11 +57,25 @@ public class OrderService {
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // Apply promo if provided
+        Promo promo = null;
+        BigDecimal discountAmount = BigDecimal.ZERO;
+
+        if (request != null && request.getPromoCode() != null) {
+            promo = promoService.getValidPromo(request.getPromoCode(), userId, totalAmount);
+            discountAmount = promoService.calculateDiscount(promo, totalAmount);
+        }
+
+        BigDecimal finalAmount = totalAmount.subtract(discountAmount);
+
+        // Create order with promo
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .user(user)
                 .status(OrderStatus.PENDING)
-                .totalAmount(totalAmount)
+                .totalAmount(finalAmount)
+                .promo(promo)
+                .discountAmount(discountAmount)
                 .notes(request != null ? request.getNotes() : null)
                 .build();
 
@@ -99,6 +116,11 @@ public class OrderService {
 
         cart.getItems().clear();
         cartRepository.save(cart);
+
+        // Record promo usage after order created
+        if (promo != null) {
+            promoService.recordUsage(promo, userId, order.getId());
+        }
 
         return OrderResponse.fromEntity(order);
     }
