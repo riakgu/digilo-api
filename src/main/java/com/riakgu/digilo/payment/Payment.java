@@ -30,7 +30,7 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_type", nullable = false, length = 30)
     private String paymentType;
 
-    @Column(name = "provider_order_id", nullable = false, length = 100)
+    @Column(name = "provider_order_id", nullable = false, unique = true, length = 100)
     private String providerOrderId;
 
     @Column(name = "provider_transaction_id", length = 100)

@@ -1,6 +1,5 @@
 package com.riakgu.digilo.payment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.riakgu.digilo.config.MidtransProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +22,7 @@ public class MidtransService {
 
     private final MidtransProperties midtransProperties;
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Create QRIS charge
-     */
     public Map<String, Object> createQrisCharge(String orderId, long amount) {
         String url = midtransProperties.getBaseUrl() + "/v2/charge";
 
@@ -36,7 +31,7 @@ public class MidtransService {
         transactionDetails.put("gross_amount", amount);
 
         Map<String, Object> qris = new HashMap<>();
-        qris.put("acquirer", "gopay");  // or "airpay shopee"
+        qris.put("acquirer", "gopay");
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("payment_type", "qris");
@@ -58,9 +53,6 @@ public class MidtransService {
         }
     }
 
-    /**
-     * Get transaction status
-     */
     public Map<String, Object> getTransactionStatus(String orderId) {
         String url = midtransProperties.getBaseUrl() + "/v2/" + orderId + "/status";
 
@@ -79,10 +71,6 @@ public class MidtransService {
         }
     }
 
-    /**
-     * Verify notification signature
-     * signature_key = SHA512(order_id + status_code + gross_amount + server_key)
-     */
     public boolean verifySignature(String orderId, String statusCode, String grossAmount, String signatureKey) {
         try {
             String rawString = orderId + statusCode + grossAmount + midtransProperties.getServerKey();
@@ -108,9 +96,6 @@ public class MidtransService {
         }
     }
 
-    /**
-     * Map Midtrans status to PaymentStatus
-     */
     public PaymentStatus mapTransactionStatus(String transactionStatus, String fraudStatus) {
         if (transactionStatus == null) {
             return PaymentStatus.PENDING;
@@ -132,9 +117,6 @@ public class MidtransService {
         };
     }
 
-    /**
-     * Calculate expiry time (default 15 minutes for QRIS)
-     */
     public Instant calculateExpiry() {
         return Instant.now().plus(15, ChronoUnit.MINUTES);
     }

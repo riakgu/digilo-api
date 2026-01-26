@@ -11,6 +11,7 @@ import com.riakgu.digilo.payment.dto.CreatePaymentRequest;
 import com.riakgu.digilo.payment.dto.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -43,9 +44,10 @@ public class PaymentService {
             throw new BadRequestException("Order is not in pending status");
         }
 
-        // Check if payment already exists
-        if (paymentRepository.existsByProviderOrderId(order.getOrderNumber())) {
-            throw new BadRequestException("Payment already exists for this order");
+        Payment existing = paymentRepository.findByProviderOrderId(order.getOrderNumber()).orElse(null);
+        if (existing != null) {
+            log.info("Returning existing payment for order {}", order.getOrderNumber());
+            return PaymentResponse.fromEntity(existing);
         }
 
         // Call Midtrans to create charge
@@ -72,10 +74,16 @@ public class PaymentService {
                 .rawChargeResponse(chargeResponse)
                 .build();
 
-        paymentRepository.save(payment);
+        try {
+            payment = paymentRepository.save(payment);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Duplicate payment prevented for order {}", order.getOrderNumber());
+            return paymentRepository.findByProviderOrderId(order.getOrderNumber())
+                    .map(PaymentResponse::fromEntity)
+                    .orElseThrow(() -> new IllegalStateException("Duplicate detected but payment not found"));
+        }
 
         log.info("Payment created for order {}: {}", order.getOrderNumber(), payment.getId());
-
         return PaymentResponse.fromEntity(payment);
     }
 
