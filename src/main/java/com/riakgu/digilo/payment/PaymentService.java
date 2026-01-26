@@ -47,7 +47,7 @@ public class PaymentService {
             throw new BadRequestException("Order is not in pending status");
         }
 
-        // The unique constraint on provider_order_id will block duplicates
+        // Try to create placeholder payment FIRST
         Payment payment = Payment.builder()
                 .order(order)
                 .provider("MIDTRANS")
@@ -65,45 +65,35 @@ public class PaymentService {
             log.info("Payment record created for order {}: {}", order.getOrderNumber(), payment.getId());
         } catch (DataIntegrityViolationException e) {
             // Another request already created payment for this order
-            log.warn("Payment already exists for order {}", order.getOrderNumber());
+            log.warn("Payment already exists for order {}, fetching existing payment", order.getOrderNumber());
 
             // Fetch and return existing payment
             Payment existingPayment = paymentRepository.findByProviderOrderId(order.getOrderNumber())
-                    .orElseThrow(() -> new BadRequestException("Payment creation conflict"));
+                    .orElseThrow(() -> new BadRequestException("Payment already exists for this order"));
             return PaymentResponse.fromEntity(existingPayment);
         }
 
-        try {
-            Map<String, Object> chargeResponse = midtransService.createQrisCharge(
-                    order.getOrderNumber(),
-                    order.getTotalAmount().longValue()
-            );
+        // Call Midtrans
+        Map<String, Object> chargeResponse = midtransService.createQrisCharge(
+                order.getOrderNumber(),
+                order.getTotalAmount().longValue()
+        );
 
-            // Extract data from Midtrans response
-            String transactionId = (String) chargeResponse.get("transaction_id");
-            String qrCodeUrl = extractQrCodeUrl(chargeResponse);
+        // Extract data from Midtrans response
+        String transactionId = (String) chargeResponse.get("transaction_id");
+        String qrCodeUrl = extractQrCodeUrl(chargeResponse);
 
-            // Update payment with Midtrans data
-            payment.setProviderTransactionId(transactionId);
-            payment.setQrCodeUrl(qrCodeUrl);
-            payment.setRawChargeResponse(chargeResponse);
+        // Update payment with Midtrans data
+        payment.setProviderTransactionId(transactionId);
+        payment.setQrCodeUrl(qrCodeUrl);
+        payment.setRawChargeResponse(chargeResponse);
 
-            paymentRepository.save(payment);
+        payment = paymentRepository.save(payment);
 
-            log.info("Payment updated with Midtrans data for order {}: transaction_id={}",
-                    order.getOrderNumber(), transactionId);
+        log.info("Payment updated with Midtrans data for order {}: transaction_id={}",
+                order.getOrderNumber(), transactionId);
 
-            return PaymentResponse.fromEntity(payment);
-
-        } catch (Exception e) {
-            // If Midtrans call fails, mark payment as failed but keep the record
-            log.error("Midtrans API call failed for order {}: {}", order.getOrderNumber(), e.getMessage());
-
-            payment.setStatus(PaymentStatus.FAILED);
-            paymentRepository.save(payment);
-
-            throw new BadRequestException("Failed to create payment with Midtrans: " + e.getMessage());
-        }
+        return PaymentResponse.fromEntity(payment);
     }
 
     @Transactional
