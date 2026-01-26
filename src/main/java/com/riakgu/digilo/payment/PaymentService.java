@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -36,6 +37,7 @@ public class PaymentService {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
+        // Validate user and status
         if (!order.getUser().getId().equals(userId)) {
             throw new BadRequestException("Order does not belong to you");
         }
@@ -44,10 +46,11 @@ public class PaymentService {
             throw new BadRequestException("Order is not in pending status");
         }
 
-        Payment existing = paymentRepository.findByProviderOrderId(order.getOrderNumber()).orElse(null);
-        if (existing != null) {
-            log.info("Returning existing payment for order {}", order.getOrderNumber());
-            return PaymentResponse.fromEntity(existing);
+        Optional<Payment> existingPayment = paymentRepository
+                .findByProviderOrderIdWithLock(order.getOrderNumber());
+
+        if (existingPayment.isPresent()) {
+            throw new BadRequestException("Payment already exists for this order");
         }
 
         // Call Midtrans to create charge
@@ -74,16 +77,10 @@ public class PaymentService {
                 .rawChargeResponse(chargeResponse)
                 .build();
 
-        try {
-            payment = paymentRepository.save(payment);
-        } catch (DataIntegrityViolationException e) {
-            log.warn("Duplicate payment prevented for order {}", order.getOrderNumber());
-            return paymentRepository.findByProviderOrderId(order.getOrderNumber())
-                    .map(PaymentResponse::fromEntity)
-                    .orElseThrow(() -> new IllegalStateException("Duplicate detected but payment not found"));
-        }
+        paymentRepository.save(payment);
 
         log.info("Payment created for order {}: {}", order.getOrderNumber(), payment.getId());
+
         return PaymentResponse.fromEntity(payment);
     }
 
