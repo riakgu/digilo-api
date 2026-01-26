@@ -37,51 +37,73 @@ public class PaymentService {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new NotFoundException("Order not found"));
 
-        // Validate user and status
+        // Validate ownership
         if (!order.getUser().getId().equals(userId)) {
             throw new BadRequestException("Order does not belong to you");
         }
 
+        // Validate order status
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BadRequestException("Order is not in pending status");
         }
 
-        Optional<Payment> existingPayment = paymentRepository
-                .findByProviderOrderIdWithLock(order.getOrderNumber());
-
-        if (existingPayment.isPresent()) {
-            throw new BadRequestException("Payment already exists for this order");
-        }
-
-        // Call Midtrans to create charge
-        Map<String, Object> chargeResponse = midtransService.createQrisCharge(
-                order.getOrderNumber(),
-                order.getTotalAmount().longValue()
-        );
-
-        // Extract data from response
-        String transactionId = (String) chargeResponse.get("transaction_id");
-        String qrCodeUrl = extractQrCodeUrl(chargeResponse);
-
+        // The unique constraint on provider_order_id will block duplicates
         Payment payment = Payment.builder()
                 .order(order)
                 .provider("MIDTRANS")
                 .paymentType(request.getPaymentType())
                 .providerOrderId(order.getOrderNumber())
-                .providerTransactionId(transactionId)
                 .amount(order.getTotalAmount())
                 .currency("IDR")
                 .status(PaymentStatus.PENDING)
-                .qrCodeUrl(qrCodeUrl)
                 .expiredAt(midtransService.calculateExpiry())
-                .rawChargeResponse(chargeResponse)
                 .build();
 
-        paymentRepository.save(payment);
+        try {
+            // Try to insert - unique constraint will prevent duplicates
+            payment = paymentRepository.saveAndFlush(payment);
+            log.info("Payment record created for order {}: {}", order.getOrderNumber(), payment.getId());
+        } catch (DataIntegrityViolationException e) {
+            // Another request already created payment for this order
+            log.warn("Payment already exists for order {}", order.getOrderNumber());
 
-        log.info("Payment created for order {}: {}", order.getOrderNumber(), payment.getId());
+            // Fetch and return existing payment
+            Payment existingPayment = paymentRepository.findByProviderOrderId(order.getOrderNumber())
+                    .orElseThrow(() -> new BadRequestException("Payment creation conflict"));
+            return PaymentResponse.fromEntity(existingPayment);
+        }
 
-        return PaymentResponse.fromEntity(payment);
+        try {
+            Map<String, Object> chargeResponse = midtransService.createQrisCharge(
+                    order.getOrderNumber(),
+                    order.getTotalAmount().longValue()
+            );
+
+            // Extract data from Midtrans response
+            String transactionId = (String) chargeResponse.get("transaction_id");
+            String qrCodeUrl = extractQrCodeUrl(chargeResponse);
+
+            // Update payment with Midtrans data
+            payment.setProviderTransactionId(transactionId);
+            payment.setQrCodeUrl(qrCodeUrl);
+            payment.setRawChargeResponse(chargeResponse);
+
+            paymentRepository.save(payment);
+
+            log.info("Payment updated with Midtrans data for order {}: transaction_id={}",
+                    order.getOrderNumber(), transactionId);
+
+            return PaymentResponse.fromEntity(payment);
+
+        } catch (Exception e) {
+            // If Midtrans call fails, mark payment as failed but keep the record
+            log.error("Midtrans API call failed for order {}: {}", order.getOrderNumber(), e.getMessage());
+
+            payment.setStatus(PaymentStatus.FAILED);
+            paymentRepository.save(payment);
+
+            throw new BadRequestException("Failed to create payment with Midtrans: " + e.getMessage());
+        }
     }
 
     @Transactional
