@@ -65,18 +65,6 @@ public class ProductService {
             }
         }
 
-        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            for (int i = 0; i < request.getImageUrls().size(); i++) {
-                ProductImage image = ProductImage.builder()
-                        .product(product)
-                        .imageUrl(request.getImageUrls().get(i))
-                        .isPrimary(i == 0)
-                        .build();
-
-                product.getImages().add(image);
-            }
-        }
-
         List<ProductVariantResponse> variants = product.getVariants().stream()
                 .map(variant -> {
                     long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
@@ -159,19 +147,6 @@ public class ProductService {
                 productCategory.setCategory(category);
 
                 product.getCategories().add(productCategory);
-            }
-        }
-
-        product.getImages().clear();
-        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            for (int i = 0; i < request.getImageUrls().size(); i++) {
-                ProductImage image = ProductImage.builder()
-                        .product(product)
-                        .imageUrl(request.getImageUrls().get(i))
-                        .isPrimary(i == 0)
-                        .build();
-
-                product.getImages().add(image);
             }
         }
 
