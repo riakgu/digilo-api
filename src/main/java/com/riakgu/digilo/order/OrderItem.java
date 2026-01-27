@@ -27,6 +27,12 @@ public class OrderItem extends BaseEntity {
     @Column(name = "variant_name", nullable = false)
     private String variantName;
 
+    @Column(name = "product_name", nullable = false)
+    private String productName;
+
+    @Column(name = "product_image_url", columnDefinition = "TEXT")
+    private String productImageUrl;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 

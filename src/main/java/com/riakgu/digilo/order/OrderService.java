@@ -95,11 +95,23 @@ public class OrderService {
         orderRepository.save(order);
 
         for (CartItem cartItem : cart.getItems()) {
+            ProductVariant variant = cartItem.getVariant();
+            Product product = variant.getProduct();
+            
+            // Get primary image URL or null
+            String productImageUrl = product.getImages().stream()
+                    .filter(ProductImage::getIsPrimary)
+                    .map(ProductImage::getImageUrl)
+                    .findFirst()
+                    .orElse(null);
+            
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
-                    .variant(cartItem.getVariant())
-                    .variantName(cartItem.getVariant().getName())
-                    .price(cartItem.getVariant().getPrice())
+                    .variant(variant)
+                    .variantName(variant.getName())
+                    .productName(product.getName())
+                    .productImageUrl(productImageUrl)
+                    .price(variant.getPrice())
                     .quantity(cartItem.getQuantity())
                     .build();
 

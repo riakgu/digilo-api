@@ -17,6 +17,8 @@ public class OrderItemResponse {
     private Long id;
     private Long variantId;
     private String variantName;
+    private String productName;
+    private String productImageUrl;
     private BigDecimal price;
     private Integer quantity;
     private BigDecimal subtotal;
@@ -26,6 +28,8 @@ public class OrderItemResponse {
                 .id(item.getId())
                 .variantId(item.getVariant().getId())
                 .variantName(item.getVariantName())
+                .productName(item.getProductName())
+                .productImageUrl(item.getProductImageUrl())
                 .price(item.getPrice())
                 .quantity(item.getQuantity())
                 .subtotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
