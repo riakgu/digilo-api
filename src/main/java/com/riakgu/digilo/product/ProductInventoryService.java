@@ -2,11 +2,11 @@ package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
-import com.riakgu.digilo.product.dto.ProductInventoryBulkRequest;
-import com.riakgu.digilo.product.dto.ProductInventoryRequest;
-import com.riakgu.digilo.product.dto.ProductInventoryResponse;
+import com.riakgu.digilo.product.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +59,12 @@ public class ProductInventoryService {
                     return ProductInventoryResponse.fromEntity(inventory);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductInventoryResponse> getAll(Pageable pageable) {
+        return inventoryRepository.findAll(pageable)
+                .map(inventory -> ProductInventoryResponse.fromEntity(inventory));
     }
 
     @Transactional(readOnly = true)
@@ -140,6 +146,31 @@ public class ProductInventoryService {
         inventory.setReservedAt(null);
 
         inventoryRepository.save(inventory);
+    }
+
+    @Transactional
+    public ProductInventoryResponse update(Long id, ProductInventoryUpdateRequest request) {
+        ProductInventory inventory = inventoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Inventory with id " + id + " not found"));
+
+        if (inventory.getStatus() != InventoryStatus.AVAILABLE) {
+            throw new BadRequestException("Only AVAILABLE inventory can be updated");
+        }
+
+        // Validate and update variant if changed
+        if (!inventory.getVariant().getId().equals(request.getVariantId())) {
+            ProductVariant newVariant = variantRepository.findById(request.getVariantId())
+                    .orElseThrow(() -> new NotFoundException("Variant with id " + request.getVariantId() + " not found"));
+            inventory.setVariant(newVariant);
+        }
+
+        // Re-encrypt credential
+        String encryptedCredential = encryptionService.encrypt(request.getCredential());
+        inventory.setCredential(encryptedCredential);
+
+        inventoryRepository.save(inventory);
+
+        return ProductInventoryResponse.fromEntity(inventory);
     }
 
     @Transactional

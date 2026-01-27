@@ -4,8 +4,13 @@ import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.product.dto.ProductInventoryBulkRequest;
 import com.riakgu.digilo.product.dto.ProductInventoryRequest;
 import com.riakgu.digilo.product.dto.ProductInventoryResponse;
+import com.riakgu.digilo.product.dto.ProductInventoryUpdateRequest;
+import com.riakgu.digilo.product.dto.ProductResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,6 +35,18 @@ public class ProductInventoryController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("CREATED", "Inventory created successfully", response));
+    }
+
+    @GetMapping("/admin/inventories")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<ProductInventoryResponse>>> getAll(
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<ProductInventoryResponse> inventories = inventoryService.getAll(pageable);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Get all inventories successful", inventories));
     }
 
     @PostMapping("/admin/inventories/bulk")
@@ -59,6 +76,16 @@ public class ProductInventoryController {
     ) {
         ProductInventoryResponse response = inventoryService.getByIdWithCredential(id);
         return ResponseEntity.ok(ApiResponse.success("OK", "Inventory with credential", response));
+    }
+
+    @PutMapping("/admin/inventories/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ProductInventoryResponse>> update(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductInventoryUpdateRequest request
+    ) {
+        ProductInventoryResponse response = inventoryService.update(id, request);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Inventory updated successfully", response));
     }
 
     @GetMapping("/admin/variants/{variantId}/inventories")
