@@ -171,7 +171,8 @@ public class PromoService {
         }
 
         // Check total usage limit
-        if (promo.getMaxTotalUsage() != null && promo.getUsedCount() >= promo.getMaxTotalUsage()) {
+        Integer usedCount = promo.getUsedCount() != null ? promo.getUsedCount() : 0;
+        if (promo.getMaxTotalUsage() != null && usedCount >= promo.getMaxTotalUsage()) {
             throw new BadRequestException("Promo usage limit reached");
         }
 
@@ -224,8 +225,9 @@ public class PromoService {
 
         promoUsageRepository.save(usage);
 
-        // Increment used count
-        promo.setUsedCount(promo.getUsedCount() + 1);
+        // Increment used count (null-safe)
+        Integer currentCount = promo.getUsedCount();
+        promo.setUsedCount(currentCount == null ? 1 : currentCount + 1);
         promoRepository.save(promo);
 
         log.info("Promo {} used by user {} on order {}", promo.getCode(), userId, orderId);
