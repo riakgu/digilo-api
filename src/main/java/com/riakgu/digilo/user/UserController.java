@@ -28,7 +28,7 @@ public class UserController {
     @GetMapping("/user/profile")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> getProfile(@AuthenticationPrincipal Long userId) {
-        UserResponse user = userService.getProfile(userId);
+        UserResponse user = userService.getUserById(userId);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -71,6 +71,18 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Get all users successful", users));
+    }
+
+    @GetMapping("/admin/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(
+            @PathVariable Long id
+    ) {
+        UserResponse user = userService.getUserById(id);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("OK", "Get user successful", user));
     }
 
     @PatchMapping("/admin/users/{id}/role")
