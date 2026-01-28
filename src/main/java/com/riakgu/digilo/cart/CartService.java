@@ -25,6 +25,7 @@ public class CartService {
     private final ProductVariantRepository variantRepository;
     private final ProductInventoryRepository inventoryRepository;
     private final UserRepository userRepository;
+    private final ProductImageHelper productImageHelper;
 
     @Transactional
     public CartResponse getOrCreateCart(Long userId) {
@@ -143,8 +144,9 @@ public class CartService {
                 .map(item -> {
                     long stock = inventoryRepository.countByVariantIdAndStatus(
                             item.getVariant().getId(), InventoryStatus.AVAILABLE);
+
                     ProductVariantResponse variantResponse =
-                            ProductVariantResponse.fromEntity(item.getVariant(), stock);
+                            ProductVariantResponse.fromEntity(item.getVariant(), stock, productImageHelper.getDisplayImageUrl(item.getVariant().getProduct()));
                     return CartItemResponse.fromEntity(item, variantResponse);
                 })
                 .collect(Collectors.toList());
