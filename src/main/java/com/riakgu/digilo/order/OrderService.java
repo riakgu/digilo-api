@@ -39,6 +39,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final EncryptionService encryptionService;
     private final PromoService promoService;
+    private final ProductImageHelper productImageHelper;
 
     @Transactional
     public OrderResponse createFromCart(Long userId, CreateOrderRequest request) {
@@ -98,12 +99,7 @@ public class OrderService {
             ProductVariant variant = cartItem.getVariant();
             Product product = variant.getProduct();
             
-            // Get primary image URL or null
-            String productImageUrl = product.getImages().stream()
-                    .filter(ProductImage::getIsPrimary)
-                    .map(ProductImage::getImageUrl)
-                    .findFirst()
-                    .orElse(null);
+            String productImageUrl = productImageHelper.getDisplayImageUrl(product);
             
             OrderItem orderItem = OrderItem.builder()
                     .order(order)

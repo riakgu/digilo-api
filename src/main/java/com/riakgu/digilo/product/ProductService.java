@@ -26,6 +26,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductInventoryRepository inventoryRepository;
+    private final ProductImageHelper productImageHelper;
 
     @Transactional
     public ProductResponse create(ProductRequest request) {
@@ -72,7 +73,7 @@ public class ProductService {
                 })
                 .collect(Collectors.toList());
 
-        return ProductResponse.fromEntity(product, variants);
+        return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
     }
 
     @Transactional(readOnly = true)
@@ -89,7 +90,7 @@ public class ProductService {
                 })
                 .collect(Collectors.toList());
 
-        return ProductResponse.fromEntity(product, variantsWithStock);
+        return ProductResponse.fromEntity(product, variantsWithStock, productImageHelper.getDisplayImageUrl(product));
     }
 
     @Transactional(readOnly = true)
@@ -104,7 +105,7 @@ public class ProductService {
                 })
                 .collect(Collectors.toList());
 
-        return ProductResponse.fromEntity(product, variants);
+        return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
     }
 
     @Transactional
@@ -157,7 +158,7 @@ public class ProductService {
                 })
                 .collect(Collectors.toList());
 
-        return ProductResponse.fromEntity(product, variants);
+        return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
     }
 
     @Transactional
@@ -180,7 +181,7 @@ public class ProductService {
                                 return ProductVariantResponse.fromEntity(variant, stock);
                             })
                             .collect(Collectors.toList());
-                    return ProductResponse.fromEntity(product, variants);
+                    return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
                 });
     }
 
@@ -194,7 +195,7 @@ public class ProductService {
                                 return ProductVariantResponse.fromEntity(variant, stock);
                             })
                             .collect(Collectors.toList());
-                    return ProductResponse.fromEntity(product, variants);
+                    return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
                 });
     }
 
@@ -208,7 +209,7 @@ public class ProductService {
                                 return ProductVariantResponse.fromEntity(variant, stock);
                             })
                             .collect(Collectors.toList());
-                    return ProductResponse.fromEntity(product, variants);
+                    return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
                 });
     }
 

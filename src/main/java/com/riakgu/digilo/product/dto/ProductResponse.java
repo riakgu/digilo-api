@@ -35,6 +35,10 @@ public class ProductResponse {
     private List<ProductVariantResponse> variants;
 
     public static ProductResponse fromEntity(Product product, List<ProductVariantResponse> variants) {
+        return fromEntity(product, variants, null);
+    }
+
+    public static ProductResponse fromEntity(Product product, List<ProductVariantResponse> variants, String imageUrl) {
         BigDecimal minPrice = variants.stream()
                 .map(ProductVariantResponse::getPrice)
                 .min(BigDecimal::compareTo)
@@ -49,11 +53,7 @@ public class ProductResponse {
                 .name(product.getName())
                 .slug(product.getSlug())
                 .description(product.getDescription())
-                .imageUrl(product.getImages().stream()
-                        .filter(ProductImage::getIsPrimary)
-                        .map(ProductImage::getImageUrl)
-                        .findFirst()
-                        .orElse(null))
+                .imageUrl(imageUrl)
                 .minPrice(minPrice)
                 .maxPrice(maxPrice)
                 .isActive(product.getIsActive())

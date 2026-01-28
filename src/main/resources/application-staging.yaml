@@ -4,6 +4,8 @@ app:
   encryption:
     password: ${APP_ENCRYPTION_PASSWORD}
     salt: ${APP_ENCRYPTION_SALT}
+  images:
+    product-placeholder: ${APP_PRODUCT_PLACEHOLDER_IMAGE:https://placehold.co/600x400?text=No+Image}
 
 spring:
   datasource:
