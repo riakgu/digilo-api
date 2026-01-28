@@ -21,6 +21,8 @@ public class ProductVariantResponse {
     private Long id;
     private Long productId;
     private String productName;
+    private String productSlug;
+    private String productImageUrl;
     private String sku;
     private String name;
     private BigDecimal price;
@@ -35,6 +37,10 @@ public class ProductVariantResponse {
     private Instant updatedAt;
 
     public static ProductVariantResponse fromEntity(ProductVariant variant, long availableStock) {
+        return fromEntity(variant, availableStock, null);
+    }
+
+    public static ProductVariantResponse fromEntity(ProductVariant variant, long availableStock, String imageUrl) {
         boolean isAvailable = switch (variant.getDeliveryType()) {
             case AUTO -> availableStock > 0;
             case MANUAL, HYBRID -> true;
@@ -43,6 +49,8 @@ public class ProductVariantResponse {
                 .id(variant.getId())
                 .productId(variant.getProduct().getId())
                 .productName(variant.getProduct().getName())
+                .productSlug(variant.getProduct().getSlug())
+                .productImageUrl(imageUrl)
                 .sku(variant.getSku())
                 .name(variant.getName())
                 .price(variant.getPrice())

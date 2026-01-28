@@ -22,6 +22,7 @@ public class ProductVariantService {
     private final ProductVariantRepository productVariantRepository;
     private final ProductRepository productRepository;
     private final ProductInventoryRepository inventoryRepository;
+    private final ProductImageHelper productImageHelper;
 
     @Transactional
     public ProductVariantResponse create(Long productId, ProductVariantRequest request) {
@@ -48,7 +49,7 @@ public class ProductVariantService {
         product.getVariants().add(variant);
 
         long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-        return ProductVariantResponse.fromEntity(variant, stock);
+        return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(product));
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +58,7 @@ public class ProductVariantService {
                 .orElseThrow(() -> new NotFoundException("Variant with id " + id + " not found"));
 
         long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-        return ProductVariantResponse.fromEntity(variant, stock);
+        return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
     }
 
     @Transactional(readOnly = true)
@@ -66,7 +67,7 @@ public class ProductVariantService {
                 .orElseThrow(() -> new NotFoundException("Variant with SKU " + sku + " not found"));
 
         long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-        return ProductVariantResponse.fromEntity(variant, stock);
+        return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
     }
 
     @Transactional(readOnly = true)
@@ -77,7 +78,7 @@ public class ProductVariantService {
         return productVariantRepository.findByProductId(productId).stream()
                 .map(variant -> {
                     long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                    return ProductVariantResponse.fromEntity(variant, stock);
+                    return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
                 })
                 .collect(Collectors.toList());
     }
@@ -87,7 +88,7 @@ public class ProductVariantService {
         return productVariantRepository.findAll(pageable)
                 .map(variant -> {
                     long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                    return ProductVariantResponse.fromEntity(variant, stock);
+                    return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
                 });
     }
 
@@ -116,7 +117,7 @@ public class ProductVariantService {
         productVariantRepository.save(variant);
 
         long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-        return ProductVariantResponse.fromEntity(variant, stock);
+        return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
     }
 
     @Transactional
@@ -145,7 +146,7 @@ public class ProductVariantService {
         return productVariantRepository.findByProductIdAndIsActive(productId, true).stream()
                 .map(variant -> {
                     long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                    return ProductVariantResponse.fromEntity(variant, stock);
+                    return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
                 })
                 .collect(Collectors.toList());
     }
@@ -158,7 +159,7 @@ public class ProductVariantService {
         return productVariantRepository.findByProductId(productId).stream()
                 .map(variant -> {
                     long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                    return ProductVariantResponse.fromEntity(variant, stock);
+                    return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
                 })
                 .collect(Collectors.toList());
     }
@@ -171,7 +172,7 @@ public class ProductVariantService {
         return productVariantRepository.findByProductIdAndIsActive(productId, true).stream()
                 .map(variant -> {
                     long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                    return ProductVariantResponse.fromEntity(variant, stock);
+                    return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
                 })
                 .collect(Collectors.toList());
     }
