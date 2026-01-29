@@ -1,6 +1,7 @@
 package com.riakgu.digilo.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.riakgu.digilo.common.filter.RequestTracingFilter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class ApiResponse<T> {
     private T data;
     private Object errors;
     private String path;
+    private String traceId;
     private LocalDateTime timestamp;
     
     private Pagination pagination;
@@ -30,6 +32,7 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .code(code)
                 .message(message)
+                .traceId(RequestTracingFilter.getCurrentTraceId())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -39,6 +42,7 @@ public class ApiResponse<T> {
                 .code(code)
                 .message(message)
                 .data(data)
+                .traceId(RequestTracingFilter.getCurrentTraceId())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -49,6 +53,7 @@ public class ApiResponse<T> {
                 .message(message)
                 .data(page.getContent())
                 .pagination(Pagination.from(page))
+                .traceId(RequestTracingFilter.getCurrentTraceId())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -58,6 +63,7 @@ public class ApiResponse<T> {
                 .code(code)
                 .message(message)
                 .path(path)
+                .traceId(RequestTracingFilter.getCurrentTraceId())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -68,6 +74,7 @@ public class ApiResponse<T> {
                 .message(message)
                 .errors(errors)
                 .path(path)
+                .traceId(RequestTracingFilter.getCurrentTraceId())
                 .timestamp(LocalDateTime.now())
                 .build();
     }
