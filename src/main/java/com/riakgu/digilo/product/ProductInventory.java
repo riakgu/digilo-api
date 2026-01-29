@@ -12,7 +12,10 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_inventories")
+@Table(name = "product_inventories", indexes = {
+        @Index(name = "idx_inventory_variant_status", columnList = "variant_id, status"),
+        @Index(name = "idx_inventory_order_item", columnList = "order_item_id")
+})
 public class ProductInventory extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

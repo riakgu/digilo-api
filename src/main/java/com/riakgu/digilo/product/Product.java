@@ -14,7 +14,10 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "products")
+@Table(name = "products", indexes = {
+        @Index(name = "idx_product_slug", columnList = "slug"),
+        @Index(name = "idx_product_is_active", columnList = "is_active")
+})
 public class Product extends BaseEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

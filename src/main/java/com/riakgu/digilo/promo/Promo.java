@@ -13,7 +13,10 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "promos")
+@Table(name = "promos", indexes = {
+        @Index(name = "idx_promo_code", columnList = "code"),
+        @Index(name = "idx_promo_is_active", columnList = "is_active")
+})
 public class Promo extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 50)

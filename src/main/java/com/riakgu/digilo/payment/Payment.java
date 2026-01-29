@@ -17,7 +17,10 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "payments")
+@Table(name = "payments", indexes = {
+        @Index(name = "idx_payment_order_id", columnList = "order_id"),
+        @Index(name = "idx_payment_status", columnList = "status")
+})
 public class Payment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -16,7 +16,10 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "orders")
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_order_user_id", columnList = "user_id"),
+        @Index(name = "idx_order_status", columnList = "status")
+})
 public class Order extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

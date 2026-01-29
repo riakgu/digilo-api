@@ -2,10 +2,7 @@ package com.riakgu.digilo.category;
 
 import com.riakgu.digilo.common.base.BaseEntity;
 import com.riakgu.digilo.product.ProductCategory;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
@@ -18,7 +15,10 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "categories")
+@Table(name = "categories", indexes = {
+        @Index(name = "idx_category_slug", columnList = "slug"),
+        @Index(name = "idx_category_is_active", columnList = "is_active")
+})
 public class Category extends BaseEntity {
 
     @OneToMany(mappedBy = "category")
