@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -265,46 +266,47 @@ public class OrderService {
     }
 
     private void reserveInventory(Long orderItemId, Long variantId, int quantity) {
-        for (int i = 0; i < quantity; i++) {
+        List<ProductInventory> available = inventoryRepository
+                .findAvailableForUpdate(variantId, PageRequest.of(0, quantity));
 
-            ProductInventory inventory = inventoryRepository
-                    .findAvailableForUpdate(
-                            variantId,
-                            PageRequest.of(0, 1)
-                    )
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(() -> new BadRequestException("Out of Stock"));
+        if (available.size() < quantity) {
+            throw new BadRequestException("Out of Stock");
+        }
 
+        Instant now = Instant.now();
+        for (ProductInventory inventory : available) {
             inventory.setStatus(InventoryStatus.RESERVED);
             inventory.setOrderItemId(orderItemId);
-            inventory.setReservedAt(Instant.now());
-
-            inventoryRepository.save(inventory);
+            inventory.setReservedAt(now);
         }
+
+        inventoryRepository.saveAll(available);
     }
 
     private void markInventoryAsSold(Order order) {
-
         List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+        List<ProductInventory> toUpdate = new ArrayList<>();
+        Instant now = Instant.now();
 
         for (OrderItem item : items) {
-
             List<ProductInventory> reserved = inventoryRepository
                     .findByOrderItemIdAndStatus(item.getId(), InventoryStatus.RESERVED);
 
             for (ProductInventory inv : reserved) {
                 inv.setStatus(InventoryStatus.SOLD);
-                inv.setSoldAt(Instant.now());
-                inventoryRepository.save(inv);
+                inv.setSoldAt(now);
+                toUpdate.add(inv);
             }
         }
+
+        inventoryRepository.saveAll(toUpdate);
     }
 
 
     private void releaseInventory(Order order) {
-        for (OrderItem item : order.getItems()) {
+        List<ProductInventory> toUpdate = new ArrayList<>();
 
+        for (OrderItem item : order.getItems()) {
             List<ProductInventory> reserved = inventoryRepository
                     .findByOrderItemIdAndStatus(item.getId(), InventoryStatus.RESERVED);
 
@@ -312,9 +314,11 @@ public class OrderService {
                 inv.setStatus(InventoryStatus.AVAILABLE);
                 inv.setReservedAt(null);
                 inv.setOrderItemId(null);
-                inventoryRepository.save(inv);
+                toUpdate.add(inv);
             }
         }
+
+        inventoryRepository.saveAll(toUpdate);
     }
 
     private String generateOrderNumber() {
