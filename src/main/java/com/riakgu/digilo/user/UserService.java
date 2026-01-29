@@ -63,6 +63,8 @@ public class UserService {
 
         userRepository.save(user);
 
+        log.info("User profile updated: userId={}", userId);
+
         return UserResponse.fromEntity(user);
     }
 
@@ -78,6 +80,8 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+
+        log.info("User password changed: userId={}", userId);
 
         return UserResponse.fromEntity(user);
     }
@@ -95,6 +99,8 @@ public class UserService {
 
         user.setRole(request.getRole());
         userRepository.save(user);
+
+        log.info("User role updated: userId={}, newRole={}", userId, request.getRole());
 
         return UserResponse.fromEntity(user);
     }

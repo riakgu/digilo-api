@@ -52,6 +52,8 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
+        log.info("Category created: id={}, name={}, slug={}", category.getId(), newName, newSlug);
+
         return CategoryResponse.fromEntity(category);
     }
 
@@ -97,6 +99,8 @@ public class CategoryService {
 
         categoryRepository.save(category);
 
+        log.info("Category updated: id={}, name={}, slug={}", id, newName, newSlug);
+
         return CategoryResponse.fromEntity(category);
     }
 
@@ -108,6 +112,7 @@ public class CategoryService {
         category.setIsActive(isActive);
         categoryRepository.save(category);
 
+        log.info("Category status updated: id={}, isActive={}", id, isActive);
     }
 
     @Transactional(readOnly = true)

@@ -12,9 +12,11 @@ import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -38,6 +40,8 @@ public class AuthService {
 
         userRepository.save(user);
 
+        log.info("User registered: email={}", user.getEmail());
+
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
@@ -51,8 +55,11 @@ public class AuthService {
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.warn("Login failed: invalid password for email={}", request.getEmail());
             throw new UnauthorizedException("Invalid credentials");
         }
+
+        log.info("User logged in: userId={}, email={}", user.getId(), user.getEmail());
 
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
@@ -86,6 +93,7 @@ public class AuthService {
             jwtService.blacklistAccessToken(token);
             jwtService.revokeUserTokens(userId);
 
+            log.info("User logged out: userId={}", userId);
         }
     }
 

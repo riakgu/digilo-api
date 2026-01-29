@@ -86,6 +86,8 @@ public class PromoService {
 
         promoRepository.save(promo);
 
+        log.info("Promo updated: id={}, code={}", id, newCode);
+
         return PromoResponse.fromEntity(promo);
     }
 
@@ -108,6 +110,8 @@ public class PromoService {
                 .orElseThrow(() -> new NotFoundException("Promo not found"));
         promo.setIsActive(true);
         promoRepository.save(promo);
+
+        log.info("Promo activated: id={}, code={}", id, promo.getCode());
     }
 
     @Transactional
@@ -116,6 +120,8 @@ public class PromoService {
                 .orElseThrow(() -> new NotFoundException("Promo not found"));
         promo.setIsActive(false);
         promoRepository.save(promo);
+
+        log.info("Promo deactivated: id={}, code={}", id, promo.getCode());
     }
 
     @Transactional(readOnly = true)

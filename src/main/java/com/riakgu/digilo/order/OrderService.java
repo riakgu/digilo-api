@@ -96,6 +96,9 @@ public class OrderService {
 
         orderRepository.save(order);
 
+        log.info("Order created: orderNumber={}, userId={}, itemCount={}, totalAmount={}",
+                order.getOrderNumber(), userId, cart.getItems().size(), totalAmount);
+
         for (CartItem cartItem : cart.getItems()) {
             ProductVariant variant = cartItem.getVariant();
             Product product = variant.getProduct();
@@ -143,6 +146,9 @@ public class OrderService {
         if (promo != null) {
             promoService.recordUsage(promo, userId, order.getId());
         }
+
+        log.info("Order {} completed processing: status={}, promoApplied={}",
+                order.getOrderNumber(), order.getStatus(), promo != null);
 
         return OrderResponse.fromEntity(order);
     }

@@ -40,6 +40,9 @@ public class ProductImageService {
 
         product.getImages().add(image);
         productRepository.save(product);
+
+        log.info("Product image added: productId={}, imageUrl={}, isPrimary={}", 
+                productId, request.getImageUrl(), shouldBePrimary);
     }
 
     @Transactional
@@ -58,6 +61,8 @@ public class ProductImageService {
 
         image.setIsPrimary(true);
         productImageRepository.save(image);
+
+        log.info("Product primary image set: productId={}, imageId={}", productId, imageId);
     }
 
     @Transactional
@@ -88,6 +93,8 @@ public class ProductImageService {
             product.getImages().iterator().next().setIsPrimary(true);
             productRepository.save(product);
         }
+
+        log.info("Product image deleted: productId={}, imageId={}", productId, imageId);
     }
 
     @Transactional(readOnly = true)
@@ -120,5 +127,7 @@ public class ProductImageService {
         }
 
         productImageRepository.save(image);
+
+        log.info("Product image updated: productId={}, imageId={}", productId, imageId);
     }
 }

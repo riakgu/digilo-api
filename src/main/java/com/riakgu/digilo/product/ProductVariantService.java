@@ -49,6 +49,9 @@ public class ProductVariantService {
         product.getVariants().add(variant);
 
         long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+
+        log.info("Product variant created: id={}, productId={}, sku={}", variant.getId(), productId, request.getSku());
+
         return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(product));
     }
 
@@ -117,6 +120,9 @@ public class ProductVariantService {
         productVariantRepository.save(variant);
 
         long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+
+        log.info("Product variant updated: id={}, sku={}", id, request.getSku());
+
         return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
     }
 
@@ -127,6 +133,8 @@ public class ProductVariantService {
 
         variant.setIsActive(isActive);
         productVariantRepository.save(variant);
+
+        log.info("Product variant status updated: id={}, isActive={}", id, isActive);
     }
 
     @Transactional
@@ -134,8 +142,11 @@ public class ProductVariantService {
         ProductVariant variant = productVariantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Variant with id " + id + " not found"));
 
+        Long productId = variant.getProduct().getId();
         variant.getProduct().getVariants().remove(variant);
         productVariantRepository.delete(variant);
+
+        log.info("Product variant deleted: id={}, productId={}", id, productId);
     }
 
     @Transactional(readOnly = true)

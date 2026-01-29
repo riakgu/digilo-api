@@ -73,6 +73,8 @@ public class ProductService {
                 })
                 .collect(Collectors.toList());
 
+        log.info("Product created: id={}, name={}, slug={}", product.getId(), newName, newSlug);
+
         return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
     }
 
@@ -158,6 +160,8 @@ public class ProductService {
                 })
                 .collect(Collectors.toList());
 
+        log.info("Product updated: id={}, name={}, slug={}", id, newName, newSlug);
+
         return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
     }
 
@@ -169,6 +173,7 @@ public class ProductService {
         product.setIsActive(isActive);
         productRepository.save(product);
 
+        log.info("Product status updated: id={}, isActive={}", id, isActive);
     }
 
     @Transactional(readOnly = true)

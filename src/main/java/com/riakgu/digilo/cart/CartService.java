@@ -62,6 +62,8 @@ public class CartService {
         if (existingItem != null) {
             existingItem.setQuantity(existingItem.getQuantity() + request.getQuantity());
             cartItemRepository.save(existingItem);
+            log.info("Cart item quantity updated: userId={}, variantId={}, newQuantity={}", 
+                    userId, variant.getId(), existingItem.getQuantity());
         } else {
             CartItem newItem = CartItem.builder()
                     .cart(cart)
@@ -70,6 +72,8 @@ public class CartService {
                     .build();
             cartItemRepository.save(newItem);
             cart.getItems().add(newItem);
+            log.info("Item added to cart: userId={}, variantId={}, quantity={}", 
+                    userId, variant.getId(), request.getQuantity());
         }
 
         return buildCartResponse(cart);
@@ -116,6 +120,8 @@ public class CartService {
         cart.getItems().remove(item);
         cartItemRepository.delete(item);
 
+        log.info("Item removed from cart: userId={}, itemId={}", userId, itemId);
+
         return buildCartResponse(cart);
     }
 
@@ -126,6 +132,8 @@ public class CartService {
 
         cart.getItems().clear();
         cartRepository.save(cart);
+
+        log.info("Cart cleared: userId={}", userId);
     }
 
     private Cart createCart(Long userId) {

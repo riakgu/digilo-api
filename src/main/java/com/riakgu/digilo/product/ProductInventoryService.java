@@ -39,6 +39,9 @@ public class ProductInventoryService {
 
         inventoryRepository.save(inventory);
 
+        log.info("Inventory created: id={}, variantId={}, status={}",
+                inventory.getId(), variant.getId(), inventory.getStatus());
+
         return ProductInventoryResponse.fromEntity(inventory);
     }
 
@@ -47,7 +50,7 @@ public class ProductInventoryService {
         ProductVariant variant = variantRepository.findById(request.getVariantId())
                 .orElseThrow(() -> new NotFoundException("Variant with id " + request.getVariantId() + " not found"));
 
-        return request.getCredentials().stream()
+        List<ProductInventoryResponse> results = request.getCredentials().stream()
                 .map(credential -> {
                     String encrypted = encryptionService.encrypt(credential);
                     ProductInventory inventory = ProductInventory.builder()
@@ -59,6 +62,10 @@ public class ProductInventoryService {
                     return ProductInventoryResponse.fromEntity(inventory);
                 })
                 .collect(Collectors.toList());
+
+        log.info("Bulk inventory created: variantId={}, count={}", request.getVariantId(), results.size());
+
+        return results;
     }
 
     @Transactional(readOnly = true)
@@ -183,5 +190,7 @@ public class ProductInventoryService {
         }
 
         inventoryRepository.delete(inventory);
+
+        log.info("Inventory deleted: id={}, variantId={}", id, inventory.getVariant().getId());
     }
 }
