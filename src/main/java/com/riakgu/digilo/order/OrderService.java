@@ -5,6 +5,8 @@ import com.riakgu.digilo.cart.CartItem;
 import com.riakgu.digilo.cart.CartRepository;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
+import com.riakgu.digilo.event.EventPublisher;
+import com.riakgu.digilo.event.OrderEvent;
 import com.riakgu.digilo.order.dto.*;
 import com.riakgu.digilo.product.*;
 import com.riakgu.digilo.promo.Promo;
@@ -41,6 +43,7 @@ public class OrderService {
     private final EncryptionService encryptionService;
     private final PromoService promoService;
     private final ProductImageHelper productImageHelper;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public OrderResponse createFromCart(Long userId, CreateOrderRequest request) {
@@ -150,6 +153,10 @@ public class OrderService {
         log.info("Order {} completed processing: status={}, promoApplied={}",
                 order.getOrderNumber(), order.getStatus(), promo != null);
 
+        // Publish order created event
+        eventPublisher.publishOrderEvent(
+                OrderEvent.orderCreated(order.getOrderNumber(), userId, totalAmount));
+
         return OrderResponse.fromEntity(order);
     }
 
@@ -221,8 +228,16 @@ public class OrderService {
 
         if (newStatus == OrderStatus.PAID) {
             markInventoryAsSold(order);
-        } else if (newStatus == OrderStatus.CANCELLED || newStatus == OrderStatus.FAILED) {
+            eventPublisher.publishOrderEvent(
+                    OrderEvent.orderPaid(order.getOrderNumber(), order.getUser().getId(), order.getTotalAmount()));
+        } else if (newStatus == OrderStatus.CANCELLED) {
             releaseInventory(order);
+            eventPublisher.publishOrderEvent(
+                    OrderEvent.orderCancelled(order.getOrderNumber(), order.getUser().getId(), order.getTotalAmount()));
+        } else if (newStatus == OrderStatus.FAILED) {
+            releaseInventory(order);
+            eventPublisher.publishOrderEvent(
+                    OrderEvent.orderFailed(order.getOrderNumber(), order.getUser().getId(), order.getTotalAmount()));
         }
 
         log.info("Order {} status changed from {} to {}", order.getOrderNumber(), oldStatus, newStatus);

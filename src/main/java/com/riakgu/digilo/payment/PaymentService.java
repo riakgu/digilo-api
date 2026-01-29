@@ -2,6 +2,8 @@ package com.riakgu.digilo.payment;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
+import com.riakgu.digilo.event.EventPublisher;
+import com.riakgu.digilo.event.PaymentEvent;
 import com.riakgu.digilo.order.Order;
 import com.riakgu.digilo.order.OrderRepository;
 import com.riakgu.digilo.order.OrderService;
@@ -31,6 +33,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final OrderService orderService;
     private final MidtransService midtransService;
+    private final EventPublisher eventPublisher;
 
     @Transactional
     public PaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
@@ -93,6 +96,10 @@ public class PaymentService {
         log.info("Payment updated with Midtrans data for order {}: transaction_id={}",
                 order.getOrderNumber(), transactionId);
 
+        // Publish payment created event
+        eventPublisher.publishPaymentEvent(
+                PaymentEvent.paymentCreated(order.getOrderNumber(), payment.getId(), order.getTotalAmount()));
+
         return PaymentResponse.fromEntity(payment);
     }
 
@@ -137,9 +144,21 @@ public class PaymentService {
                 payment.setPaidAt(Instant.now());
                 // Update order status to PAID
                 updateOrderStatus(payment.getOrder().getId(), OrderStatus.PAID);
-            } else if (newStatus == PaymentStatus.FAILED || newStatus == PaymentStatus.EXPIRED) {
-                // Update order status to FAILED/CANCELLED
+                // Publish payment success event
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentSuccess(orderId, payment.getId(), payment.getAmount()));
+            } else if (newStatus == PaymentStatus.FAILED) {
+                // Update order status to FAILED
                 updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
+                // Publish payment failed event
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentFailed(orderId, payment.getId(), payment.getAmount()));
+            } else if (newStatus == PaymentStatus.EXPIRED) {
+                // Update order status to FAILED
+                updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
+                // Publish payment expired event
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentExpired(orderId, payment.getId(), payment.getAmount()));
             }
 
             log.info("Payment {} status changed: {} -> {}", payment.getId(), oldStatus, newStatus);
