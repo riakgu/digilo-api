@@ -1,4 +1,4 @@
-package com.riakgu.digilo.verification;
+package com.riakgu.digilo.auth;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;

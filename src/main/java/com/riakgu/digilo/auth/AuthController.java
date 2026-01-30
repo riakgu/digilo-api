@@ -2,10 +2,13 @@ package com.riakgu.digilo.auth;
 
 import com.riakgu.digilo.auth.dto.*;
 import com.riakgu.digilo.common.dto.ApiResponse;
+import com.riakgu.digilo.user.dto.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
     private final GoogleAuthService googleAuthService;
+    private final VerificationService verificationService;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
@@ -85,5 +89,39 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Password reset successful"));
+    }
+
+    @PostMapping("/email/send-otp")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> sendEmailOtp(@AuthenticationPrincipal Long userId) {
+        verificationService.sendEmailOtp(userId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Verification code sent to email"));
+    }
+
+    @PostMapping("/email/verify")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> verifyEmail(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody VerifyRequest request
+    ) {
+        UserResponse user = verificationService.verifyEmail(userId, request.getOtp());
+        return ResponseEntity.ok(ApiResponse.success("OK", "Email verified successfully", user));
+    }
+
+    @PostMapping("/phone/send-otp")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> sendPhoneOtp(@AuthenticationPrincipal Long userId) {
+        verificationService.sendPhoneOtp(userId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Verification code sent to WhatsApp"));
+    }
+
+    @PostMapping("/phone/verify")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> verifyPhone(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody VerifyRequest request
+    ) {
+        UserResponse user = verificationService.verifyPhone(userId, request.getOtp());
+        return ResponseEntity.ok(ApiResponse.success("OK", "Phone verified successfully", user));
     }
 }

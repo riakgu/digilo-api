@@ -12,7 +12,6 @@ import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import com.riakgu.digilo.user.UserStatus;
 import com.riakgu.digilo.user.dto.UserResponse;
-import com.riakgu.digilo.verification.OtpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;

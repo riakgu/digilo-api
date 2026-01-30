@@ -1,4 +1,4 @@
-package com.riakgu.digilo.verification.dto;
+package com.riakgu.digilo.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
