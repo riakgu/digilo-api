@@ -62,13 +62,13 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Payment retrieved", payment));
     }
 
-    @PostMapping("/user/payments/{paymentId}/check-status")
-    public ResponseEntity<ApiResponse<PaymentResponse>> checkPaymentStatus(
+    @PostMapping("/user/payments/{paymentId}/sync")
+    public ResponseEntity<ApiResponse<PaymentResponse>> syncPaymentStatus(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long paymentId
     ) {
         PaymentResponse payment = paymentService.checkStatus(paymentId, userId);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Payment status updated", payment));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Payment status synced", payment));
     }
 
     @PostMapping("/public/payments/notification")
