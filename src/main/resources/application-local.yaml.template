@@ -32,6 +32,9 @@ spring:
       port: 6379
       timeout: 60000ms
 
+  kafka:
+    bootstrap-servers: localhost:9092
+
 jwt:
   access-secret: local-access-secret-key-for-development
   access-expiration: 86400000

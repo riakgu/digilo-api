@@ -25,8 +25,6 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    // ==================== TOPICS ====================
-
     @Bean
     public NewTopic ordersTopic() {
         return TopicBuilder.name(OrderEvent.TOPIC)
@@ -43,8 +41,6 @@ public class KafkaConfig {
                 .build();
     }
 
-    // ==================== PRODUCER ====================
-
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -58,8 +54,6 @@ public class KafkaConfig {
     public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
-
-    // ==================== CONSUMER ====================
 
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
