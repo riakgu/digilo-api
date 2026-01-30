@@ -92,31 +92,6 @@ public class CategoryController {
                 .body(ApiResponse.success("OK", "Category updated successfully", category));
     }
 
-
-    @PatchMapping("/admin/categories/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CategoryResponse>> activate(
-            @PathVariable Long id
-    ) {
-        categoryService.updateStatus(id, true);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Category activated successfully"));
-    }
-
-    @PatchMapping("/admin/categories/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<CategoryResponse>> deactivate(
-            @PathVariable Long id
-    ) {
-        categoryService.updateStatus(id, false);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Category deactivated successfully"));
-    }
-
     @GetMapping("/admin/categories")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll(
@@ -128,5 +103,5 @@ public class CategoryController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("OK", "Get all categories successful", categories));
     }
-
 }
+

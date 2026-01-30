@@ -97,23 +97,18 @@ public class CategoryService {
         category.setSlug(newSlug);
         category.setDescription(request.getDescription());
 
+        // Update status if provided
+        if (request.getActive() != null) {
+            category.setIsActive(request.getActive());
+        }
+
         categoryRepository.save(category);
 
-        log.info("Category updated: id={}, name={}, slug={}", id, newName, newSlug);
+        log.info("Category updated: id={}, name={}, slug={}, active={}", id, newName, newSlug, category.getIsActive());
 
         return CategoryResponse.fromEntity(category);
     }
 
-    @Transactional
-    public void updateStatus(Long id, boolean isActive) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
-
-        category.setIsActive(isActive);
-        categoryRepository.save(category);
-
-        log.info("Category status updated: id={}, isActive={}", id, isActive);
-    }
 
     @Transactional(readOnly = true)
     public Page<CategoryResponse> getAllActive(Pageable pageable) {
