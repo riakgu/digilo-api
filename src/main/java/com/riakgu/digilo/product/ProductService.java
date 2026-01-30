@@ -177,10 +177,26 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getAllActive(ProductSortOption sortBy, Pageable pageable) {
+    public Page<ProductResponse> getAllActive(String categorySlug, ProductSortOption sortBy, Pageable pageable) {
         Page<Product> products;
 
-        if (sortBy == null) {
+        boolean hasCategory = categorySlug != null && !categorySlug.isBlank();
+
+        if (hasCategory) {
+            categoryRepository.findBySlugAndIsActive(categorySlug, true)
+                    .orElseThrow(() -> new NotFoundException("Category not found: " + categorySlug));
+            
+            if (sortBy == null) {
+                products = productRepository.findAllByCategoriesCategorySlugAndIsActive(categorySlug, true, pageable);
+            } else {
+                products = switch (sortBy) {
+                    case LATEST -> productRepository.findByCategoryOrderByLatest(categorySlug, pageable);
+                    case TRENDING -> productRepository.findByCategoryOrderByTrending(categorySlug, pageable);
+                    case PRICE_ASC -> productRepository.findByCategoryOrderByPriceAsc(categorySlug, pageable);
+                    case PRICE_DESC -> productRepository.findByCategoryOrderByPriceDesc(categorySlug, pageable);
+                };
+            }
+        } else if (sortBy == null) {
             products = productRepository.findAllByIsActive(true, pageable);
         } else {
             products = switch (sortBy) {

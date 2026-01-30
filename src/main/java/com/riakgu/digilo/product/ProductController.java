@@ -39,10 +39,11 @@ public class ProductController {
 
     @GetMapping("/public/products")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllActive(
+            @RequestParam(required = false) String categorySlug,
             @RequestParam(required = false) ProductSortOption sortBy,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<ProductResponse> products = productService.getAllActive(sortBy, pageable);
+        Page<ProductResponse> products = productService.getAllActive(categorySlug, sortBy, pageable);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
