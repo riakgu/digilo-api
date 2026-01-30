@@ -25,6 +25,18 @@ spring:
     redis:
       timeout: 60000ms
 
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 jwt:
   access-secret: ${JWT_ACCESS_SECRET}
   access-expiration: ${JWT_ACCESS_EXPIRATION:900000}
