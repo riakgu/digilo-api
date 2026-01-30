@@ -3,6 +3,7 @@ package com.riakgu.digilo.product;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.product.dto.ProductImageRequest;
 import com.riakgu.digilo.product.dto.ProductImageResponse;
+import com.riakgu.digilo.product.dto.ReorderImagesRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -85,6 +86,15 @@ public class ProductImageController {
 
         return ResponseEntity.ok(ApiResponse.success("OK", "Image uploaded successfully", imageUrl));
     }
-    
-    
+
+    @PatchMapping("/admin/products/{id}/images/reorder")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> reorderImages(
+            @PathVariable Long id,
+            @Valid @RequestBody ReorderImagesRequest request
+    ) {
+        productImageService.reorderImages(id, request.getImageIds());
+        return ResponseEntity.ok(ApiResponse.success("OK", "Images reordered successfully"));
+    }
 }
+

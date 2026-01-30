@@ -17,6 +17,7 @@ public class ProductImageResponse {
     private Long id;
     private String imageUrl;
     private Boolean isPrimary;
+    private Integer displayOrder;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -25,8 +26,10 @@ public class ProductImageResponse {
                 .id(image.getId())
                 .imageUrl(image.getImageUrl())
                 .isPrimary(image.getIsPrimary())
+                .displayOrder(image.getDisplayOrder())
                 .createdAt(image.getCreatedAt())
                 .updatedAt(image.getUpdatedAt())
                 .build();
     }
 }
+
