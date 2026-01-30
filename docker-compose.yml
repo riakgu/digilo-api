@@ -34,6 +34,7 @@ services:
       - WAHA_BASE_URL=${WAHA_BASE_URL}
       - WAHA_API_KEY=${WAHA_API_KEY}
       - WAHA_SESSION=${WAHA_SESSION:-default}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     depends_on:
       db:
         condition: service_healthy

@@ -73,6 +73,9 @@ waha:
   api-key: your-api-key
   session: default
 
+google:
+  client-id: your-google-client-id
+
 logging:
   level:
     org.hibernate.SQL: debug

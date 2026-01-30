@@ -63,6 +63,9 @@ waha:
   api-key: ${WAHA_API_KEY}
   session: ${WAHA_SESSION:default}
 
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+
 logging:
   level:
     org.hibernate.SQL: info
