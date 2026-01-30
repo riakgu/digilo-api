@@ -1,4 +1,4 @@
-package com.riakgu.digilo.whatsapp;
+package com.riakgu.digilo.messaging;
 
 import com.riakgu.digilo.config.WahaProperties;
 import lombok.RequiredArgsConstructor;

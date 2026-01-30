@@ -1,4 +1,4 @@
-package com.riakgu.digilo.auth;
+package com.riakgu.digilo.messaging;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

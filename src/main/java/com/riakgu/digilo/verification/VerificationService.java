@@ -1,13 +1,13 @@
 package com.riakgu.digilo.verification;
 
-import com.riakgu.digilo.auth.EmailService;
 import com.riakgu.digilo.auth.OtpService;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
+import com.riakgu.digilo.messaging.EmailService;
+import com.riakgu.digilo.messaging.WhatsAppService;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import com.riakgu.digilo.user.dto.UserResponse;
-import com.riakgu.digilo.whatsapp.WhatsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
