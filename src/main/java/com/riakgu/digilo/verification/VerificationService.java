@@ -1,6 +1,5 @@
 package com.riakgu.digilo.verification;
 
-import com.riakgu.digilo.auth.OtpService;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.messaging.EmailService;
@@ -24,8 +23,6 @@ public class VerificationService {
     private final EmailService emailService;
     private final WhatsAppService whatsAppService;
     private final UserRepository userRepository;
-
-    // ==================== EMAIL ====================
 
     public void sendEmailOtp(Long userId) {
         User user = findUser(userId);
@@ -57,8 +54,6 @@ public class VerificationService {
         log.info("Email verified for userId={}", userId);
         return UserResponse.fromEntity(user);
     }
-
-    // ==================== PHONE ====================
 
     public void sendPhoneOtp(Long userId) {
         User user = findUser(userId);

@@ -17,8 +17,6 @@ public class VerificationController {
 
     private final VerificationService verificationService;
 
-    // ==================== EMAIL ====================
-
     @PostMapping("/email")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> requestEmailVerification(
@@ -37,8 +35,6 @@ public class VerificationController {
         UserResponse user = verificationService.verifyEmail(userId, request.getOtp());
         return ResponseEntity.ok(ApiResponse.success("OK", "Email verified successfully", user));
     }
-
-    // ==================== PHONE ====================
 
     @PostMapping("/phone")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")

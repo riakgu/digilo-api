@@ -1,4 +1,4 @@
-package com.riakgu.digilo.auth;
+package com.riakgu.digilo.verification;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +24,9 @@ public class OtpService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public String generateAndSaveOtp(String email) {
+    public String generateAndSaveOtp(String key) {
         // Check cooldown
-        String cooldownKey = COOLDOWN_PREFIX + email;
+        String cooldownKey = COOLDOWN_PREFIX + key;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(cooldownKey))) {
             throw new BadRequestException("Please wait before requesting another OTP");
         }
@@ -35,18 +35,18 @@ public class OtpService {
         String otp = String.format("%06d", secureRandom.nextInt(1000000));
 
         // Save OTP with TTL
-        String otpKey = OTP_PREFIX + email;
+        String otpKey = OTP_PREFIX + key;
         redisTemplate.opsForValue().set(otpKey, otp, OTP_EXPIRY);
 
         // Set cooldown
         redisTemplate.opsForValue().set(cooldownKey, "1", COOLDOWN);
 
-        log.info("OTP generated for email={}", email);
+        log.info("OTP generated for key={}", key);
         return otp;
     }
 
-    public boolean validateOtp(String email, String otp) {
-        String otpKey = OTP_PREFIX + email;
+    public boolean validateOtp(String key, String otp) {
+        String otpKey = OTP_PREFIX + key;
         String storedOtp = redisTemplate.opsForValue().get(otpKey);
 
         if (storedOtp == null) {
@@ -59,12 +59,12 @@ public class OtpService {
 
         // Delete OTP after successful validation
         redisTemplate.delete(otpKey);
-        log.info("OTP validated for email={}", email);
+        log.info("OTP validated for key={}", key);
         return true;
     }
 
-    public void deleteOtp(String email) {
-        redisTemplate.delete(OTP_PREFIX + email);
-        redisTemplate.delete(COOLDOWN_PREFIX + email);
+    public void deleteOtp(String key) {
+        redisTemplate.delete(OTP_PREFIX + key);
+        redisTemplate.delete(COOLDOWN_PREFIX + key);
     }
 }
