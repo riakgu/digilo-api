@@ -41,7 +41,7 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Unread count retrieved", count));
     }
 
-    @PutMapping("/{id}/read")
+    @PatchMapping("/{id}/read")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<NotificationResponse>> markAsRead(
             @AuthenticationPrincipal Long userId,
@@ -51,7 +51,7 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Notification marked as read", notification));
     }
 
-    @PutMapping("/read-all")
+    @PatchMapping("/read-all")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> markAllAsRead(
             @AuthenticationPrincipal Long userId
@@ -60,3 +60,4 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.success("OK", updated + " notifications marked as read"));
     }
 }
+
