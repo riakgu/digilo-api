@@ -1,13 +1,11 @@
 package com.riakgu.digilo.user;
 
-import com.riakgu.digilo.auth.dto.AuthResponse;
-import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
+import com.riakgu.digilo.user.dto.AdminUpdateUserRequest;
 import com.riakgu.digilo.user.dto.ChangePasswordRequest;
 import com.riakgu.digilo.user.dto.UpdateProfileRequest;
-import com.riakgu.digilo.user.dto.UpdateRoleRequest;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Locale;
 
 @Slf4j
 @Service
@@ -93,29 +89,23 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse updateRole(Long userId, UpdateRoleRequest request) {
+    public UserResponse adminUpdate(Long userId, AdminUpdateUserRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        user.setRole(request.getRole());
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
+
+        if (request.getStatus() != null) {
+            user.setStatus(request.getStatus());
+        }
+
         userRepository.save(user);
 
-        log.info("User role updated: userId={}, newRole={}", userId, request.getRole());
+        log.info("User admin updated: userId={}, role={}, status={}", userId, user.getRole(), user.getStatus());
 
         return UserResponse.fromEntity(user);
     }
-
-    @Transactional
-    public UserResponse updateStatus(Long userId, UserStatus status) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        user.setStatus(status);
-        userRepository.save(user);
-
-        log.info("User status updated: userId={}, newStatus={}", userId, status);
-
-        return UserResponse.fromEntity(user);
-    }
-
 }
+

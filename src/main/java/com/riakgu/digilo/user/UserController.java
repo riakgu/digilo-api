@@ -1,10 +1,9 @@
 package com.riakgu.digilo.user;
 
-import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
+import com.riakgu.digilo.user.dto.AdminUpdateUserRequest;
 import com.riakgu.digilo.user.dto.ChangePasswordRequest;
 import com.riakgu.digilo.user.dto.UpdateProfileRequest;
-import com.riakgu.digilo.user.dto.UpdateRoleRequest;
 import com.riakgu.digilo.user.dto.UserResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -85,37 +84,16 @@ public class UserController {
                 .body(ApiResponse.success("OK", "Get user successful", user));
     }
 
-    @PatchMapping("/admin/users/{id}/role")
+    @PatchMapping("/admin/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserResponse>> changeRole(
+    public ResponseEntity<ApiResponse<UserResponse>> adminUpdate(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateRoleRequest request
+            @Valid @RequestBody AdminUpdateUserRequest request
     ) {
-        UserResponse user = userService.updateRole(id, request);
+        UserResponse user = userService.adminUpdate(id, request);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(ApiResponse.success("UPDATED", "Change role successful", user));
-    }
-
-    @PostMapping("/admin/users/{id}/suspend")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserResponse>> suspendUser(@PathVariable Long id) {
-        UserResponse user = userService.updateStatus(id, UserStatus.SUSPENDED);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("UPDATED", "User suspended", user));
-    }
-
-    @PostMapping("/admin/users/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserResponse>> activateUser(@PathVariable Long id) {
-        UserResponse user = userService.updateStatus(id, UserStatus.ACTIVE);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("UPDATED", "User activated", user));
+                .body(ApiResponse.success("UPDATED", "User updated successfully", user));
     }
 }
-
