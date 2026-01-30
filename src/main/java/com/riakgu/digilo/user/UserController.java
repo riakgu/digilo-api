@@ -97,4 +97,25 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("UPDATED", "Change role successful", user));
     }
+
+    @PostMapping("/admin/users/{id}/suspend")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> suspendUser(@PathVariable Long id) {
+        UserResponse user = userService.updateStatus(id, UserStatus.SUSPENDED);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("UPDATED", "User suspended", user));
+    }
+
+    @PostMapping("/admin/users/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> activateUser(@PathVariable Long id) {
+        UserResponse user = userService.updateStatus(id, UserStatus.ACTIVE);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(ApiResponse.success("UPDATED", "User activated", user));
+    }
 }
+

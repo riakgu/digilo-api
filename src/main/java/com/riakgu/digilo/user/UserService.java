@@ -105,4 +105,17 @@ public class UserService {
         return UserResponse.fromEntity(user);
     }
 
+    @Transactional
+    public UserResponse updateStatus(Long userId, UserStatus status) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        user.setStatus(status);
+        userRepository.save(user);
+
+        log.info("User status updated: userId={}, newStatus={}", userId, status);
+
+        return UserResponse.fromEntity(user);
+    }
+
 }
