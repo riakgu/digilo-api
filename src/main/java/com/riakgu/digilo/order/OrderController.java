@@ -36,9 +36,10 @@ public class OrderController {
     @GetMapping("/user/orders")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
             @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) String orderNumber,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<OrderResponse> orders = orderService.getMyOrders(userId, pageable);
+        Page<OrderResponse> orders = orderService.getMyOrders(userId, orderNumber, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Orders retrieved", orders));
     }
 
@@ -51,31 +52,22 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Order retrieved", order));
     }
 
-    @GetMapping("/user/orders/number/{orderNumber}")
-    public ResponseEntity<ApiResponse<OrderResponse>> getOrderByNumber(
+    @GetMapping("/user/orders/{orderId}/credentials")
+    public ResponseEntity<ApiResponse<List<OrderCredentialResponse>>> getOrderCredentials(
             @AuthenticationPrincipal Long userId,
-            @PathVariable String orderNumber
+            @PathVariable Long orderId
     ) {
-        OrderResponse order = orderService.getByOrderNumber(orderNumber, userId);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Order retrieved", order));
+        List<OrderCredentialResponse> credentials = orderService.getOrderCredentials(orderId, userId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Credentials retrieved", credentials));
     }
 
     @GetMapping("/admin/orders")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllOrders(
+            @RequestParam(required = false) OrderStatus status,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<OrderResponse> orders = orderService.getAllOrders(pageable);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Orders retrieved", orders));
-    }
-
-    @GetMapping("/admin/orders/status/{status}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getOrdersByStatus(
-            @PathVariable OrderStatus status,
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
-        Page<OrderResponse> orders = orderService.getOrdersByStatus(status, pageable);
+        Page<OrderResponse> orders = orderService.getAllOrders(status, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Orders retrieved", orders));
     }
 
@@ -96,14 +88,5 @@ public class OrderController {
     ) {
         OrderResponse order = orderService.updateStatus(orderId, request);
         return ResponseEntity.ok(ApiResponse.success("OK", "Order status updated", order));
-    }
-
-    @GetMapping("/user/orders/{orderId}/credentials")
-    public ResponseEntity<ApiResponse<List<OrderCredentialResponse>>> getOrderCredentials(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long orderId
-    ) {
-        List<OrderCredentialResponse> credentials = orderService.getOrderCredentials(orderId, userId);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Credentials retrieved", credentials));
     }
 }

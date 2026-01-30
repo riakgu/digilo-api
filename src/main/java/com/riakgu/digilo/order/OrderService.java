@@ -186,7 +186,17 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getMyOrders(Long userId, Pageable pageable) {
+    public Page<OrderResponse> getMyOrders(Long userId, String orderNumber, Pageable pageable) {
+        if (orderNumber != null && !orderNumber.isBlank()) {
+            // Return single order if found
+            Order order = orderRepository.findByOrderNumber(orderNumber)
+                    .orElseThrow(() -> new NotFoundException("Order not found"));
+            if (!order.getUser().getId().equals(userId)) {
+                throw new BadRequestException("Order does not belong to you");
+            }
+            return new org.springframework.data.domain.PageImpl<>(
+                    List.of(OrderResponse.fromEntity(order)), pageable, 1);
+        }
         return orderRepository.findByUserId(userId, pageable)
                 .map(OrderResponse::fromEntity);
     }
@@ -199,15 +209,14 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable)
-                .map(OrderResponse::fromEntity);
-    }
-
-    @Transactional(readOnly = true)
-    public Page<OrderResponse> getOrdersByStatus(OrderStatus status, Pageable pageable) {
-        return orderRepository.findByStatus(status, pageable)
-                .map(OrderResponse::fromEntity);
+    public Page<OrderResponse> getAllOrders(OrderStatus status, Pageable pageable) {
+        Page<Order> orders;
+        if (status != null) {
+            orders = orderRepository.findByStatus(status, pageable);
+        } else {
+            orders = orderRepository.findAll(pageable);
+        }
+        return orders.map(OrderResponse::fromEntity);
     }
 
     @Transactional
