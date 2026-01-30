@@ -177,18 +177,30 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getAllActive(Pageable pageable) {
-        return productRepository.findAllByIsActive(true, pageable)
-                .map(product -> {
-                    String imageUrl = productImageHelper.getDisplayImageUrl(product);
-                    List<ProductVariantResponse> variants = product.getVariants().stream()
-                            .map(variant -> {
-                                long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                                return ProductVariantResponse.fromEntity(variant, stock, imageUrl);
-                            })
-                            .collect(Collectors.toList());
-                    return ProductResponse.fromEntity(product, variants, imageUrl);
-                });
+    public Page<ProductResponse> getAllActive(ProductSortOption sortBy, Pageable pageable) {
+        Page<Product> products;
+
+        if (sortBy == null) {
+            products = productRepository.findAllByIsActive(true, pageable);
+        } else {
+            products = switch (sortBy) {
+                case LATEST -> productRepository.findAllActiveOrderByLatest(pageable);
+                case TRENDING -> productRepository.findAllActiveOrderByTrending(pageable);
+                case PRICE_ASC -> productRepository.findAllActiveOrderByPriceAsc(pageable);
+                case PRICE_DESC -> productRepository.findAllActiveOrderByPriceDesc(pageable);
+            };
+        }
+
+        return products.map(product -> {
+            String imageUrl = productImageHelper.getDisplayImageUrl(product);
+            List<ProductVariantResponse> variants = product.getVariants().stream()
+                    .map(variant -> {
+                        long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
+                        return ProductVariantResponse.fromEntity(variant, stock, imageUrl);
+                    })
+                    .collect(Collectors.toList());
+            return ProductResponse.fromEntity(product, variants, imageUrl);
+        });
     }
 
     @Transactional(readOnly = true)
