@@ -68,6 +68,11 @@ midtrans:
   base-url: https://api.sandbox.midtrans.com
   production: false
 
+waha:
+  base-url: http://localhost:3000
+  api-key: your-api-key
+  session: default
+
 logging:
   level:
     org.hibernate.SQL: debug

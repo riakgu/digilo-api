@@ -31,6 +31,9 @@ services:
       - MAIL_PORT=${MAIL_PORT:-587}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - WAHA_BASE_URL=${WAHA_BASE_URL}
+      - WAHA_API_KEY=${WAHA_API_KEY}
+      - WAHA_SESSION=${WAHA_SESSION:-default}
     depends_on:
       db:
         condition: service_healthy

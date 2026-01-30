@@ -58,6 +58,11 @@ midtrans:
   base-url: https://api.midtrans.com
   production: true
 
+waha:
+  base-url: ${WAHA_BASE_URL}
+  api-key: ${WAHA_API_KEY}
+  session: ${WAHA_SESSION:default}
+
 logging:
   level:
     org.hibernate.SQL: warn
