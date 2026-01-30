@@ -22,8 +22,6 @@ public class PromoController {
 
     private final PromoService promoService;
 
-    // ==================== USER ENDPOINTS ====================
-
     @PostMapping("/user/promos/validate")
     public ResponseEntity<ApiResponse<PromoValidationResponse>> validatePromo(
             @AuthenticationPrincipal Long userId,
@@ -32,8 +30,6 @@ public class PromoController {
         PromoValidationResponse result = promoService.validatePromo(userId, request.getCode());
         return ResponseEntity.ok(ApiResponse.success("OK", "Promo validation completed", result));
     }
-
-    // ==================== ADMIN ENDPOINTS ====================
 
     @PostMapping("/admin/promos")
     @PreAuthorize("hasRole('ADMIN')")
@@ -72,23 +68,5 @@ public class PromoController {
     ) {
         Page<PromoResponse> promos = promoService.getAll(pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Promos retrieved", promos));
-    }
-
-    @PatchMapping("/admin/promos/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> activate(
-            @PathVariable Long id
-    ) {
-        promoService.activate(id);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Promo activated"));
-    }
-
-    @PatchMapping("/admin/promos/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deactivate(
-            @PathVariable Long id
-    ) {
-        promoService.deactivate(id);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Promo deactivated"));
     }
 }

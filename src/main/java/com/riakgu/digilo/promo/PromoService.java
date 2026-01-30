@@ -104,25 +104,6 @@ public class PromoService {
                 .map(PromoResponse::fromEntity);
     }
 
-    @Transactional
-    public void activate(Long id) {
-        Promo promo = promoRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Promo not found"));
-        promo.setIsActive(true);
-        promoRepository.save(promo);
-
-        log.info("Promo activated: id={}, code={}", id, promo.getCode());
-    }
-
-    @Transactional
-    public void deactivate(Long id) {
-        Promo promo = promoRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Promo not found"));
-        promo.setIsActive(false);
-        promoRepository.save(promo);
-
-        log.info("Promo deactivated: id={}, code={}", id, promo.getCode());
-    }
 
     @Transactional(readOnly = true)
     public PromoValidationResponse validatePromo(Long userId, String code) {
