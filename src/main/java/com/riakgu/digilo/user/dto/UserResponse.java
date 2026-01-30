@@ -1,6 +1,7 @@
 package com.riakgu.digilo.user.dto;
 
 import com.riakgu.digilo.user.User;
+import com.riakgu.digilo.user.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,9 @@ public class UserResponse {
     private String email;
     private String phone;
     private String role;
+    private UserStatus status;
+    private Boolean emailVerified;
+    private Boolean phoneVerified;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -29,8 +33,12 @@ public class UserResponse {
                 .phone(user.getPhone())
                 .name(user.getName())
                 .role(user.getRole().name())
+                .status(user.getStatus())
+                .emailVerified(user.getEmailVerified())
+                .phoneVerified(user.getPhoneVerified())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }
+

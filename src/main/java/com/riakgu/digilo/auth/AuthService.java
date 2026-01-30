@@ -10,6 +10,7 @@ import com.riakgu.digilo.common.exception.UnauthorizedException;
 import com.riakgu.digilo.user.Role;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
+import com.riakgu.digilo.user.UserStatus;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,11 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("Login failed: invalid password for email={}", request.getEmail());
             throw new UnauthorizedException("Invalid credentials");
+        }
+
+        if (user.getStatus() == UserStatus.SUSPENDED) {
+            log.warn("Login failed: account suspended for email={}", request.getEmail());
+            throw new UnauthorizedException("Your account has been suspended");
         }
 
         log.info("User logged in: userId={}, email={}", user.getId(), user.getEmail());
