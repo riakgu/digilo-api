@@ -1,21 +1,26 @@
 package com.riakgu.digilo.auth;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.riakgu.digilo.auth.dto.AuthResponse;
-import com.riakgu.digilo.auth.dto.LoginRequest;
-import com.riakgu.digilo.auth.dto.RefreshRequest;
-import com.riakgu.digilo.auth.dto.RegisterRequest;
+import com.riakgu.digilo.auth.dto.*;
+import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
+import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.exception.UnauthorizedException;
+import com.riakgu.digilo.messaging.EmailService;
 import com.riakgu.digilo.user.Role;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import com.riakgu.digilo.user.UserStatus;
 import com.riakgu.digilo.user.dto.UserResponse;
+import com.riakgu.digilo.verification.OtpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,6 +30,12 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
+    private final EmailService emailService;
+    private final StringRedisTemplate redisTemplate;
+
+    private static final String RESET_TOKEN_PREFIX = "password:reset:";
+    private static final Duration RESET_TOKEN_EXPIRY = Duration.ofMinutes(10);
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -106,4 +117,53 @@ public class AuthService {
         }
     }
 
+    public void forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        String otp = otpService.generateAndSaveOtp("password:" + user.getEmail());
+        emailService.sendPasswordResetEmail(user.getEmail(), otp);
+
+        log.info("Password reset OTP sent to email={}", request.getEmail());
+    }
+
+    public ResetTokenResponse verifyResetOtp(VerifyResetOtpRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        otpService.validateOtp("password:" + user.getEmail(), request.getOtp());
+
+        // Generate reset token
+        String resetToken = UUID.randomUUID().toString();
+        String tokenKey = RESET_TOKEN_PREFIX + resetToken;
+        redisTemplate.opsForValue().set(tokenKey, user.getId().toString(), RESET_TOKEN_EXPIRY);
+
+        log.info("Password reset OTP verified for email={}", request.getEmail());
+        return new ResetTokenResponse(resetToken);
+    }
+
+    public void resetPassword(ResetPasswordRequest request) {
+        String tokenKey = RESET_TOKEN_PREFIX + request.getToken();
+        String userIdStr = redisTemplate.opsForValue().get(tokenKey);
+
+        if (userIdStr == null) {
+            throw new BadRequestException("Invalid or expired reset token");
+        }
+
+        Long userId = Long.valueOf(userIdStr);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        // Delete reset token
+        redisTemplate.delete(tokenKey);
+
+        // Revoke all user tokens for security
+        jwtService.revokeUserTokens(userId);
+
+        log.info("Password reset successful for userId={}", userId);
+    }
 }
+

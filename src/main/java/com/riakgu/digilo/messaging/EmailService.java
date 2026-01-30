@@ -22,33 +22,57 @@ public class EmailService {
 
     @Async
     public void sendVerificationEmail(String toEmail, String otp) {
+        String htmlContent = """
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Email Verification</h2>
+                <p>Your verification code is:</p>
+                <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">%s</span>
+                </div>
+                <p style="color: #666; margin-top: 20px;">This code will expire in 5 minutes.</p>
+                <p style="color: #666;">If you didn't request this, please ignore this email.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="color: #999; font-size: 12px;">Digilo - Digital Product Marketplace</p>
+            </div>
+            """.formatted(otp);
+
+        sendEmail(toEmail, "Digilo - Email Verification", htmlContent);
+    }
+
+    @Async
+    public void sendPasswordResetEmail(String toEmail, String otp) {
+        String htmlContent = """
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Password Reset</h2>
+                <p>Your password reset code is:</p>
+                <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">%s</span>
+                </div>
+                <p style="color: #666; margin-top: 20px;">This code will expire in 5 minutes.</p>
+                <p style="color: #666;">If you didn't request this, please ignore this email.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="color: #999; font-size: 12px;">Digilo - Digital Product Marketplace</p>
+            </div>
+            """.formatted(otp);
+
+        sendEmail(toEmail, "Digilo - Password Reset", htmlContent);
+    }
+
+    private void sendEmail(String toEmail, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(fromEmail);
             helper.setTo(toEmail);
-            helper.setSubject("Digilo - Email Verification");
-
-            String htmlContent = """
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #333;">Email Verification</h2>
-                    <p>Your verification code is:</p>
-                    <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px;">
-                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">%s</span>
-                    </div>
-                    <p style="color: #666; margin-top: 20px;">This code will expire in 5 minutes.</p>
-                    <p style="color: #666;">If you didn't request this, please ignore this email.</p>
-                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="color: #999; font-size: 12px;">Digilo - Digital Product Marketplace</p>
-                </div>
-                """.formatted(otp);
-
+            helper.setSubject(subject);
             helper.setText(htmlContent, true);
+
             mailSender.send(message);
-            log.info("Verification email sent to {}", toEmail);
+            log.info("Email sent to {} with subject: {}", toEmail, subject);
         } catch (MessagingException e) {
-            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
+            log.error("Failed to send email to {}: {}", toEmail, e.getMessage());
         }
     }
 }
+
