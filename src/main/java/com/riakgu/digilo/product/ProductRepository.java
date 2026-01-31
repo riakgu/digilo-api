@@ -26,6 +26,8 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     Page<Product> findAllByCategoriesCategorySlugAndIsActive(String categorySlug, Boolean isActive, Pageable pageable);
 
+    long countByIsActive(Boolean isActive);
+
     @Query("SELECT p FROM Product p WHERE p.isActive = true AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<Product> searchProducts(@Param("query") String query, Pageable pageable);
 
