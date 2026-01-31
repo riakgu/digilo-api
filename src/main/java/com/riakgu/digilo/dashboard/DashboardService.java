@@ -1,5 +1,6 @@
 package com.riakgu.digilo.dashboard;
 
+import com.riakgu.digilo.config.CacheConfig;
 import com.riakgu.digilo.dashboard.dto.*;
 import com.riakgu.digilo.order.Order;
 import com.riakgu.digilo.order.OrderRepository;
@@ -11,6 +12,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -37,6 +39,7 @@ public class DashboardService {
     private final EntityManager entityManager;
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.DASHBOARD_STATS_CACHE)
     public DashboardStatsResponse getStats() {
         long totalUsers = userRepository.count();
         long activeUsers = userRepository.countByStatus(UserStatus.ACTIVE);
