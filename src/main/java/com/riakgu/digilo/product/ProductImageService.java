@@ -2,15 +2,18 @@ package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
+import com.riakgu.digilo.common.service.StorageService;
 import com.riakgu.digilo.product.dto.ProductImageRequest;
 import com.riakgu.digilo.product.dto.ProductImageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -18,9 +21,46 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductImageService {
 
+    private static final String IMAGE_PATH_PREFIX = "products/";
+    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
+            "image/jpeg", "image/png", "image/webp", "image/gif"
+    );
+
     private final ProductImageRepository productImageRepository;
-    private final R2ImageService r2ImageService;
     private final ProductRepository productRepository;
+    private final StorageService storageService;
+
+    @Transactional
+    public String uploadImage(Long productId, MultipartFile file) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        validateImageFile(file);
+
+        String key = generateImageKey(productId, file);
+        String imageUrl = storageService.upload(file, key);
+
+        boolean shouldBePrimary = product.getImages().isEmpty();
+
+        int maxOrder = product.getImages().stream()
+                .mapToInt(img -> img.getDisplayOrder() != null ? img.getDisplayOrder() : 0)
+                .max()
+                .orElse(-1);
+
+        ProductImage image = ProductImage.builder()
+                .product(product)
+                .imageUrl(imageUrl)
+                .isPrimary(shouldBePrimary)
+                .displayOrder(maxOrder + 1)
+                .build();
+
+        product.getImages().add(image);
+        productRepository.save(product);
+
+        log.info("Product image uploaded: productId={}, key={}", productId, key);
+
+        return imageUrl;
+    }
 
     @Transactional
     public void addImage(Long productId, ProductImageRequest request) {
@@ -48,7 +88,7 @@ public class ProductImageService {
         product.getImages().add(image);
         productRepository.save(product);
 
-        log.info("Product image added: productId={}, imageUrl={}, isPrimary={}", 
+        log.info("Product image added: productId={}, imageUrl={}, isPrimary={}",
                 productId, request.getImageUrl(), shouldBePrimary);
     }
 
@@ -84,13 +124,11 @@ public class ProductImageService {
             throw new BadRequestException("Image does not belong to this product");
         }
 
-
         boolean wasPrimary = image.getIsPrimary();
 
-        String imageUrl = image.getImageUrl();
-        String fileName = r2ImageService.extractFileNameIfR2(imageUrl);
-        if (fileName != null) {
-            r2ImageService.deleteImage(fileName);
+        String key = storageService.extractKey(image.getImageUrl());
+        if (key != null) {
+            storageService.delete(key);
         }
 
         product.getImages().remove(image);
@@ -166,5 +204,34 @@ public class ProductImageService {
 
         log.info("Product images reordered: productId={}, order={}", productId, imageIds);
     }
-}
 
+    private void validateImageFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("File is empty");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
+            throw new BadRequestException("Only image files are allowed (JPEG, PNG, WebP, GIF)");
+        }
+    }
+
+    private String generateImageKey(Long productId, MultipartFile file) {
+        String extension = getExtension(file.getOriginalFilename(), file.getContentType());
+        return IMAGE_PATH_PREFIX + productId + "/" + UUID.randomUUID() + "." + extension;
+    }
+
+    private String getExtension(String filename, String contentType) {
+        if (filename != null && filename.contains(".")) {
+            return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
+        }
+
+        return switch (contentType) {
+            case "image/jpeg" -> "jpg";
+            case "image/png" -> "png";
+            case "image/webp" -> "webp";
+            case "image/gif" -> "gif";
+            default -> "bin";
+        };
+    }
+}

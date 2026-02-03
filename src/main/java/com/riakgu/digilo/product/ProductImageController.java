@@ -18,7 +18,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductImageController {
 
-    private final R2ImageService r2ImageService;
     private final ProductImageService productImageService;
 
     @PostMapping("/admin/products/{id}/images")
@@ -76,14 +75,7 @@ public class ProductImageController {
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file
     ) {
-        String imageUrl = r2ImageService.uploadImage(file);
-
-        ProductImageRequest request = new ProductImageRequest();
-        request.setImageUrl(imageUrl);
-        request.setIsPrimary(false);
-
-        productImageService.addImage(id, request);
-
+        String imageUrl = productImageService.uploadImage(id, file);
         return ResponseEntity.ok(ApiResponse.success("OK", "Image uploaded successfully", imageUrl));
     }
 
@@ -97,4 +89,3 @@ public class ProductImageController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Images reordered successfully"));
     }
 }
-
