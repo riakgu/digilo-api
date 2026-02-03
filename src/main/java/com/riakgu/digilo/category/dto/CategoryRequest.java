@@ -17,6 +17,6 @@ public class CategoryRequest {
 
     private String description;
 
-    private Boolean active;  // optional, for status update
+    private Boolean isActive;  // optional, for status update
 }
 

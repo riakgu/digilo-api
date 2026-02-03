@@ -105,8 +105,8 @@ public class CategoryService {
         category.setDescription(request.getDescription());
 
         // Update status if provided
-        if (request.getActive() != null) {
-            category.setIsActive(request.getActive());
+        if (request.getIsActive() != null) {
+            category.setIsActive(request.getIsActive());
         }
 
         categoryRepository.save(category);

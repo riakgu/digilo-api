@@ -109,31 +109,6 @@ public class ProductController {
                 .body(ApiResponse.success("OK", "Product updated successfully", product));
     }
 
-
-    @PatchMapping("/admin/products/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ProductResponse>> activate(
-            @PathVariable Long id
-    ) {
-        productService.updateStatus(id, true);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Product activated successfully"));
-    }
-
-    @PatchMapping("/admin/products/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ProductResponse>> deactivate(
-            @PathVariable Long id
-    ) {
-        productService.updateStatus(id, false);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Product deactivated successfully"));
-    }
-
     @GetMapping("/admin/products")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll(

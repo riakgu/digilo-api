@@ -59,20 +59,6 @@ public class ProductVariantController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Variant updated successfully", variant));
     }
 
-    @PatchMapping("/admin/variants/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> activateVariant(@PathVariable Long id) {
-        productVariantService.updateStatus(id, true);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Variant activated"));
-    }
-
-    @PatchMapping("/admin/variants/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deactivateVariant(@PathVariable Long id) {
-        productVariantService.updateStatus(id, false);
-        return ResponseEntity.ok(ApiResponse.success("OK", "Variant deactivated"));
-    }
-
     @DeleteMapping("/admin/variants/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteVariant(@PathVariable Long id) {

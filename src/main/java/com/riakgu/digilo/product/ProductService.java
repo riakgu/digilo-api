@@ -134,6 +134,11 @@ public class ProductService {
         product.setSlug(newSlug);
         product.setDescription(request.getDescription());
 
+        // Update active status if provided
+        if (request.getIsActive() != null) {
+            product.setIsActive(request.getIsActive());
+        }
+
         productRepository.save(product);
 
         product.getCategories().clear();
