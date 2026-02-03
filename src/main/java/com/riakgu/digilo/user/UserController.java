@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,10 +27,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> getProfile(@AuthenticationPrincipal Long userId) {
         UserResponse user = userService.getUserById(userId);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get current user successful", user));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get current user successful", user));
     }
 
     @PatchMapping("/user/profile")
@@ -41,10 +37,7 @@ public class UserController {
             @Valid @RequestBody UpdateProfileRequest request
     ) {
         UserResponse user = userService.updateProfile(userId, request);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("UPDATED", "Update profile successful", user));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Update profile successful", user));
     }
 
     @PatchMapping("/user/password")
@@ -53,11 +46,8 @@ public class UserController {
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ChangePasswordRequest request
     ) {
-       UserResponse user = userService.changePassword(userId, request);
-
-       return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("UPDATED", "Change password successful", user));
+        UserResponse user = userService.changePassword(userId, request);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Change password successful", user));
     }
 
     @GetMapping("/admin/users")
@@ -66,10 +56,7 @@ public class UserController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<UserResponse> users = userService.getAll(pageable);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get all users successful", users));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get all users successful", users));
     }
 
     @GetMapping("/admin/users/{id}")
@@ -78,10 +65,7 @@ public class UserController {
             @PathVariable Long id
     ) {
         UserResponse user = userService.getUserById(id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get user successful", user));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get user successful", user));
     }
 
     @PatchMapping("/admin/users/{id}")
@@ -91,9 +75,6 @@ public class UserController {
             @Valid @RequestBody AdminUpdateUserRequest request
     ) {
         UserResponse user = userService.adminUpdate(id, request);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("UPDATED", "User updated successfully", user));
+        return ResponseEntity.ok(ApiResponse.success("OK", "User updated successfully", user));
     }
 }

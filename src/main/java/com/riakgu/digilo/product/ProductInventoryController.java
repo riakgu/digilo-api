@@ -43,10 +43,7 @@ public class ProductInventoryController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<ProductInventoryResponse> inventories = inventoryService.getAll(pageable);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get all inventories successful", inventories));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get all inventories successful", inventories));
     }
 
     @PostMapping("/admin/inventories/bulk")

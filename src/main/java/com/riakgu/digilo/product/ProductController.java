@@ -2,8 +2,6 @@ package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
-import com.riakgu.digilo.product.dto.ProductImageRequest;
-import com.riakgu.digilo.product.dto.ProductImageResponse;
 import com.riakgu.digilo.product.dto.ProductRequest;
 import com.riakgu.digilo.product.dto.ProductResponse;
 import jakarta.validation.Valid;
@@ -15,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -31,10 +28,7 @@ public class ProductController {
             @PathVariable String slug
     ) {
         ProductResponse product = productService.getActiveBySlug(slug);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Product found successfully", product));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Product found successfully", product));
     }
 
     @GetMapping("/public/products")
@@ -44,10 +38,7 @@ public class ProductController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<ProductResponse> products = productService.getAllActive(categorySlug, sortBy, pageable);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get all active products successful", products));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get all active products successful", products));
     }
 
     @GetMapping("/public/products/search")
@@ -56,9 +47,7 @@ public class ProductController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<ProductResponse> products = productService.search(q, pageable);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Search results", products));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Search results", products));
     }
 
     @GetMapping("/public/products/{slug}/categories")
@@ -67,7 +56,6 @@ public class ProductController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<CategoryResponse> categories = productService.getCategoriesByProduct(slug, pageable);
-
         return ResponseEntity.ok(ApiResponse.success("OK", "Categories found", categories));
     }
 
@@ -75,13 +63,10 @@ public class ProductController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> create(
             @Valid @RequestBody ProductRequest request
-    ){
+    ) {
         ProductResponse product = productService.create(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("CREATED", "Product created successfully", product));
-
     }
 
     @GetMapping("/admin/products/{id}")
@@ -90,10 +75,7 @@ public class ProductController {
             @PathVariable Long id
     ) {
         ProductResponse product = productService.getById(id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Product found successfully", product));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Product found successfully", product));
     }
 
     @PutMapping("/admin/products/{id}")
@@ -103,10 +85,7 @@ public class ProductController {
             @Valid @RequestBody ProductRequest request
     ) {
         ProductResponse product = productService.update(request, id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Product updated successfully", product));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Product updated successfully", product));
     }
 
     @GetMapping("/admin/products")
@@ -115,10 +94,6 @@ public class ProductController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<ProductResponse> products = productService.getAll(pageable);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get all products successful", products));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get all products successful", products));
     }
-
 }

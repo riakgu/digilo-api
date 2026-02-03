@@ -28,10 +28,7 @@ public class CategoryController {
             @PathVariable String slug
     ) {
         CategoryResponse category = categoryService.getActiveBySlug(slug);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Category found successfully", category));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Category found successfully", category));
     }
 
     @GetMapping("/public/categories")
@@ -39,10 +36,7 @@ public class CategoryController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<CategoryResponse> categories = categoryService.getAllActive(pageable);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get all active categories successful", categories));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get all active categories successful", categories));
     }
 
     @GetMapping("/public/categories/{slug}/products")
@@ -58,13 +52,10 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<CategoryResponse>> create(
             @Valid @RequestBody CategoryRequest request
-    ){
+    ) {
         CategoryResponse category = categoryService.create(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("CREATED", "Category created successfully", category));
-
     }
 
     @GetMapping("/admin/categories/{id}")
@@ -73,10 +64,7 @@ public class CategoryController {
             @PathVariable Long id
     ) {
         CategoryResponse category = categoryService.getById(id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Category found successfully", category));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Category found successfully", category));
     }
 
     @PutMapping("/admin/categories/{id}")
@@ -86,10 +74,7 @@ public class CategoryController {
             @Valid @RequestBody CategoryRequest request
     ) {
         CategoryResponse category = categoryService.update(request, id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Category updated successfully", category));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Category updated successfully", category));
     }
 
     @GetMapping("/admin/categories")
@@ -98,10 +83,6 @@ public class CategoryController {
             @PageableDefault(size = 10) Pageable pageable
     ) {
         Page<CategoryResponse> categories = categoryService.getAll(pageable);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("OK", "Get all categories successful", categories));
+        return ResponseEntity.ok(ApiResponse.success("OK", "Get all categories successful", categories));
     }
 }
-
