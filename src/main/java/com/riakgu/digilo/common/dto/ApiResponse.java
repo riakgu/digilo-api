@@ -1,7 +1,7 @@
 package com.riakgu.digilo.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.riakgu.digilo.common.filter.RequestTracingFilter;
+import com.riakgu.digilo.security.RequestTracingFilter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

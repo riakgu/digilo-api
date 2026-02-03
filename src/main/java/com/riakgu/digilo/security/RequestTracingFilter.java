@@ -1,4 +1,4 @@
-package com.riakgu.digilo.common.filter;
+package com.riakgu.digilo.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,13 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-/**
- * Filter that generates a unique trace ID for each request and adds it to:
- * - MDC (for logging)
- * - Response header (X-Trace-Id)
- * 
- * Clients can optionally pass their own trace ID via X-Trace-Id header.
- */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestTracingFilter extends OncePerRequestFilter {
@@ -51,10 +44,6 @@ public class RequestTracingFilter extends OncePerRequestFilter {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
-    /**
-     * Gets the current trace ID from MDC.
-     * Returns null if no trace ID is set.
-     */
     public static String getCurrentTraceId() {
         return MDC.get(TRACE_ID_MDC_KEY);
     }
