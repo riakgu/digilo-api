@@ -24,7 +24,7 @@ public class ProductImageController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> addImage(
             @PathVariable Long id,
-            @RequestBody ProductImageRequest request
+            @Valid @RequestBody ProductImageRequest request
     ) {
         productImageService.addImage(id, request);
         return ResponseEntity.ok(ApiResponse.success("OK", "Image added"));

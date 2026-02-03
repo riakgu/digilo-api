@@ -50,22 +50,26 @@ public class ProductInventoryService {
         ProductVariant variant = variantRepository.findById(request.getVariantId())
                 .orElseThrow(() -> new NotFoundException("Variant with id " + request.getVariantId() + " not found"));
 
-        List<ProductInventoryResponse> results = request.getCredentials().stream()
+        // Build all entities first
+        List<ProductInventory> inventories = request.getCredentials().stream()
                 .map(credential -> {
                     String encrypted = encryptionService.encrypt(credential);
-                    ProductInventory inventory = ProductInventory.builder()
+                    return ProductInventory.builder()
                             .variant(variant)
                             .credential(encrypted)
                             .status(InventoryStatus.AVAILABLE)
                             .build();
-                    inventoryRepository.save(inventory);
-                    return ProductInventoryResponse.fromEntity(inventory);
                 })
                 .collect(Collectors.toList());
 
-        log.info("Bulk inventory created: variantId={}, count={}", request.getVariantId(), results.size());
+        // Batch save all at once
+        List<ProductInventory> saved = inventoryRepository.saveAll(inventories);
 
-        return results;
+        log.info("Bulk inventory created: variantId={}, count={}", request.getVariantId(), saved.size());
+
+        return saved.stream()
+                .map(ProductInventoryResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
