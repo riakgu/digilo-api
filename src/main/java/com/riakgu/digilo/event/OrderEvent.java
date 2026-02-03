@@ -65,4 +65,17 @@ public record OrderEvent(
                 Instant.now()
         );
     }
+
+    public static final String ORDER_COMPLETED = "ORDER_COMPLETED";
+
+    public static OrderEvent orderCompleted(String orderNumber, Long userId, BigDecimal totalAmount) {
+        return new OrderEvent(
+                ORDER_COMPLETED,
+                orderNumber,
+                userId,
+                totalAmount,
+                "COMPLETED",
+                Instant.now()
+        );
+    }
 }

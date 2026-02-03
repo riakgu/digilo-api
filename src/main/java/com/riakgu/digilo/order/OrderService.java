@@ -316,7 +316,27 @@ public class OrderService {
         log.info("Credential manually assigned: orderId={}, orderItemId={}, inventoryId={}", 
                 orderId, orderItemId, inventoryId);
 
+        // Check if all order items are fully delivered, then auto-complete
+        if (isOrderFullyDelivered(order)) {
+            order.setStatus(OrderStatus.COMPLETED);
+            orderRepository.save(order);
+            eventPublisher.publishOrderEvent(
+                    OrderEvent.orderCompleted(order.getOrderNumber(), order.getUser().getId(), order.getTotalAmount()));
+            log.info("Order {} auto-completed: all credentials delivered", order.getOrderNumber());
+        }
+
         return buildCredentialResponse(orderItem);
+    }
+
+    private boolean isOrderFullyDelivered(Order order) {
+        for (OrderItem item : order.getItems()) {
+            long deliveredCount = inventoryRepository.countByOrderItemIdAndStatus(
+                    item.getId(), InventoryStatus.SOLD);
+            if (deliveredCount < item.getQuantity()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Transactional(readOnly = true)

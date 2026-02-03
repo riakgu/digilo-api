@@ -36,4 +36,6 @@ public interface ProductInventoryRepository extends JpaRepository<ProductInvento
             @Param("variantIds") List<Long> variantIds,
             @Param("status") InventoryStatus status);
 
+    long countByOrderItemIdAndStatus(Long orderItemId, InventoryStatus status);
+
 }
