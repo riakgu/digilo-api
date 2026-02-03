@@ -23,6 +23,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/user/orders")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
             @AuthenticationPrincipal Long userId,
             @RequestBody(required = false) CreateOrderRequest request
@@ -34,6 +35,7 @@ public class OrderController {
     }
 
     @GetMapping("/user/orders")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
             @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) String orderNumber,
@@ -44,6 +46,7 @@ public class OrderController {
     }
 
     @GetMapping("/user/orders/{orderId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrder(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long orderId
@@ -53,6 +56,7 @@ public class OrderController {
     }
 
     @GetMapping("/user/orders/{orderId}/credentials")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderCredentialResponse>>> getOrderCredentials(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long orderId

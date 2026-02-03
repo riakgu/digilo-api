@@ -25,6 +25,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/user/payments")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody CreatePaymentRequest request
@@ -36,6 +37,7 @@ public class PaymentController {
     }
 
     @GetMapping("/user/payments")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getMyPayments(
             @AuthenticationPrincipal Long userId,
             @PageableDefault(size = 10) Pageable pageable
@@ -45,6 +47,7 @@ public class PaymentController {
     }
 
     @GetMapping("/user/payments/{paymentId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPayment(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long paymentId
@@ -54,6 +57,7 @@ public class PaymentController {
     }
 
     @GetMapping("/user/orders/{orderId}/payment")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentByOrder(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long orderId
@@ -63,6 +67,7 @@ public class PaymentController {
     }
 
     @PostMapping("/user/payments/{paymentId}/sync")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<PaymentResponse>> syncPaymentStatus(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long paymentId

@@ -23,6 +23,7 @@ public class PromoController {
     private final PromoService promoService;
 
     @PostMapping("/user/promos/validate")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<PromoValidationResponse>> validatePromo(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody ApplyPromoRequest request
