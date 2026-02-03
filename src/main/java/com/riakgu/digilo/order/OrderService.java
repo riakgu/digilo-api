@@ -338,6 +338,16 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderCredentialResponse> getOrderCredentialsAdmin(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        return order.getItems().stream()
+                .map(this::buildCredentialResponse)
+                .collect(Collectors.toList());
+    }
+
     private OrderCredentialResponse buildCredentialResponse(OrderItem item) {
         List<ProductInventory> soldInventories = inventoryRepository
                 .findByOrderItemIdAndStatus(item.getId(), InventoryStatus.SOLD);

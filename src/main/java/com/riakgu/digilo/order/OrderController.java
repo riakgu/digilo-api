@@ -94,6 +94,15 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Order retrieved", order));
     }
 
+    @GetMapping("/admin/orders/{orderId}/credentials")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<OrderCredentialResponse>>> getOrderCredentialsAdmin(
+            @PathVariable Long orderId
+    ) {
+        List<OrderCredentialResponse> credentials = orderService.getOrderCredentialsAdmin(orderId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Credentials retrieved", credentials));
+    }
+
     @PatchMapping("/admin/orders/{orderId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
