@@ -6,7 +6,8 @@ import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.exception.UnauthorizedException;
-import com.riakgu.digilo.messaging.EmailService;
+import com.riakgu.digilo.common.service.OtpService;
+import com.riakgu.digilo.notification.NotificationSenderService;
 import com.riakgu.digilo.user.Role;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
@@ -30,7 +31,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
-    private final EmailService emailService;
+    private final NotificationSenderService notificationSender;
     private final StringRedisTemplate redisTemplate;
 
     private static final String RESET_TOKEN_PREFIX = "password:reset:";
@@ -121,7 +122,7 @@ public class AuthService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         String otp = otpService.generateAndSaveOtp("password:" + user.getEmail());
-        emailService.sendPasswordResetEmail(user.getEmail(), otp);
+        notificationSender.sendPasswordResetEmail(user.getEmail(), otp);
 
         log.info("Password reset OTP sent to email={}", request.getEmail());
     }
@@ -132,7 +133,6 @@ public class AuthService {
 
         otpService.validateOtp("password:" + user.getEmail(), request.getOtp());
 
-        // Generate reset token
         String resetToken = UUID.randomUUID().toString();
         String tokenKey = RESET_TOKEN_PREFIX + resetToken;
         redisTemplate.opsForValue().set(tokenKey, user.getId().toString(), RESET_TOKEN_EXPIRY);
@@ -156,13 +156,10 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        // Delete reset token
         redisTemplate.delete(tokenKey);
 
-        // Revoke all user tokens for security
         jwtService.revokeUserTokens(userId);
 
         log.info("Password reset successful for userId={}", userId);
     }
 }
-

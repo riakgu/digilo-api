@@ -1,0 +1,3 @@
+Kode verifikasi Digilo: [(${otp})]
+
+Berlaku [(${expiryMinutes})] menit. Jangan bagikan kode ini kepada siapapun.

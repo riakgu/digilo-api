@@ -1,0 +1,5 @@
+✅ *Pembayaran Berhasil*
+
+Nomor Order: [(${orderNumber})]
+
+Kredensial produk Anda sudah tersedia. Silakan cek di halaman pesanan.

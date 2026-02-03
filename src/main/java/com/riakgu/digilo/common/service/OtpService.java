@@ -1,4 +1,4 @@
-package com.riakgu.digilo.auth;
+package com.riakgu.digilo.common.service;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -25,20 +25,15 @@ public class OtpService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public String generateAndSaveOtp(String key) {
-        // Check cooldown
         String cooldownKey = COOLDOWN_PREFIX + key;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(cooldownKey))) {
             throw new BadRequestException("Please wait before requesting another OTP");
         }
 
-        // Generate 6-digit OTP
         String otp = String.format("%06d", secureRandom.nextInt(1000000));
 
-        // Save OTP with TTL
         String otpKey = OTP_PREFIX + key;
         redisTemplate.opsForValue().set(otpKey, otp, OTP_EXPIRY);
-
-        // Set cooldown
         redisTemplate.opsForValue().set(cooldownKey, "1", COOLDOWN);
 
         log.info("OTP generated for key={}", key);
@@ -57,7 +52,6 @@ public class OtpService {
             throw new BadRequestException("Invalid OTP");
         }
 
-        // Delete OTP after successful validation
         redisTemplate.delete(otpKey);
         log.info("OTP validated for key={}", key);
         return true;

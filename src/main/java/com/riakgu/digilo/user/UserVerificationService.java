@@ -1,11 +1,9 @@
-package com.riakgu.digilo.auth;
+package com.riakgu.digilo.user;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
-import com.riakgu.digilo.messaging.EmailService;
-import com.riakgu.digilo.messaging.WhatsAppService;
-import com.riakgu.digilo.user.User;
-import com.riakgu.digilo.user.UserRepository;
+import com.riakgu.digilo.common.service.OtpService;
+import com.riakgu.digilo.notification.NotificationSenderService;
 import com.riakgu.digilo.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +15,10 @@ import java.time.Instant;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class VerificationService {
+public class UserVerificationService {
 
     private final OtpService otpService;
-    private final EmailService emailService;
-    private final WhatsAppService whatsAppService;
+    private final NotificationSenderService notificationSender;
     private final UserRepository userRepository;
 
     public void sendEmailOtp(Long userId) {
@@ -32,8 +29,8 @@ public class VerificationService {
         }
 
         String otp = otpService.generateAndSaveOtp("email:" + user.getEmail());
-        emailService.sendVerificationEmail(user.getEmail(), otp);
-        
+        notificationSender.sendEmailOtp(user.getEmail(), otp);
+
         log.info("Email OTP sent to userId={}", userId);
     }
 
@@ -67,8 +64,8 @@ public class VerificationService {
         }
 
         String otp = otpService.generateAndSaveOtp("phone:" + user.getPhone());
-        whatsAppService.sendOtp(user.getPhone(), otp);
-        
+        notificationSender.sendWhatsAppOtp(user.getPhone(), otp);
+
         log.info("Phone OTP sent to userId={}", userId);
     }
 

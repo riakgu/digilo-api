@@ -1,11 +1,11 @@
-package com.riakgu.digilo.auth.dto;
+package com.riakgu.digilo.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 @Data
-public class VerifyRequest {
+public class VerifyOtpRequest {
 
     @NotBlank(message = "OTP is required")
     @Pattern(regexp = "^\\d{6}$", message = "OTP must be 6 digits")

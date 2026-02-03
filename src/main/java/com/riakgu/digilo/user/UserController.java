@@ -1,10 +1,7 @@
 package com.riakgu.digilo.user;
 
 import com.riakgu.digilo.common.dto.ApiResponse;
-import com.riakgu.digilo.user.dto.AdminUpdateUserRequest;
-import com.riakgu.digilo.user.dto.ChangePasswordRequest;
-import com.riakgu.digilo.user.dto.UpdateProfileRequest;
-import com.riakgu.digilo.user.dto.UserResponse;
+import com.riakgu.digilo.user.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final UserVerificationService verificationService;
 
     @GetMapping("/user/profile")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
@@ -48,6 +46,40 @@ public class UserController {
     ) {
         UserResponse user = userService.changePassword(userId, request);
         return ResponseEntity.ok(ApiResponse.success("OK", "Change password successful", user));
+    }
+
+    @PostMapping("/user/verify/email/send")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> sendEmailOtp(@AuthenticationPrincipal Long userId) {
+        verificationService.sendEmailOtp(userId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Verification code sent to email"));
+    }
+
+    @PostMapping("/user/verify/email")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> verifyEmail(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody VerifyOtpRequest request
+    ) {
+        UserResponse user = verificationService.verifyEmail(userId, request.getOtp());
+        return ResponseEntity.ok(ApiResponse.success("OK", "Email verified successfully", user));
+    }
+
+    @PostMapping("/user/verify/phone/send")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> sendPhoneOtp(@AuthenticationPrincipal Long userId) {
+        verificationService.sendPhoneOtp(userId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Verification code sent to WhatsApp"));
+    }
+
+    @PostMapping("/user/verify/phone")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<UserResponse>> verifyPhone(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody VerifyOtpRequest request
+    ) {
+        UserResponse user = verificationService.verifyPhone(userId, request.getOtp());
+        return ResponseEntity.ok(ApiResponse.success("OK", "Phone verified successfully", user));
     }
 
     @GetMapping("/admin/users")
