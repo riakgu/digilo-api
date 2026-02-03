@@ -142,23 +142,21 @@ public class PaymentService {
 
             if (newStatus == PaymentStatus.SUCCESS) {
                 payment.setPaidAt(Instant.now());
-                // Update order status to PAID
                 updateOrderStatus(payment.getOrder().getId(), OrderStatus.PAID);
-                // Publish payment success event
                 eventPublisher.publishPaymentEvent(
                         PaymentEvent.paymentSuccess(orderId, payment.getId(), payment.getAmount()));
             } else if (newStatus == PaymentStatus.FAILED) {
-                // Update order status to FAILED
                 updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
-                // Publish payment failed event
                 eventPublisher.publishPaymentEvent(
                         PaymentEvent.paymentFailed(orderId, payment.getId(), payment.getAmount()));
             } else if (newStatus == PaymentStatus.EXPIRED) {
-                // Update order status to FAILED
                 updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
-                // Publish payment expired event
                 eventPublisher.publishPaymentEvent(
                         PaymentEvent.paymentExpired(orderId, payment.getId(), payment.getAmount()));
+            } else if (newStatus == PaymentStatus.CANCELLED) {
+                updateOrderStatus(payment.getOrder().getId(), OrderStatus.CANCELLED);
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentCancelled(orderId, payment.getId(), payment.getAmount()));
             }
 
             log.info("Payment {} status changed: {} -> {}", payment.getId(), oldStatus, newStatus);
@@ -206,6 +204,10 @@ public class PaymentService {
                 updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
                 eventPublisher.publishPaymentEvent(
                         PaymentEvent.paymentExpired(orderId, payment.getId(), payment.getAmount()));
+            } else if (newStatus == PaymentStatus.CANCELLED) {
+                updateOrderStatus(payment.getOrder().getId(), OrderStatus.CANCELLED);
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentCancelled(orderId, payment.getId(), payment.getAmount()));
             }
 
             log.info("Payment {} status updated from check: {} -> {}", payment.getId(), oldStatus, newStatus);
@@ -289,6 +291,39 @@ public class PaymentService {
         log.info("Payment {} refunded for order {}: {}", paymentId, order.getOrderNumber(), notes);
 
         return PaymentResponse.fromEntity(payment);
+    }
+
+    @Transactional
+    public void cancelPaymentByOrder(Long orderId) {
+        Optional<Payment> paymentOpt = paymentRepository.findByOrderId(orderId);
+        
+        if (paymentOpt.isEmpty()) {
+            log.info("No payment found for order {}, nothing to cancel", orderId);
+            return;
+        }
+
+        Payment payment = paymentOpt.get();
+        
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            log.info("Payment {} is not PENDING (status={}), skipping cancel", 
+                    payment.getId(), payment.getStatus());
+            return;
+        }
+
+        // Call Midtrans cancel API
+        boolean cancelled = midtransService.cancelTransaction(payment.getProviderOrderId());
+        
+        if (cancelled) {
+            payment.setStatus(PaymentStatus.CANCELLED);
+            paymentRepository.save(payment);
+            
+            eventPublisher.publishPaymentEvent(
+                    PaymentEvent.paymentCancelled(payment.getProviderOrderId(), payment.getId(), payment.getAmount()));
+            
+            log.info("Payment {} cancelled via Midtrans for order {}", payment.getId(), orderId);
+        } else {
+            log.warn("Failed to cancel payment {} via Midtrans, may already be expired or processed", payment.getId());
+        }
     }
 
     private void updateOrderStatus(Long orderId, OrderStatus status) {

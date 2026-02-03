@@ -71,6 +71,26 @@ public class MidtransService {
         }
     }
 
+    public boolean cancelTransaction(String orderId) {
+        String url = midtransProperties.getBaseUrl() + "/v2/" + orderId + "/cancel";
+
+        HttpHeaders headers = createHeaders();
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, Map.class);
+
+            log.info("Midtrans cancel response: {}", response.getBody());
+            
+            String statusCode = (String) response.getBody().get("status_code");
+            return "200".equals(statusCode);
+        } catch (Exception e) {
+            log.error("Failed to cancel transaction {}: {}", orderId, e.getMessage());
+            return false;
+        }
+    }
+
     public boolean verifySignature(String orderId, String statusCode, String grossAmount, String signatureKey) {
         try {
             String rawString = orderId + statusCode + grossAmount + midtransProperties.getServerKey();
@@ -110,7 +130,8 @@ public class MidtransService {
                 yield PaymentStatus.SUCCESS;
             }
             case "pending" -> PaymentStatus.PENDING;
-            case "deny", "cancel" -> PaymentStatus.FAILED;
+            case "deny" -> PaymentStatus.FAILED;
+            case "cancel" -> PaymentStatus.CANCELLED;
             case "expire" -> PaymentStatus.EXPIRED;
             case "refund", "partial_refund" -> PaymentStatus.REFUNDED;
             default -> PaymentStatus.PENDING;

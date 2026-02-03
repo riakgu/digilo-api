@@ -2,6 +2,7 @@ package com.riakgu.digilo.order;
 
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.order.dto.*;
+import com.riakgu.digilo.payment.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final PaymentService paymentService;
 
     @PostMapping("/user/orders")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
@@ -72,6 +74,7 @@ public class OrderController {
             @PathVariable Long orderId
     ) {
         OrderResponse order = orderService.cancelOrder(orderId, userId);
+        paymentService.cancelPaymentByOrder(orderId);
         return ResponseEntity.ok(ApiResponse.success("OK", "Order cancelled successfully", order));
     }
 

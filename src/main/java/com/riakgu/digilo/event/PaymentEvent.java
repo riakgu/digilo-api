@@ -78,4 +78,17 @@ public record PaymentEvent(
                 Instant.now()
         );
     }
+
+    public static final String PAYMENT_CANCELLED = "PAYMENT_CANCELLED";
+
+    public static PaymentEvent paymentCancelled(String orderNumber, Long paymentId, BigDecimal amount) {
+        return new PaymentEvent(
+                PAYMENT_CANCELLED,
+                orderNumber,
+                paymentId,
+                "CANCELLED",
+                amount,
+                Instant.now()
+        );
+    }
 }
