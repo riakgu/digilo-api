@@ -294,6 +294,38 @@ public class PaymentService {
     }
 
     @Transactional
+    public PaymentResponse cancelPayment(Long paymentId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new NotFoundException("Payment not found"));
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new BadRequestException("Can only cancel PENDING payments");
+        }
+
+        // Call Midtrans cancel API
+        boolean cancelled = midtransService.cancelTransaction(payment.getProviderOrderId());
+
+        if (!cancelled) {
+            throw new BadRequestException("Failed to cancel payment in Midtrans");
+        }
+
+        // Update payment status
+        payment.setStatus(PaymentStatus.CANCELLED);
+        paymentRepository.save(payment);
+
+        // Update order status to CANCELLED (this also releases inventory)
+        updateOrderStatus(payment.getOrder().getId(), OrderStatus.CANCELLED);
+
+        // Publish cancel event
+        eventPublisher.publishPaymentEvent(
+                PaymentEvent.paymentCancelled(payment.getProviderOrderId(), payment.getId(), payment.getAmount()));
+
+        log.info("Payment {} cancelled by admin for order {}", paymentId, payment.getOrder().getOrderNumber());
+
+        return PaymentResponse.fromEntity(payment);
+    }
+
+    @Transactional
     public void cancelPaymentByOrder(Long orderId) {
         Optional<Payment> paymentOpt = paymentRepository.findByOrderId(orderId);
         

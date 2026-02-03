@@ -112,4 +112,13 @@ public class PaymentController {
         PaymentResponse payment = paymentService.refundPayment(paymentId, request.getNotes());
         return ResponseEntity.ok(ApiResponse.success("OK", "Payment refunded successfully", payment));
     }
+
+    @PostMapping("/admin/payments/{paymentId}/cancel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PaymentResponse>> cancelPayment(
+            @PathVariable Long paymentId
+    ) {
+        PaymentResponse payment = paymentService.cancelPayment(paymentId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Payment cancelled successfully", payment));
+    }
 }
