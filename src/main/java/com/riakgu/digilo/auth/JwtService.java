@@ -29,10 +29,11 @@ public class JwtService {
                 .sign(Algorithm.HMAC256(properties.getAccessSecret()));
     }
 
-    public String generateRefreshToken(Long userId) {
+    public String generateRefreshToken(Long userId, String role) {
         String token = JWT.create()
                 .withIssuer(properties.getIssuer())
                 .withSubject(userId.toString())
+                .withClaim("role", role)
                 .withClaim("type", "refresh")
                 .withExpiresAt(Instant.now().plusSeconds(properties.getRefreshExpiration()))
                 .sign(Algorithm.HMAC256(properties.getRefreshSecret()));

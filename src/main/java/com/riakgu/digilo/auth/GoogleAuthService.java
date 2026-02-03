@@ -85,7 +85,7 @@ public class GoogleAuthService {
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId()))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name()))
                 .build();
     }
 

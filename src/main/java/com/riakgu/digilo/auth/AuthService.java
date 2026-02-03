@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -37,6 +38,7 @@ public class AuthService {
     private static final String RESET_TOKEN_PREFIX = "password:reset:";
     private static final Duration RESET_TOKEN_EXPIRY = Duration.ofMinutes(10);
 
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already exists");
@@ -60,7 +62,7 @@ public class AuthService {
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId()))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name()))
                 .build();
     }
 
@@ -84,7 +86,7 @@ public class AuthService {
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId()))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name()))
                 .build();
 
     }
