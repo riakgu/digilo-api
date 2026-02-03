@@ -22,6 +22,9 @@ public class CacheConfig {
     public static final String PRODUCTS_CACHE = "products";
     public static final String PRODUCT_BY_SLUG_CACHE = "productBySlug";
     public static final String DASHBOARD_STATS_CACHE = "dashboardStats";
+    public static final String DASHBOARD_TOP_USERS_CACHE = "dashboardTopUsers";
+    public static final String DASHBOARD_TOP_PRODUCTS_CACHE = "dashboardTopProducts";
+    public static final String DASHBOARD_RECENT_ORDERS_CACHE = "dashboardRecentOrders";
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
@@ -42,6 +45,9 @@ public class CacheConfig {
         
         // Dashboard stats - 1 minute TTL
         cacheConfigurations.put(DASHBOARD_STATS_CACHE, defaultConfig.entryTtl(Duration.ofMinutes(1)));
+        cacheConfigurations.put(DASHBOARD_TOP_USERS_CACHE, defaultConfig.entryTtl(Duration.ofMinutes(5)));
+        cacheConfigurations.put(DASHBOARD_TOP_PRODUCTS_CACHE, defaultConfig.entryTtl(Duration.ofMinutes(5)));
+        cacheConfigurations.put(DASHBOARD_RECENT_ORDERS_CACHE, defaultConfig.entryTtl(Duration.ofMinutes(1)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig.entryTtl(Duration.ofMinutes(5)))

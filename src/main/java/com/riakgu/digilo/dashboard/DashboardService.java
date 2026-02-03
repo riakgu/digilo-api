@@ -38,6 +38,8 @@ public class DashboardService {
     private final ProductImageHelper productImageHelper;
     private final EntityManager entityManager;
 
+    private static final int MAX_LIMIT = 50;
+
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.DASHBOARD_STATS_CACHE)
     public DashboardStatsResponse getStats() {
@@ -75,7 +77,9 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.DASHBOARD_TOP_USERS_CACHE, key = "#limit")
     public List<TopUserResponse> getTopUsers(int limit) {
+        int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
         Query query = entityManager.createNativeQuery(
                 "SELECT u.id, u.name, u.email, COUNT(o.id) as order_count, COALESCE(SUM(o.total_amount), 0) as total_spending " +
                 "FROM users u " +
@@ -85,7 +89,7 @@ public class DashboardService {
                 "ORDER BY total_spending DESC " +
                 "LIMIT :limit"
         );
-        query.setParameter("limit", limit);
+        query.setParameter("limit", safeLimit);
 
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
@@ -101,7 +105,9 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.DASHBOARD_TOP_PRODUCTS_CACHE, key = "#limit")
     public List<TopProductResponse> getTopProducts(int limit) {
+        int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
         Query query = entityManager.createNativeQuery(
                 "SELECT p.id, p.name, p.slug, COALESCE(SUM(oi.quantity), 0) as total_sold, " +
                 "COALESCE(SUM(oi.quantity * oi.price), 0) as total_revenue " +
@@ -114,7 +120,7 @@ public class DashboardService {
                 "ORDER BY total_sold DESC " +
                 "LIMIT :limit"
         );
-        query.setParameter("limit", limit);
+        query.setParameter("limit", safeLimit);
 
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
@@ -133,8 +139,10 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.DASHBOARD_RECENT_ORDERS_CACHE, key = "#limit")
     public List<RecentOrderResponse> getRecentOrders(int limit) {
-        List<Order> orders = orderRepository.findAll(PageRequest.of(0, limit, 
+        int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
+        List<Order> orders = orderRepository.findAll(PageRequest.of(0, safeLimit, 
                 Sort.by(Sort.Direction.DESC, "createdAt")))
                 .getContent();
 
