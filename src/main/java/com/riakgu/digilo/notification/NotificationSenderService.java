@@ -104,4 +104,26 @@ public class NotificationSenderService {
 
         log.info("Payment success WhatsApp sent to {}", phone);
     }
+
+    public void sendOrderFailedEmail(String email, String orderNumber, String reason) {
+        Context context = new Context();
+        context.setVariable("orderNumber", orderNumber);
+        context.setVariable("reason", reason);
+
+        String html = templateEngine.process("email/order-failed", context);
+        emailService.sendEmail(email, "Digilo - Order Failed", html);
+
+        log.info("Order failed email sent to {}", email);
+    }
+
+    public void sendOrderFailedWhatsApp(String phone, String orderNumber, String reason) {
+        Context context = new Context();
+        context.setVariable("orderNumber", orderNumber);
+        context.setVariable("reason", reason);
+
+        String message = templateEngine.process("whatsapp/order-failed.txt", context);
+        whatsAppService.sendMessage(phone, message);
+
+        log.info("Order failed WhatsApp sent to {}", phone);
+    }
 }
