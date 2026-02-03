@@ -253,6 +253,11 @@ public class OrderService {
         OrderStatus oldStatus = order.getStatus();
         OrderStatus newStatus = request.getStatus();
 
+        // Validate status transition
+        if (!isValidStatusTransition(oldStatus, newStatus)) {
+            throw new BadRequestException("Invalid status transition: " + oldStatus + " → " + newStatus);
+        }
+
         order.setStatus(newStatus);
 
         if (request.getNotes() != null) {
@@ -346,6 +351,19 @@ public class OrderService {
             }
         }
         return true;
+    }
+
+    private boolean isValidStatusTransition(OrderStatus from, OrderStatus to) {
+        if (from == to) {
+            return false; // No change
+        }
+        return switch (from) {
+            case PENDING -> to == OrderStatus.PAID || to == OrderStatus.CANCELLED || to == OrderStatus.FAILED;
+            case PAID -> to == OrderStatus.PROCESSING || to == OrderStatus.COMPLETED || 
+                         to == OrderStatus.CANCELLED || to == OrderStatus.FAILED;
+            case PROCESSING -> to == OrderStatus.COMPLETED || to == OrderStatus.CANCELLED || to == OrderStatus.FAILED;
+            case COMPLETED, CANCELLED, FAILED -> false; // Terminal states
+        };
     }
 
     @Transactional(readOnly = true)
