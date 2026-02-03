@@ -2,6 +2,7 @@ package com.riakgu.digilo.category;
 
 import com.riakgu.digilo.category.dto.CategoryRequest;
 import com.riakgu.digilo.category.dto.CategoryResponse;
+import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.util.SlugUtil;
@@ -124,6 +125,23 @@ public class CategoryService {
     public Page<CategoryResponse> getAllActive(Pageable pageable) {
         return categoryRepository.findAllByIsActive(true, pageable)
                 .map(CategoryResponse::fromEntity);
+    }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CATEGORIES_CACHE, allEntries = true),
+            @CacheEvict(value = CacheConfig.CATEGORY_BY_SLUG_CACHE, allEntries = true)
+    })
+    public void delete(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found"));
+
+        if (!category.getProducts().isEmpty()) {
+            throw new BadRequestException("Cannot delete category with associated products");
+        }
+
+        categoryRepository.delete(category);
+        log.info("Category deleted: id={}, name={}", id, category.getName());
     }
 
     @Transactional(readOnly = true)

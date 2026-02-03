@@ -104,6 +104,18 @@ public class PromoService {
                 .map(PromoResponse::fromEntity);
     }
 
+    @Transactional
+    public void delete(Long id) {
+        Promo promo = promoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Promo not found"));
+
+        if (promo.getUsedCount() != null && promo.getUsedCount() > 0) {
+            throw new BadRequestException("Cannot delete promo that has been used");
+        }
+
+        promoRepository.delete(promo);
+        log.info("Promo deleted: id={}, code={}", id, promo.getCode());
+    }
 
     @Transactional(readOnly = true)
     public PromoValidationResponse validatePromo(Long userId, String code) {

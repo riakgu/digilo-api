@@ -182,6 +182,26 @@ public class ProductService {
         log.info("Product status updated: id={}, isActive={}", id, isActive);
     }
 
+    @Transactional
+    public void delete(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Product with id " + id + " not found"));
+
+        // Check if any variant has non-available inventory (reserved or sold)
+        boolean hasActiveInventory = product.getVariants().stream()
+                .anyMatch(variant -> inventoryRepository.countByVariantIdAndStatus(
+                        variant.getId(), InventoryStatus.RESERVED) > 0 ||
+                        inventoryRepository.countByVariantIdAndStatus(
+                        variant.getId(), InventoryStatus.SOLD) > 0);
+
+        if (hasActiveInventory) {
+            throw new BadRequestException("Cannot delete product with reserved or sold inventory");
+        }
+
+        productRepository.delete(product);
+        log.info("Product deleted: id={}, name={}", id, product.getName());
+    }
+
     @Transactional(readOnly = true)
     public Page<ProductResponse> getAllActive(String categorySlug, ProductSortOption sortBy, Pageable pageable) {
         Page<Product> products;

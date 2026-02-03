@@ -17,7 +17,8 @@ import java.util.Map;
 @AllArgsConstructor
 @Table(name = "product_variants", indexes = {
     @Index(name = "idx_variant_product_id", columnList = "product_id"),
-    @Index(name = "idx_variant_sku", columnList = "sku")
+    @Index(name = "idx_variant_sku", columnList = "sku"),
+    @Index(name = "idx_variant_is_active", columnList = "is_active")
 })
 public class ProductVariant extends BaseEntity {
 

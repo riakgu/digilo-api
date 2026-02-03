@@ -96,4 +96,11 @@ public class ProductController {
         Page<ProductResponse> products = productService.getAll(pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all products successful", products));
     }
+
+    @DeleteMapping("/admin/products/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        productService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Product deleted successfully"));
+    }
 }

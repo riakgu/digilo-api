@@ -5,7 +5,6 @@ import com.riakgu.digilo.product.ProductCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,8 +34,4 @@ public class Category extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
-
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
-
 }

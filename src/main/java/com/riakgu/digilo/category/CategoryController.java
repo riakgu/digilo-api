@@ -85,4 +85,11 @@ public class CategoryController {
         Page<CategoryResponse> categories = categoryService.getAll(pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all categories successful", categories));
     }
+
+    @DeleteMapping("/admin/categories/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        categoryService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Category deleted successfully"));
+    }
 }

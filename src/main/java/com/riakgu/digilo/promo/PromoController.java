@@ -70,4 +70,11 @@ public class PromoController {
         Page<PromoResponse> promos = promoService.getAll(pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Promos retrieved", promos));
     }
+
+    @DeleteMapping("/admin/promos/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        promoService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Promo deleted successfully"));
+    }
 }
