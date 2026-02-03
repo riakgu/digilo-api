@@ -250,9 +250,14 @@ public class PaymentService {
 
     // Admin methods
     @Transactional(readOnly = true)
-    public Page<PaymentResponse> getAllPayments(Pageable pageable) {
-        return paymentRepository.findAll(pageable)
-                .map(PaymentResponse::fromEntity);
+    public Page<PaymentResponse> getAllPayments(PaymentStatus status, Pageable pageable) {
+        Page<Payment> payments;
+        if (status != null) {
+            payments = paymentRepository.findByStatus(status, pageable);
+        } else {
+            payments = paymentRepository.findAll(pageable);
+        }
+        return payments.map(PaymentResponse::fromEntity);
     }
 
     @Transactional(readOnly = true)

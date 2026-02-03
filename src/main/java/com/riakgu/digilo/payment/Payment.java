@@ -19,7 +19,8 @@ import java.util.Map;
 @AllArgsConstructor
 @Table(name = "payments", indexes = {
         @Index(name = "idx_payment_order_id", columnList = "order_id"),
-        @Index(name = "idx_payment_status", columnList = "status")
+        @Index(name = "idx_payment_status", columnList = "status"),
+        @Index(name = "idx_payment_provider_order_id", columnList = "provider_order_id")
 })
 public class Payment extends BaseEntity {
 
