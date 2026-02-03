@@ -16,7 +16,10 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "product_variants")
+@Table(name = "product_variants", indexes = {
+    @Index(name = "idx_variant_product_id", columnList = "product_id"),
+    @Index(name = "idx_variant_sku", columnList = "sku")
+})
 public class ProductVariant extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

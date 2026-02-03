@@ -29,4 +29,11 @@ public interface ProductInventoryRepository extends JpaRepository<ProductInvento
 
     List<ProductInventory> findByOrderItemIdAndStatus(Long orderItemId, InventoryStatus status);
 
+    @Query("SELECT pi.variant.id, COUNT(pi) FROM ProductInventory pi " +
+           "WHERE pi.variant.id IN :variantIds AND pi.status = :status " +
+           "GROUP BY pi.variant.id")
+    List<Object[]> countByVariantIdsAndStatus(
+            @Param("variantIds") List<Long> variantIds,
+            @Param("status") InventoryStatus status);
+
 }
