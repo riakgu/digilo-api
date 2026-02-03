@@ -173,6 +173,32 @@ public class OrderService {
         return OrderResponse.fromEntity(order);
     }
 
+    @Transactional
+    public OrderResponse cancelOrder(Long orderId, Long userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        if (!order.getUser().getId().equals(userId)) {
+            throw new BadRequestException("Order does not belong to you");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BadRequestException("Only pending orders can be cancelled");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+
+        releaseInventory(order);
+
+        eventPublisher.publishOrderEvent(
+                OrderEvent.orderCancelled(order.getOrderNumber(), userId, order.getTotalAmount()));
+
+        log.info("Order {} cancelled by user {}", order.getOrderNumber(), userId);
+
+        return OrderResponse.fromEntity(order);
+    }
+
     @Transactional(readOnly = true)
     public OrderResponse getByOrderNumber(String orderNumber, Long userId) {
         Order order = orderRepository.findByOrderNumber(orderNumber)

@@ -65,6 +65,16 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Credentials retrieved", credentials));
     }
 
+    @PostMapping("/user/orders/{orderId}/cancel")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long orderId
+    ) {
+        OrderResponse order = orderService.cancelOrder(orderId, userId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Order cancelled successfully", order));
+    }
+
     @GetMapping("/admin/orders")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllOrders(
