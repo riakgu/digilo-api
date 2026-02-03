@@ -48,6 +48,8 @@ public class UserService {
                 throw new DuplicateResourceException("Email already exists");
             }
             user.setEmail(request.getEmail());
+            user.setEmailVerified(Boolean.FALSE);
+            user.setEmailVerifiedAt(null);
         }
 
         if (request.getPhone() != null) {
@@ -55,6 +57,8 @@ public class UserService {
                 throw new DuplicateResourceException("Phone number already exists");
             }
             user.setPhone(request.getPhone());
+            user.setPhoneVerified(Boolean.FALSE);
+            user.setPhoneVerifiedAt(null);
         }
 
         userRepository.save(user);
