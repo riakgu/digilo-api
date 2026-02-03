@@ -265,6 +265,15 @@ public class OrderService {
             markInventoryAsSold(order);
             eventPublisher.publishOrderEvent(
                     OrderEvent.orderPaid(order.getOrderNumber(), order.getUser().getId(), order.getTotalAmount()));
+            
+            // Auto-complete if all items are fully delivered (for AUTO delivery)
+            if (isOrderFullyDelivered(order)) {
+                order.setStatus(OrderStatus.COMPLETED);
+                orderRepository.save(order);
+                eventPublisher.publishOrderEvent(
+                        OrderEvent.orderCompleted(order.getOrderNumber(), order.getUser().getId(), order.getTotalAmount()));
+                log.info("Order {} auto-completed: all credentials delivered", order.getOrderNumber());
+            }
         } else if (newStatus == OrderStatus.CANCELLED) {
             releaseInventory(order);
             eventPublisher.publishOrderEvent(
