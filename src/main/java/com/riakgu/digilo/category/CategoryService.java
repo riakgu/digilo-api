@@ -13,6 +13,9 @@ import com.riakgu.digilo.product.dto.ProductVariantResponse;
 import com.riakgu.digilo.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,7 +34,7 @@ public class CategoryService {
     private final ProductInventoryRepository inventoryRepository;
 
     @Transactional
-    @org.springframework.cache.annotation.CacheEvict(value = CacheConfig.CATEGORIES_CACHE, allEntries = true)
+    @CacheEvict(value = CacheConfig.CATEGORIES_CACHE, allEntries = true)
     public CategoryResponse create(CategoryRequest request) {
 
         String newName = request.getName().trim();
@@ -60,7 +63,7 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    @org.springframework.cache.annotation.Cacheable(value = CacheConfig.CATEGORY_BY_SLUG_CACHE, key = "#slug")
+    @Cacheable(value = CacheConfig.CATEGORY_BY_SLUG_CACHE, key = "#slug")
     public CategoryResponse getActiveBySlug(String slug) {
         Category category = categoryRepository.findBySlugAndIsActive(slug, Boolean.TRUE)
                 .orElseThrow(() -> new NotFoundException("Category with slug " + slug + " not found")) ;
@@ -77,9 +80,9 @@ public class CategoryService {
     }
 
     @Transactional
-    @org.springframework.cache.annotation.Caching(evict = {
-            @org.springframework.cache.annotation.CacheEvict(value = CacheConfig.CATEGORIES_CACHE, allEntries = true),
-            @org.springframework.cache.annotation.CacheEvict(value = CacheConfig.CATEGORY_BY_SLUG_CACHE, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CATEGORIES_CACHE, allEntries = true),
+            @CacheEvict(value = CacheConfig.CATEGORY_BY_SLUG_CACHE, allEntries = true)
     })
     public CategoryResponse update(CategoryRequest request, Long id) {
         Category category = categoryRepository.findById(id)
