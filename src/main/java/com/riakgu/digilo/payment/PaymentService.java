@@ -191,10 +191,21 @@ public class PaymentService {
 
         if (oldStatus != newStatus) {
             payment.setStatus(newStatus);
+            String orderId = payment.getProviderOrderId();
 
             if (newStatus == PaymentStatus.SUCCESS) {
                 payment.setPaidAt(Instant.now());
                 updateOrderStatus(payment.getOrder().getId(), OrderStatus.PAID);
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentSuccess(orderId, payment.getId(), payment.getAmount()));
+            } else if (newStatus == PaymentStatus.FAILED) {
+                updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentFailed(orderId, payment.getId(), payment.getAmount()));
+            } else if (newStatus == PaymentStatus.EXPIRED) {
+                updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
+                eventPublisher.publishPaymentEvent(
+                        PaymentEvent.paymentExpired(orderId, payment.getId(), payment.getAmount()));
             }
 
             log.info("Payment {} status updated from check: {} -> {}", payment.getId(), oldStatus, newStatus);
