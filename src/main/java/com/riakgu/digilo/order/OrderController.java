@@ -93,4 +93,15 @@ public class OrderController {
         OrderResponse order = orderService.updateStatus(orderId, request);
         return ResponseEntity.ok(ApiResponse.success("OK", "Order status updated", order));
     }
+
+    @PostMapping("/admin/orders/{orderId}/items/{itemId}/assign")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<OrderCredentialResponse>> assignCredential(
+            @PathVariable Long orderId,
+            @PathVariable Long itemId,
+            @Valid @RequestBody AssignCredentialRequest request
+    ) {
+        OrderCredentialResponse credential = orderService.assignCredential(orderId, itemId, request.getInventoryId());
+        return ResponseEntity.ok(ApiResponse.success("OK", "Credential assigned successfully", credential));
+    }
 }

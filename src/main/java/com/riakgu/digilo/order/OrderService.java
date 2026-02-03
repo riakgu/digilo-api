@@ -254,6 +254,45 @@ public class OrderService {
         return OrderResponse.fromEntity(order);
     }
 
+    @Transactional
+    public OrderCredentialResponse assignCredential(Long orderId, Long orderItemId, Long inventoryId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new BadRequestException("Can only assign credentials to PAID orders");
+        }
+
+        OrderItem orderItem = order.getItems().stream()
+                .filter(item -> item.getId().equals(orderItemId))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Order item not found"));
+
+        ProductInventory inventory = inventoryRepository.findById(inventoryId)
+                .orElseThrow(() -> new NotFoundException("Inventory not found"));
+
+        // Validate variant match
+        if (!inventory.getVariant().getId().equals(orderItem.getVariant().getId())) {
+            throw new BadRequestException("Inventory does not match order item variant");
+        }
+
+        // Validate inventory is available
+        if (inventory.getStatus() != InventoryStatus.AVAILABLE) {
+            throw new BadRequestException("Inventory is not available (status: " + inventory.getStatus() + ")");
+        }
+
+        // Mark inventory as SOLD and assign to order item
+        inventory.setStatus(InventoryStatus.SOLD);
+        inventory.setOrderItemId(orderItem.getId());
+        inventory.setSoldAt(Instant.now());
+        inventoryRepository.save(inventory);
+
+        log.info("Credential manually assigned: orderId={}, orderItemId={}, inventoryId={}", 
+                orderId, orderItemId, inventoryId);
+
+        return buildCredentialResponse(orderItem);
+    }
+
     @Transactional(readOnly = true)
     public List<OrderCredentialResponse> getOrderCredentials(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId)
