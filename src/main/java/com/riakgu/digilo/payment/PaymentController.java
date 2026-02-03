@@ -3,6 +3,7 @@ package com.riakgu.digilo.payment;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.payment.dto.CreatePaymentRequest;
 import com.riakgu.digilo.payment.dto.PaymentResponse;
+import com.riakgu.digilo.payment.dto.RefundPaymentRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -100,5 +101,15 @@ public class PaymentController {
     ) {
         PaymentResponse payment = paymentService.getByIdAdmin(paymentId);
         return ResponseEntity.ok(ApiResponse.success("OK", "Payment retrieved", payment));
+    }
+
+    @PostMapping("/admin/payments/{paymentId}/refund")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PaymentResponse>> refundPayment(
+            @PathVariable Long paymentId,
+            @Valid @RequestBody RefundPaymentRequest request
+    ) {
+        PaymentResponse payment = paymentService.refundPayment(paymentId, request.getNotes());
+        return ResponseEntity.ok(ApiResponse.success("OK", "Payment refunded successfully", payment));
     }
 }

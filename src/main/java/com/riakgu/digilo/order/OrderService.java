@@ -360,9 +360,10 @@ public class OrderService {
         return switch (from) {
             case PENDING -> to == OrderStatus.PAID || to == OrderStatus.CANCELLED || to == OrderStatus.FAILED;
             case PAID -> to == OrderStatus.PROCESSING || to == OrderStatus.COMPLETED || 
-                         to == OrderStatus.CANCELLED || to == OrderStatus.FAILED;
+                         to == OrderStatus.CANCELLED || to == OrderStatus.FAILED || to == OrderStatus.REFUNDED;
             case PROCESSING -> to == OrderStatus.COMPLETED || to == OrderStatus.CANCELLED || to == OrderStatus.FAILED;
-            case COMPLETED, CANCELLED, FAILED -> false; // Terminal states
+            case COMPLETED -> to == OrderStatus.REFUNDED; // Can refund completed orders
+            case CANCELLED, FAILED, REFUNDED -> false; // Terminal states
         };
     }
 

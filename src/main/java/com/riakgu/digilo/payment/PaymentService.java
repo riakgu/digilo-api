@@ -260,6 +260,37 @@ public class PaymentService {
         return PaymentResponse.fromEntity(payment);
     }
 
+    @Transactional
+    public PaymentResponse refundPayment(Long paymentId, String notes) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new NotFoundException("Payment not found"));
+
+        if (payment.getStatus() != PaymentStatus.SUCCESS) {
+            throw new BadRequestException("Can only refund SUCCESS payments");
+        }
+
+        // Update payment status
+        payment.setStatus(PaymentStatus.REFUNDED);
+        paymentRepository.save(payment);
+
+        // Update order status to REFUNDED
+        Order order = payment.getOrder();
+        updateOrderStatus(order.getId(), OrderStatus.REFUNDED);
+
+        // Add refund notes to order
+        String existingNotes = order.getNotes() != null ? order.getNotes() + "\n" : "";
+        order.setNotes(existingNotes + "[REFUND] " + notes);
+        orderRepository.save(order);
+
+        // Publish refund event
+        eventPublisher.publishPaymentEvent(
+                PaymentEvent.paymentRefunded(order.getOrderNumber(), payment.getId(), payment.getAmount()));
+
+        log.info("Payment {} refunded for order {}: {}", paymentId, order.getOrderNumber(), notes);
+
+        return PaymentResponse.fromEntity(payment);
+    }
+
     private void updateOrderStatus(Long orderId, OrderStatus status) {
         UpdateOrderStatusRequest request = new UpdateOrderStatusRequest();
         request.setStatus(status);

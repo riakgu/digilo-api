@@ -65,4 +65,17 @@ public record PaymentEvent(
                 Instant.now()
         );
     }
+
+    public static final String PAYMENT_REFUNDED = "PAYMENT_REFUNDED";
+
+    public static PaymentEvent paymentRefunded(String orderNumber, Long paymentId, BigDecimal amount) {
+        return new PaymentEvent(
+                PAYMENT_REFUNDED,
+                orderNumber,
+                paymentId,
+                "REFUNDED",
+                amount,
+                Instant.now()
+        );
+    }
 }
