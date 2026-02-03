@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -212,46 +213,65 @@ public class ProductService {
             };
         }
 
+        // Batch fetch stock for all variants across all products
+        Map<Long, Long> stockMap = getStockMapForProducts(products.getContent());
+
         return products.map(product -> {
             String imageUrl = productImageHelper.getDisplayImageUrl(product);
             List<ProductVariantResponse> variants = product.getVariants().stream()
-                    .map(variant -> {
-                        long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                        return ProductVariantResponse.fromEntity(variant, stock, imageUrl);
-                    })
+                    .map(variant -> ProductVariantResponse.fromEntity(
+                            variant, stockMap.getOrDefault(variant.getId(), 0L), imageUrl))
+                    .collect(Collectors.toList());
+            return ProductResponse.fromEntity(product, variants, imageUrl);
+        });
+    }
+
+    private Map<Long, Long> getStockMapForProducts(List<Product> products) {
+        List<Long> allVariantIds = products.stream()
+                .flatMap(p -> p.getVariants().stream())
+                .map(ProductVariant::getId)
+                .collect(Collectors.toList());
+
+        if (allVariantIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return inventoryRepository.countByVariantIdsAndStatus(allVariantIds, InventoryStatus.AVAILABLE)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> getAll(Pageable pageable) {
+        Page<Product> products = productRepository.findAll(pageable);
+        Map<Long, Long> stockMap = getStockMapForProducts(products.getContent());
+
+        return products.map(product -> {
+            String imageUrl = productImageHelper.getDisplayImageUrl(product);
+            List<ProductVariantResponse> variants = product.getVariants().stream()
+                    .map(variant -> ProductVariantResponse.fromEntity(
+                            variant, stockMap.getOrDefault(variant.getId(), 0L), imageUrl))
                     .collect(Collectors.toList());
             return ProductResponse.fromEntity(product, variants, imageUrl);
         });
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getAll(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(product -> {
-                    String imageUrl = productImageHelper.getDisplayImageUrl(product);
-                    List<ProductVariantResponse> variants = product.getVariants().stream()
-                            .map(variant -> {
-                                long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                                return ProductVariantResponse.fromEntity(variant, stock, imageUrl);
-                            })
-                            .collect(Collectors.toList());
-                    return ProductResponse.fromEntity(product, variants, imageUrl);
-                });
-    }
-
-    @Transactional(readOnly = true)
     public Page<ProductResponse> search(String query, Pageable pageable) {
-        return productRepository.searchProducts(query, pageable)
-                .map(product -> {
-                    String imageUrl = productImageHelper.getDisplayImageUrl(product);
-                    List<ProductVariantResponse> variants = product.getVariants().stream()
-                            .map(variant -> {
-                                long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                                return ProductVariantResponse.fromEntity(variant, stock, imageUrl);
-                            })
-                            .collect(Collectors.toList());
-                    return ProductResponse.fromEntity(product, variants, imageUrl);
-                });
+        Page<Product> products = productRepository.searchProducts(query, pageable);
+        Map<Long, Long> stockMap = getStockMapForProducts(products.getContent());
+
+        return products.map(product -> {
+            String imageUrl = productImageHelper.getDisplayImageUrl(product);
+            List<ProductVariantResponse> variants = product.getVariants().stream()
+                    .map(variant -> ProductVariantResponse.fromEntity(
+                            variant, stockMap.getOrDefault(variant.getId(), 0L), imageUrl))
+                    .collect(Collectors.toList());
+            return ProductResponse.fromEntity(product, variants, imageUrl);
+        });
     }
 
     @Transactional(readOnly = true)
