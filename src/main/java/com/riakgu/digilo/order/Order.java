@@ -18,7 +18,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Table(name = "orders", indexes = {
         @Index(name = "idx_order_user_id", columnList = "user_id"),
-        @Index(name = "idx_order_status", columnList = "status")
+        @Index(name = "idx_order_status", columnList = "status"),
+        @Index(name = "idx_order_number", columnList = "order_number")
 })
 public class Order extends BaseEntity {
 
