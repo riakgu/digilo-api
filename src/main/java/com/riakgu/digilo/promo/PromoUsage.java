@@ -13,10 +13,16 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "promo_usages", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"promo_id", "user_id"}),
+@Table(name = "promo_usages", 
+    uniqueConstraints = {
         @UniqueConstraint(columnNames = {"order_id"})
-})
+    },
+    indexes = {
+        @Index(name = "idx_promo_usage_promo_id", columnList = "promo_id"),
+        @Index(name = "idx_promo_usage_user_id", columnList = "user_id"),
+        @Index(name = "idx_promo_usage_promo_user", columnList = "promo_id, user_id")
+    }
+)
 public class PromoUsage {
 
     @Id

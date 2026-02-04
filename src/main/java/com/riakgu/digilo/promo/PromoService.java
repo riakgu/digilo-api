@@ -99,8 +99,8 @@ public class PromoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PromoResponse> getAll(Pageable pageable) {
-        return promoRepository.findAll(pageable)
+    public Page<PromoResponse> getAll(String code, Boolean isActive, DiscountType discountType, Pageable pageable) {
+        return promoRepository.findAllWithFilters(code, isActive, discountType, pageable)
                 .map(PromoResponse::fromEntity);
     }
 
@@ -224,10 +224,8 @@ public class PromoService {
 
         promoUsageRepository.save(usage);
 
-        // Increment used count (null-safe)
-        Integer currentCount = promo.getUsedCount();
-        promo.setUsedCount(currentCount == null ? 1 : currentCount + 1);
-        promoRepository.save(promo);
+        // Atomic increment to avoid race conditions
+        promoRepository.incrementUsedCount(promo.getId());
 
         log.info("Promo {} used by user {} on order {}", promo.getCode(), userId, orderId);
     }

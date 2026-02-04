@@ -65,9 +65,12 @@ public class PromoController {
     @GetMapping("/admin/promos")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<PromoResponse>>> getAll(
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) DiscountType discountType,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<PromoResponse> promos = promoService.getAll(pageable);
+        Page<PromoResponse> promos = promoService.getAll(code, isActive, discountType, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Promos retrieved", promos));
     }
 
