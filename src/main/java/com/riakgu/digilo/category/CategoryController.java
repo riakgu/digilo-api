@@ -80,9 +80,11 @@ public class CategoryController {
     @GetMapping("/admin/categories")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean isActive,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<CategoryResponse> categories = categoryService.getAll(pageable);
+        Page<CategoryResponse> categories = categoryService.getAll(search, isActive, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all categories successful", categories));
     }
 

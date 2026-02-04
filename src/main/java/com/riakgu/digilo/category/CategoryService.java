@@ -122,6 +122,7 @@ public class CategoryService {
 
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.CATEGORIES_CACHE, key = "'active-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<CategoryResponse> getAllActive(Pageable pageable) {
         return categoryRepository.findAllByIsActive(true, pageable)
                 .map(CategoryResponse::fromEntity);
@@ -145,8 +146,8 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CategoryResponse> getAll(Pageable pageable) {
-        return categoryRepository.findAll(pageable)
+    public Page<CategoryResponse> getAll(String search, Boolean isActive, Pageable pageable) {
+        return categoryRepository.findAllWithFilters(search, isActive, pageable)
                 .map(CategoryResponse::fromEntity);
     }
 
