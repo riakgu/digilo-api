@@ -34,5 +34,9 @@ USER appuser
 # Expose port
 EXPOSE 8080
 
-# Run
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Health check using wget (available in Alpine)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
+
+# Run with container-aware JVM settings
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
