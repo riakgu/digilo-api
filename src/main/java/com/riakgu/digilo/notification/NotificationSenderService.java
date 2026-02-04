@@ -4,7 +4,10 @@ import com.riakgu.digilo.common.service.EmailService;
 import com.riakgu.digilo.common.service.WhatsAppService;
 import com.riakgu.digilo.config.SiteProperties;
 import com.riakgu.digilo.order.Order;
+import com.riakgu.digilo.order.dto.OrderCredentialResponse;
 import com.riakgu.digilo.payment.Payment;
+
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -111,6 +114,42 @@ public class NotificationSenderService {
         whatsAppService.sendMessage(phone, message);
 
         log.info("Payment success WhatsApp sent to {}", phone);
+    }
+
+    public void sendCredentialsDeliveryEmail(Order order, List<OrderCredentialResponse> credentials) {
+        Context context = new Context();
+        context.setVariable("orderNumber", order.getOrderNumber());
+        context.setVariable("credentials", credentials);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("companyName", siteProperties.getCompanyName());
+        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+
+        String html = templateEngine.process("email/credentials-delivery", context);
+        String email = order.getUser().getEmail();
+        emailService.sendEmail(email, siteProperties.getName() + " - Your Product Credentials", html);
+
+        log.info("Credentials delivery email sent to {}", email);
+    }
+
+    public void sendCredentialsDeliveryWhatsApp(Order order, List<OrderCredentialResponse> credentials) {
+        String phone = order.getUser().getPhone();
+        if (phone == null || phone.isBlank()) {
+            log.info("User has no phone number, skipping WhatsApp notification");
+            return;
+        }
+
+        Context context = new Context();
+        context.setVariable("orderNumber", order.getOrderNumber());
+        context.setVariable("credentials", credentials);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+
+        String message = templateEngine.process("whatsapp/credentials-delivery.txt", context);
+        whatsAppService.sendMessage(phone, message);
+
+        log.info("Credentials delivery WhatsApp sent to {}", phone);
     }
 
 }

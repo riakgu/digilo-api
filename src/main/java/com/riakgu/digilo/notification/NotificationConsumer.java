@@ -4,6 +4,7 @@ import com.riakgu.digilo.event.OrderEvent;
 import com.riakgu.digilo.event.PaymentEvent;
 import com.riakgu.digilo.order.Order;
 import com.riakgu.digilo.order.OrderRepository;
+import com.riakgu.digilo.order.OrderService;
 import com.riakgu.digilo.payment.Payment;
 import com.riakgu.digilo.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class NotificationConsumer {
     private final NotificationService notificationService;
     private final NotificationSenderService notificationSenderService;
     private final OrderRepository orderRepository;
+    private final OrderService orderService;
     private final PaymentRepository paymentRepository;
 
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
@@ -75,6 +77,24 @@ public class NotificationConsumer {
                     ReferenceType.ORDER,
                     orderId
             );
+            case OrderEvent.ORDER_COMPLETED -> {
+                notificationService.createNotification(
+                        event.userId(),
+                        NotificationType.ORDER_COMPLETED,
+                        "Order Completed",
+                        "Your order #" + event.orderNumber() + " is complete. Your product credentials are ready.",
+                        ReferenceType.ORDER,
+                        orderId
+                );
+
+                try {
+                    var credentials = orderService.getOrderCredentialsAdmin(orderId);
+                    notificationSenderService.sendCredentialsDeliveryEmail(order, credentials);
+                    notificationSenderService.sendCredentialsDeliveryWhatsApp(order, credentials);
+                } catch (Exception e) {
+                    log.error("Failed to send credentials delivery notification: {}", e.getMessage());
+                }
+            }
         }
     }
 
