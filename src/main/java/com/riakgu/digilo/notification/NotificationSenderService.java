@@ -25,19 +25,24 @@ public class NotificationSenderService {
 
     public void sendEmailOtp(String email, String otp) {
         Context context = new Context();
-        context.setVariable("otp", otp);
+        context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("companyName", siteProperties.getCompanyName());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
 
         String html = templateEngine.process("email/otp-verification", context);
-        emailService.sendEmail(email, "Digilo - Email Verification", html);
+        emailService.sendEmail(email, siteProperties.getName() + " - Email Verification", html);
 
         log.info("Email OTP sent to {}", email);
     }
 
     public void sendWhatsAppOtp(String phone, String otp) {
         Context context = new Context();
-        context.setVariable("otp", otp);
+        context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
 
         String message = templateEngine.process("whatsapp/otp-verification.txt", context);
         whatsAppService.sendMessage(phone, message);

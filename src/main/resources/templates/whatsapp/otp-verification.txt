@@ -1,3 +1,17 @@
-Kode verifikasi Digilo: [(${otp})]
+*Kode Verifikasi*
 
-Berlaku [(${expiryMinutes})] menit. Jangan bagikan kode ini kepada siapapun.
+Gunakan kode berikut untuk memverifikasi akun Anda:
+
+---
+[(${otpCode})]
+---
+
+Kode ini berlaku selama [(${expiryMinutes})] menit.
+
+Jangan bagikan kode ini kepada siapapun. Kami tidak pernah meminta kode verifikasi Anda.
+
+Tidak merasa meminta kode ini? Abaikan pesan ini.
+
+Butuh bantuan? [(${supportUrl})]
+
+[(${siteName})]
