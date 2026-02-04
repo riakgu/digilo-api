@@ -67,28 +67,6 @@ public class NotificationSenderService {
         log.info("Password reset WhatsApp sent to {}", phone);
     }
 
-    public void sendOrderConfirmationEmail(String email, String orderNumber, String totalAmount) {
-        Context context = new Context();
-        context.setVariable("orderNumber", orderNumber);
-        context.setVariable("totalAmount", totalAmount);
-
-        String html = templateEngine.process("email/order-confirmation", context);
-        emailService.sendEmail(email, "Digilo - Order Confirmation", html);
-
-        log.info("Order confirmation email sent to {}", email);
-    }
-
-    public void sendOrderConfirmationWhatsApp(String phone, String orderNumber, String totalAmount) {
-        Context context = new Context();
-        context.setVariable("orderNumber", orderNumber);
-        context.setVariable("totalAmount", totalAmount);
-
-        String message = templateEngine.process("whatsapp/order-confirmation.txt", context);
-        whatsAppService.sendMessage(phone, message);
-
-        log.info("Order confirmation WhatsApp sent to {}", phone);
-    }
-
     public void sendPaymentSuccessEmail(Order order, Payment payment) {
         Context context = new Context();
         context.setVariable("order", order);
@@ -125,25 +103,4 @@ public class NotificationSenderService {
         log.info("Payment success WhatsApp sent to {}", phone);
     }
 
-    public void sendOrderFailedEmail(String email, String orderNumber, String reason) {
-        Context context = new Context();
-        context.setVariable("orderNumber", orderNumber);
-        context.setVariable("reason", reason);
-
-        String html = templateEngine.process("email/order-failed", context);
-        emailService.sendEmail(email, "Digilo - Order Failed", html);
-
-        log.info("Order failed email sent to {}", email);
-    }
-
-    public void sendOrderFailedWhatsApp(String phone, String orderNumber, String reason) {
-        Context context = new Context();
-        context.setVariable("orderNumber", orderNumber);
-        context.setVariable("reason", reason);
-
-        String message = templateEngine.process("whatsapp/order-failed.txt", context);
-        whatsAppService.sendMessage(phone, message);
-
-        log.info("Order failed WhatsApp sent to {}", phone);
-    }
 }

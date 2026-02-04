@@ -1,6 +1,0 @@
-❌ *Pesanan Gagal*
-
-Nomor Order: [(${orderNumber})]
-Alasan: [(${reason})]
-
-Silakan coba lagi atau hubungi support jika butuh bantuan.

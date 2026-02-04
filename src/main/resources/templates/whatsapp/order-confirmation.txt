@@ -1,6 +1,0 @@
-✅ *Pesanan Diterima*
-
-Nomor Order: [(${orderNumber})]
-Total: [(${totalAmount})]
-
-Silakan selesaikan pembayaran untuk memproses pesanan Anda.
