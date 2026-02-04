@@ -34,13 +34,14 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
+    @ExceptionHandler(PaymentGatewayException.class)
+    public ResponseEntity<ApiResponse<Object>> handlePaymentGatewayException(PaymentGatewayException ex, HttpServletRequest request) {
+        log.error("Payment gateway error: {}", ex.getMessage());
         return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
+                .status(HttpStatus.BAD_GATEWAY)
                 .body(ApiResponse.error(
-                        "RESOURCE_NOT_FOUND",
-                        (ex.getMessage() != null) ? ex.getMessage() : "The requested resource could not be found",
+                        "PAYMENT_GATEWAY_ERROR",
+                        (ex.getMessage() != null) ? ex.getMessage() : "Payment gateway error occurred",
                         request.getRequestURI()
                 ));
     }

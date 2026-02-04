@@ -60,11 +60,11 @@ public class WhatsAppService {
     public boolean isSessionReady() {
         try {
             RestClient client = restClientBuilder.build();
-            ResponseEntity<Map> response = client.get()
+            ResponseEntity<Map<String, Object>> response = client.get()
                     .uri(wahaProperties.baseUrl() + "/api/sessions/" + wahaProperties.session() + "/me")
                     .header("X-Api-Key", wahaProperties.apiKey())
                     .retrieve()
-                    .toEntity(Map.class);
+                    .toEntity(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {});
 
             return response.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
