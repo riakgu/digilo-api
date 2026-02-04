@@ -21,6 +21,7 @@ public record OrderEvent(
     public static final String ORDER_PAID = "ORDER_PAID";
     public static final String ORDER_CANCELLED = "ORDER_CANCELLED";
     public static final String ORDER_FAILED = "ORDER_FAILED";
+    public static final String ORDER_COMPLETED = "ORDER_COMPLETED";
     
     public static OrderEvent orderCreated(String orderNumber, Long userId, BigDecimal totalAmount) {
         return new OrderEvent(
@@ -65,8 +66,6 @@ public record OrderEvent(
                 Instant.now()
         );
     }
-
-    public static final String ORDER_COMPLETED = "ORDER_COMPLETED";
 
     public static OrderEvent orderCompleted(String orderNumber, Long userId, BigDecimal totalAmount) {
         return new OrderEvent(

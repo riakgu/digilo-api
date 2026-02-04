@@ -114,6 +114,14 @@ public class NotificationConsumer {
         String amount = CURRENCY_FORMAT.format(event.amount());
 
         switch (event.eventType()) {
+            case PaymentEvent.PAYMENT_CREATED -> notificationService.createNotification(
+                    userId,
+                    NotificationType.PAYMENT_CREATED,
+                    "Payment Initiated",
+                    "Payment of " + amount + " initiated for order #" + event.orderNumber() + ". Please complete within the time limit.",
+                    ReferenceType.ORDER,
+                    order.getId()
+            );
             case PaymentEvent.PAYMENT_SUCCESS -> {
                 notificationService.createNotification(
                         userId,
