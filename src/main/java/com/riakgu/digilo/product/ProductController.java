@@ -91,9 +91,11 @@ public class ProductController {
     @GetMapping("/admin/products")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean isActive,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<ProductResponse> products = productService.getAll(pageable);
+        Page<ProductResponse> products = productService.getAll(search, isActive, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all products successful", products));
     }
 

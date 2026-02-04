@@ -170,18 +170,6 @@ public class ProductService {
 
         return ProductResponse.fromEntity(product, variants, productImageHelper.getDisplayImageUrl(product));
     }
-
-    @Transactional
-    public void updateStatus(Long id, boolean isActive) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Product with id " + id + " not found"));
-
-        product.setIsActive(isActive);
-        productRepository.save(product);
-
-        log.info("Product status updated: id={}, isActive={}", id, isActive);
-    }
-
     @Transactional
     public void delete(Long id) {
         Product product = productRepository.findById(id)
@@ -265,8 +253,8 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getAll(Pageable pageable) {
-        Page<Product> products = productRepository.findAll(pageable);
+    public Page<ProductResponse> getAll(String search, Boolean isActive, Pageable pageable) {
+        Page<Product> products = productRepository.findAllWithFilters(search, isActive, pageable);
         Map<Long, Long> stockMap = getStockMapForProducts(products.getContent());
 
         return products.map(product -> {

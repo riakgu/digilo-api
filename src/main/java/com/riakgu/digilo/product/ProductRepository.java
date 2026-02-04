@@ -28,6 +28,16 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     long countByIsActive(Boolean isActive);
 
+    @Query("SELECT p FROM Product p WHERE " +
+            "(:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "OR LOWER(p.slug) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND (:isActive IS NULL OR p.isActive = :isActive)")
+    Page<Product> findAllWithFilters(
+            @Param("search") String search,
+            @Param("isActive") Boolean isActive,
+            Pageable pageable
+    );
+
     @Query("SELECT p FROM Product p WHERE p.isActive = true AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<Product> searchProducts(@Param("query") String query, Pageable pageable);
 
