@@ -50,6 +50,16 @@ public class ProductImageController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Image deleted"));
     }
 
+    @GetMapping("/admin/products/{productId}/images/{imageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<ProductImageResponse>> getImageById(
+            @PathVariable Long productId,
+            @PathVariable Long imageId
+    ) {
+        ProductImageResponse image = productImageService.getById(productId, imageId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Image found", image));
+    }
+
     @GetMapping("/public/products/{id}/images")
     public ResponseEntity<ApiResponse<List<ProductImageResponse>>> getImages(
             @PathVariable Long id

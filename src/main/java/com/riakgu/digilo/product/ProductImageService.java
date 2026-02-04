@@ -157,6 +157,21 @@ public class ProductImageService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public ProductImageResponse getById(Long productId, Long imageId) {
+        productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
+
+        ProductImage image = productImageRepository.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("Image with id " + imageId + " not found"));
+
+        if (!image.getProduct().getId().equals(productId)) {
+            throw new BadRequestException("Image does not belong to this product");
+        }
+
+        return ProductImageResponse.fromEntity(image);
+    }
+
     @Transactional
     public void updateImage(Long productId, Long imageId, ProductImageRequest request) {
         Product product = productRepository.findById(productId)
