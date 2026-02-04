@@ -8,7 +8,12 @@ app:
     salt: "deadbeef12345678"
   images:
     product-placeholder: ${APP_PRODUCT_PLACEHOLDER_IMAGE:https://placehold.co/600x400?text=No+Image}
-
+  site:
+    name: Digilo
+    company-name: Digilo
+    frontend-url: http://localhost:3000
+    support-url: http://localhost:3000/support
+    
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/digilo

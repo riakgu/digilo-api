@@ -21,6 +21,7 @@ import java.util.Optional;
 public class NotificationConsumer {
 
     private final NotificationService notificationService;
+    private final NotificationSenderService notificationSenderService;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
 
@@ -93,14 +94,27 @@ public class NotificationConsumer {
         String amount = CURRENCY_FORMAT.format(event.amount());
 
         switch (event.eventType()) {
-            case PaymentEvent.PAYMENT_SUCCESS -> notificationService.createNotification(
-                    userId,
-                    NotificationType.PAYMENT_SUCCESS,
-                    "Payment Successful",
-                    "Payment of " + amount + " for order #" + event.orderNumber() + " received.",
-                    ReferenceType.ORDER,
-                    order.getId()
-            );
+            case PaymentEvent.PAYMENT_SUCCESS -> {
+                notificationService.createNotification(
+                        userId,
+                        NotificationType.PAYMENT_SUCCESS,
+                        "Payment Successful",
+                        "Payment of " + amount + " for order #" + event.orderNumber() + " received.",
+                        ReferenceType.ORDER,
+                        order.getId()
+                );
+
+                Optional<Payment> paymentOpt = paymentRepository.findById(event.paymentId());
+                if (paymentOpt.isPresent()) {
+                    Payment payment = paymentOpt.get();
+                    try {
+                        notificationSenderService.sendPaymentSuccessEmail(order, payment);
+                        notificationSenderService.sendPaymentSuccessWhatsApp(order, payment);
+                    } catch (Exception e) {
+                        log.error("Failed to send payment success notification: {}", e.getMessage());
+                    }
+                }
+            }
             case PaymentEvent.PAYMENT_FAILED -> notificationService.createNotification(
                     userId,
                     NotificationType.PAYMENT_FAILED,

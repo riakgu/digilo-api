@@ -2,6 +2,9 @@ package com.riakgu.digilo.notification;
 
 import com.riakgu.digilo.common.service.EmailService;
 import com.riakgu.digilo.common.service.WhatsAppService;
+import com.riakgu.digilo.config.SiteProperties;
+import com.riakgu.digilo.order.Order;
+import com.riakgu.digilo.payment.Payment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ public class NotificationSenderService {
     private final EmailService emailService;
     private final WhatsAppService whatsAppService;
     private final TemplateEngine templateEngine;
+    private final SiteProperties siteProperties;
 
     public void sendEmailOtp(String email, String otp) {
         Context context = new Context();
@@ -85,19 +89,35 @@ public class NotificationSenderService {
         log.info("Order confirmation WhatsApp sent to {}", phone);
     }
 
-    public void sendPaymentSuccessEmail(String email, String orderNumber) {
+    public void sendPaymentSuccessEmail(Order order, Payment payment) {
         Context context = new Context();
-        context.setVariable("orderNumber", orderNumber);
+        context.setVariable("order", order);
+        context.setVariable("payment", payment);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("companyName", siteProperties.getCompanyName());
+        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
 
         String html = templateEngine.process("email/payment-success", context);
-        emailService.sendEmail(email, "Digilo - Payment Successful", html);
+        String email = order.getUser().getEmail();
+        emailService.sendEmail(email, siteProperties.getName() + " - Payment Successful", html);
 
         log.info("Payment success email sent to {}", email);
     }
 
-    public void sendPaymentSuccessWhatsApp(String phone, String orderNumber) {
+    public void sendPaymentSuccessWhatsApp(Order order, Payment payment) {
+        String phone = order.getUser().getPhone();
+        if (phone == null || phone.isBlank()) {
+            log.info("User has no phone number, skipping WhatsApp notification");
+            return;
+        }
+
         Context context = new Context();
-        context.setVariable("orderNumber", orderNumber);
+        context.setVariable("order", order);
+        context.setVariable("payment", payment);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
 
         String message = templateEngine.process("whatsapp/payment-success.txt", context);
         whatsAppService.sendMessage(phone, message);

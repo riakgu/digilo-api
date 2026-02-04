@@ -6,7 +6,12 @@ app:
     salt: ${APP_ENCRYPTION_SALT}
   images:
     product-placeholder: ${APP_PRODUCT_PLACEHOLDER_IMAGE:https://placehold.co/600x400?text=No+Image}
-
+  site:
+    name: ${APP_SITE_NAME:Digilo}
+    company-name: ${APP_COMPANY_NAME:Digilo}
+    frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
+    support-url: ${APP_SUPPORT_URL:http://localhost:3000/support}
+    
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver

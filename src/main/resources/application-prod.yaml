@@ -6,6 +6,11 @@ app:
     salt: ${APP_ENCRYPTION_SALT}
   images:
     product-placeholder: ${APP_PRODUCT_PLACEHOLDER_IMAGE}
+  site:
+    name: ${APP_SITE_NAME}
+    company-name: ${APP_COMPANY_NAME}
+    frontend-url: ${APP_FRONTEND_URL}
+    support-url: ${APP_SUPPORT_URL}
 
 spring:
   datasource:
