@@ -104,15 +104,6 @@ public class ProductVariantService {
                 ));
     }
 
-    @Transactional(readOnly = true)
-    public Page<ProductVariantResponse> getAll(Pageable pageable) {
-        return productVariantRepository.findAll(pageable)
-                .map(variant -> {
-                    long stock = inventoryRepository.countByVariantIdAndStatus(variant.getId(), InventoryStatus.AVAILABLE);
-                    return ProductVariantResponse.fromEntity(variant, stock, productImageHelper.getDisplayImageUrl(variant.getProduct()));
-                });
-    }
-
     @Transactional
     public ProductVariantResponse update(Long id, ProductVariantRequest request) {
         ProductVariant variant = productVariantRepository.findById(id)
@@ -145,17 +136,6 @@ public class ProductVariantService {
     }
 
     @Transactional
-    public void updateStatus(Long id, boolean isActive) {
-        ProductVariant variant = productVariantRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Variant with id " + id + " not found"));
-
-        variant.setIsActive(isActive);
-        productVariantRepository.save(variant);
-
-        log.info("Product variant status updated: id={}, isActive={}", id, isActive);
-    }
-
-    @Transactional
     public void delete(Long id) {
         ProductVariant variant = productVariantRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Variant with id " + id + " not found"));
@@ -169,36 +149,6 @@ public class ProductVariantService {
 
     @Transactional(readOnly = true)
     public List<ProductVariantResponse> getActiveByProductId(Long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
-
-        List<ProductVariant> variants = productVariantRepository.findByProductIdAndIsActive(productId, true);
-        Map<Long, Long> stockMap = getStockMap(variants);
-        String imageUrl = productImageHelper.getDisplayImageUrl(product);
-
-        return variants.stream()
-                .map(variant -> ProductVariantResponse.fromEntity(
-                        variant, stockMap.getOrDefault(variant.getId(), 0L), imageUrl))
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProductVariantResponse> getByProductIdWithStock(Long productId) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
-
-        List<ProductVariant> variants = productVariantRepository.findByProductId(productId);
-        Map<Long, Long> stockMap = getStockMap(variants);
-        String imageUrl = productImageHelper.getDisplayImageUrl(product);
-
-        return variants.stream()
-                .map(variant -> ProductVariantResponse.fromEntity(
-                        variant, stockMap.getOrDefault(variant.getId(), 0L), imageUrl))
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProductVariantResponse> getActiveByProductIdWithStock(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Product with id " + productId + " not found"));
 
