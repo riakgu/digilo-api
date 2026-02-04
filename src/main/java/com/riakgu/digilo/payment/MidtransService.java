@@ -4,9 +4,10 @@ import com.riakgu.digilo.common.exception.PaymentGatewayException;
 import com.riakgu.digilo.config.MidtransProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -22,10 +23,10 @@ import java.util.Map;
 public class MidtransService {
 
     private final MidtransProperties midtransProperties;
-    private final RestTemplate restTemplate;
+    private final RestClient.Builder restClientBuilder;
 
     public Map<String, Object> createQrisCharge(String orderId, long amount) {
-        String url = midtransProperties.getBaseUrl() + "/v2/charge";
+        String url = midtransProperties.baseUrl() + "/v2/charge";
 
         Map<String, Object> transactionDetails = new HashMap<>();
         transactionDetails.put("order_id", orderId);
@@ -39,15 +40,18 @@ public class MidtransService {
         requestBody.put("transaction_details", transactionDetails);
         requestBody.put("qris", qris);
 
-        HttpHeaders headers = createHeaders();
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, Map.class);
+            RestClient client = restClientBuilder.build();
+            Map<String, Object> response = client.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", createAuthHeader())
+                    .body(requestBody)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {});
 
-            log.info("Midtrans QRIS charge response: {}", response.getBody());
-            return response.getBody();
+            log.info("Midtrans QRIS charge response: {}", response);
+            return response;
         } catch (Exception e) {
             log.error("Failed to create QRIS charge", e);
             throw new PaymentGatewayException("Failed to create payment: " + e.getMessage(), e);
@@ -55,17 +59,18 @@ public class MidtransService {
     }
 
     public Map<String, Object> getTransactionStatus(String orderId) {
-        String url = midtransProperties.getBaseUrl() + "/v2/" + orderId + "/status";
-
-        HttpHeaders headers = createHeaders();
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        String url = midtransProperties.baseUrl() + "/v2/" + orderId + "/status";
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    url, HttpMethod.GET, entity, Map.class);
+            RestClient client = restClientBuilder.build();
+            Map<String, Object> response = client.get()
+                    .uri(url)
+                    .header("Authorization", createAuthHeader())
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {});
 
-            log.info("Midtrans status response: {}", response.getBody());
-            return response.getBody();
+            log.info("Midtrans status response: {}", response);
+            return response;
         } catch (Exception e) {
             log.error("Failed to get transaction status", e);
             throw new PaymentGatewayException("Failed to get payment status: " + e.getMessage(), e);
@@ -73,18 +78,19 @@ public class MidtransService {
     }
 
     public boolean cancelTransaction(String orderId) {
-        String url = midtransProperties.getBaseUrl() + "/v2/" + orderId + "/cancel";
-
-        HttpHeaders headers = createHeaders();
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
+        String url = midtransProperties.baseUrl() + "/v2/" + orderId + "/cancel";
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, Map.class);
+            RestClient client = restClientBuilder.build();
+            Map<String, Object> response = client.post()
+                    .uri(url)
+                    .header("Authorization", createAuthHeader())
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {});
 
-            log.info("Midtrans cancel response: {}", response.getBody());
+            log.info("Midtrans cancel response: {}", response);
             
-            String statusCode = (String) response.getBody().get("status_code");
+            String statusCode = (String) response.get("status_code");
             return "200".equals(statusCode);
         } catch (Exception e) {
             log.error("Failed to cancel transaction {}: {}", orderId, e.getMessage());
@@ -94,7 +100,7 @@ public class MidtransService {
 
     public boolean verifySignature(String orderId, String statusCode, String grossAmount, String signatureKey) {
         try {
-            String rawString = orderId + statusCode + grossAmount + midtransProperties.getServerKey();
+            String rawString = orderId + statusCode + grossAmount + midtransProperties.serverKey();
             MessageDigest md = MessageDigest.getInstance("SHA-512");
             byte[] digest = md.digest(rawString.getBytes(StandardCharsets.UTF_8));
 
@@ -143,14 +149,9 @@ public class MidtransService {
         return Instant.now().plus(15, ChronoUnit.MINUTES);
     }
 
-    private HttpHeaders createHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        String auth = midtransProperties.getServerKey() + ":";
+    private String createAuthHeader() {
+        String auth = midtransProperties.serverKey() + ":";
         String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-        headers.set("Authorization", "Basic " + encodedAuth);
-
-        return headers;
+        return "Basic " + encodedAuth;
     }
 }

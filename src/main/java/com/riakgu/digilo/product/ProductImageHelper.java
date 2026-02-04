@@ -14,7 +14,7 @@ public class ProductImageHelper {
 
     public String getDisplayImageUrl(Product product) {
         if (product == null || product.getImages() == null || product.getImages().isEmpty()) {
-            return imagesProperties.getProductPlaceholder();
+            return imagesProperties.productPlaceholder();
         }
 
         // Try primary image first
@@ -28,6 +28,6 @@ public class ProductImageHelper {
                         .map(ProductImage::getImageUrl)
                         .findFirst()
                         // Final fallback to default
-                        .orElse(imagesProperties.getProductPlaceholder()));
+                        .orElse(imagesProperties.productPlaceholder()));
     }
 }

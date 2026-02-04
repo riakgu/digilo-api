@@ -17,7 +17,7 @@ public class EncryptionService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public EncryptionService(EncryptionProperties properties) {
-        this.encryptor = Encryptors.text(properties.getPassword(), properties.getSalt());
+        this.encryptor = Encryptors.text(properties.password(), properties.salt());
     }
 
     public String encrypt(Map<String, Object> data) {

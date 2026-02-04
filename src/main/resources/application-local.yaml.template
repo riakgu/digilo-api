@@ -3,6 +3,19 @@ app:
     allowed-origins:
       - http://localhost:3000
       - http://localhost:3001
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers:
+      - Authorization
+    allow-credentials: true
+    max-age: 3600
   encryption:
     password: "local-dev-password"
     salt: "deadbeef12345678"

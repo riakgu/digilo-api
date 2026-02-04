@@ -34,6 +34,10 @@ services:
       - WAHA_BASE_URL=${WAHA_BASE_URL}
       - WAHA_API_KEY=${WAHA_API_KEY}
       - WAHA_SESSION=${WAHA_SESSION:-default}
+      - APP_SITE_NAME=${APP_SITE_NAME:-Digilo}
+      - APP_COMPANY_NAME=${APP_COMPANY_NAME:-Digilo}
+      - APP_FRONTEND_URL=${APP_FRONTEND_URL:-http://localhost:3000}
+      - APP_SUPPORT_URL=${APP_SUPPORT_URL:-http://localhost:3000/support}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     depends_on:
       db:

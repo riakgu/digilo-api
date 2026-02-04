@@ -1,7 +1,30 @@
 app:
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - "*"
+    exposed-headers:
+      - Authorization
+    allow-credentials: true
+    max-age: 3600
   encryption:
     password: test-encryption-password
     salt: 1234567890abcdef
+  images:
+    product-placeholder: https://placehold.co/600x400?text=No+Image
+  site:
+    name: Digilo Test
+    company-name: Digilo Test
+    frontend-url: http://localhost:3000
+    support-url: http://localhost:3000/support
 
 spring:
   datasource:
@@ -41,6 +64,14 @@ midtrans:
   client-key: SB-Mid-client-test
   base-url: https://api.sandbox.midtrans.com
   production: false
+
+waha:
+  base-url: http://localhost:3000
+  api-key: test-waha-api-key
+  session: default
+
+google:
+  client-id: test-google-client-id
 
 logging:
   level:

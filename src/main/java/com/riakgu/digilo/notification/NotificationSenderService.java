@@ -30,12 +30,12 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("companyName", siteProperties.getCompanyName());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("companyName", siteProperties.companyName());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String html = templateEngine.process("email/otp-verification", context);
-        emailService.sendEmail(email, siteProperties.getName() + " - Email Verification", html);
+        emailService.sendEmail(email, siteProperties.name() + " - Email Verification", html);
 
         log.info("Email OTP sent to {}", email);
     }
@@ -44,8 +44,8 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String message = templateEngine.process("whatsapp/otp-verification.txt", context);
         whatsAppService.sendMessage(phone, message);
@@ -57,12 +57,12 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("companyName", siteProperties.getCompanyName());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("companyName", siteProperties.companyName());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String html = templateEngine.process("email/password-reset", context);
-        emailService.sendEmail(email, siteProperties.getName() + " - Password Reset", html);
+        emailService.sendEmail(email, siteProperties.name() + " - Password Reset", html);
 
         log.info("Password reset email sent to {}", email);
     }
@@ -71,8 +71,8 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String message = templateEngine.process("whatsapp/password-reset.txt", context);
         whatsAppService.sendMessage(phone, message);
@@ -84,14 +84,14 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("order", order);
         context.setVariable("payment", payment);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("companyName", siteProperties.getCompanyName());
-        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("companyName", siteProperties.companyName());
+        context.setVariable("orderUrl", siteProperties.frontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String html = templateEngine.process("email/payment-success", context);
         String email = order.getUser().getEmail();
-        emailService.sendEmail(email, siteProperties.getName() + " - Payment Successful", html);
+        emailService.sendEmail(email, siteProperties.name() + " - Payment Successful", html);
 
         log.info("Payment success email sent to {}", email);
     }
@@ -106,9 +106,9 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("order", order);
         context.setVariable("payment", payment);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("orderUrl", siteProperties.frontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String message = templateEngine.process("whatsapp/payment-success.txt", context);
         whatsAppService.sendMessage(phone, message);
@@ -120,14 +120,14 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("orderNumber", order.getOrderNumber());
         context.setVariable("credentials", credentials);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("companyName", siteProperties.getCompanyName());
-        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("companyName", siteProperties.companyName());
+        context.setVariable("orderUrl", siteProperties.frontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String html = templateEngine.process("email/credentials-delivery", context);
         String email = order.getUser().getEmail();
-        emailService.sendEmail(email, siteProperties.getName() + " - Your Product Credentials", html);
+        emailService.sendEmail(email, siteProperties.name() + " - Your Product Credentials", html);
 
         log.info("Credentials delivery email sent to {}", email);
     }
@@ -142,9 +142,9 @@ public class NotificationSenderService {
         Context context = new Context();
         context.setVariable("orderNumber", order.getOrderNumber());
         context.setVariable("credentials", credentials);
-        context.setVariable("siteName", siteProperties.getName());
-        context.setVariable("orderUrl", siteProperties.getFrontendUrl() + "/account/orders/" + order.getId());
-        context.setVariable("supportUrl", siteProperties.getSupportUrl());
+        context.setVariable("siteName", siteProperties.name());
+        context.setVariable("orderUrl", siteProperties.frontendUrl() + "/account/orders/" + order.getId());
+        context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String message = templateEngine.process("whatsapp/credentials-delivery.txt", context);
         whatsAppService.sendMessage(phone, message);

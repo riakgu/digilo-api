@@ -28,12 +28,12 @@ public class StorageService {
         this.r2Properties = r2Properties;
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create(
-                r2Properties.getAccessKeyId(),
-                r2Properties.getSecretAccessKey()
+                r2Properties.accessKeyId(),
+                r2Properties.secretAccessKey()
         );
 
         this.s3Client = S3Client.builder()
-                .endpointOverride(URI.create("https://" + r2Properties.getAccountId() + ".r2.cloudflarestorage.com"))
+                .endpointOverride(URI.create("https://" + r2Properties.accountId() + ".r2.cloudflarestorage.com"))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .region(Region.of("auto"))
                 .serviceConfiguration(
@@ -55,7 +55,7 @@ public class StorageService {
             byte[] bytes = file.getBytes();
             
             PutObjectRequest request = PutObjectRequest.builder()
-                    .bucket(r2Properties.getBucketName())
+                    .bucket(r2Properties.bucketName())
                     .key(key)
                     .contentType(file.getContentType())
                     .contentLength((long) bytes.length)
@@ -79,7 +79,7 @@ public class StorageService {
 
         try {
             DeleteObjectRequest request = DeleteObjectRequest.builder()
-                    .bucket(r2Properties.getBucketName())
+                    .bucket(r2Properties.bucketName())
                     .key(key)
                     .build();
 
@@ -102,7 +102,7 @@ public class StorageService {
     }
 
     public String getPublicUrlBase() {
-        String base = r2Properties.getPublicUrl();
+        String base = r2Properties.publicUrl();
         return base.endsWith("/") ? base.substring(0, base.length() - 1) : base;
     }
 

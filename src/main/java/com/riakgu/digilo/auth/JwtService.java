@@ -21,38 +21,38 @@ public class JwtService {
 
     public String generateAccessToken(Long userId, String role) {
         return JWT.create()
-                .withIssuer(properties.getIssuer())
+                .withIssuer(properties.issuer())
                 .withSubject(userId.toString())
                 .withClaim("role", role)
                 .withClaim("type", "access")
-                .withExpiresAt(Instant.now().plusSeconds(properties.getAccessExpiration()))
-                .sign(Algorithm.HMAC256(properties.getAccessSecret()));
+                .withExpiresAt(Instant.now().plusSeconds(properties.accessExpiration()))
+                .sign(Algorithm.HMAC256(properties.accessSecret()));
     }
 
     public String generateRefreshToken(Long userId, String role) {
         String token = JWT.create()
-                .withIssuer(properties.getIssuer())
+                .withIssuer(properties.issuer())
                 .withSubject(userId.toString())
                 .withClaim("role", role)
                 .withClaim("type", "refresh")
-                .withExpiresAt(Instant.now().plusSeconds(properties.getRefreshExpiration()))
-                .sign(Algorithm.HMAC256(properties.getRefreshSecret()));
+                .withExpiresAt(Instant.now().plusSeconds(properties.refreshExpiration()))
+                .sign(Algorithm.HMAC256(properties.refreshSecret()));
 
         redisTemplate.opsForValue().set(
                 "refresh:" + userId,
                 token,
-                Duration.ofSeconds(properties.getRefreshExpiration())
+                Duration.ofSeconds(properties.refreshExpiration())
         );
 
         return token;
     }
 
     public DecodedJWT verifyAccessToken(String token) {
-        return verify(token, properties.getAccessSecret(), "access");
+        return verify(token, properties.accessSecret(), "access");
     }
 
     public DecodedJWT verifyRefreshToken(String token) {
-        DecodedJWT decoded = verify(token, properties.getRefreshSecret(), "refresh");
+        DecodedJWT decoded = verify(token, properties.refreshSecret(), "refresh");
 
         String userId = decoded.getSubject();
         String stored = redisTemplate.opsForValue().get("refresh:" + userId);
