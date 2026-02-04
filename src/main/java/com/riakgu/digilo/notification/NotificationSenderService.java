@@ -52,19 +52,24 @@ public class NotificationSenderService {
 
     public void sendPasswordResetEmail(String email, String otp) {
         Context context = new Context();
-        context.setVariable("otp", otp);
+        context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("companyName", siteProperties.getCompanyName());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
 
         String html = templateEngine.process("email/password-reset", context);
-        emailService.sendEmail(email, "Digilo - Password Reset", html);
+        emailService.sendEmail(email, siteProperties.getName() + " - Password Reset", html);
 
         log.info("Password reset email sent to {}", email);
     }
 
     public void sendPasswordResetWhatsApp(String phone, String otp) {
         Context context = new Context();
-        context.setVariable("otp", otp);
+        context.setVariable("otpCode", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
+        context.setVariable("siteName", siteProperties.getName());
+        context.setVariable("supportUrl", siteProperties.getSupportUrl());
 
         String message = templateEngine.process("whatsapp/password-reset.txt", context);
         whatsAppService.sendMessage(phone, message);
