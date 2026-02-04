@@ -24,7 +24,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +39,11 @@ public class DashboardService {
     private final EntityManager entityManager;
 
     private static final int MAX_LIMIT = 50;
+    
+    // Order status constants to avoid hardcoded strings in queries
+    private static final String PAID_STATUS = "PAID";
+    private static final String COMPLETED_STATUS = "COMPLETED";
+    private static final String PENDING_STATUS = "PENDING";
 
     @Transactional(readOnly = true)
     @Cacheable(value = CacheConfig.DASHBOARD_STATS_CACHE)
@@ -51,11 +56,14 @@ public class DashboardService {
         // Order stats
         Query orderStatsQuery = entityManager.createNativeQuery(
                 "SELECT COUNT(*), " +
-                "SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END), " +
-                "COALESCE(SUM(CASE WHEN status IN ('PAID', 'COMPLETED') THEN total_amount ELSE 0 END), 0), " +
-                "COALESCE(SUM(CASE WHEN status IN ('PAID', 'COMPLETED') AND created_at >= :today THEN total_amount ELSE 0 END), 0) " +
+                "SUM(CASE WHEN status = :pendingStatus THEN 1 ELSE 0 END), " +
+                "COALESCE(SUM(CASE WHEN status IN (:paidStatus, :completedStatus) THEN total_amount ELSE 0 END), 0), " +
+                "COALESCE(SUM(CASE WHEN status IN (:paidStatus, :completedStatus) AND created_at >= :today THEN total_amount ELSE 0 END), 0) " +
                 "FROM orders"
         );
+        orderStatsQuery.setParameter("pendingStatus", PENDING_STATUS);
+        orderStatsQuery.setParameter("paidStatus", PAID_STATUS);
+        orderStatsQuery.setParameter("completedStatus", COMPLETED_STATUS);
         orderStatsQuery.setParameter("today", Instant.now().truncatedTo(ChronoUnit.DAYS));
 
         Object[] result = (Object[]) orderStatsQuery.getSingleResult();
@@ -84,11 +92,13 @@ public class DashboardService {
                 "SELECT u.id, u.name, u.email, COUNT(o.id) as order_count, COALESCE(SUM(o.total_amount), 0) as total_spending " +
                 "FROM users u " +
                 "JOIN orders o ON o.user_id = u.id " +
-                "WHERE o.status IN ('PAID', 'COMPLETED') " +
+                "WHERE o.status IN (:paidStatus, :completedStatus) " +
                 "GROUP BY u.id " +
                 "ORDER BY total_spending DESC " +
                 "LIMIT :limit"
         );
+        query.setParameter("paidStatus", PAID_STATUS);
+        query.setParameter("completedStatus", COMPLETED_STATUS);
         query.setParameter("limit", safeLimit);
 
         @SuppressWarnings("unchecked")
@@ -108,34 +118,37 @@ public class DashboardService {
     @Cacheable(value = CacheConfig.DASHBOARD_TOP_PRODUCTS_CACHE, key = "#limit")
     public List<TopProductResponse> getTopProducts(int limit) {
         int safeLimit = Math.min(Math.max(limit, 1), MAX_LIMIT);
+        
+        // Include first image URL in query to avoid N+1
         Query query = entityManager.createNativeQuery(
                 "SELECT p.id, p.name, p.slug, COALESCE(SUM(oi.quantity), 0) as total_sold, " +
-                "COALESCE(SUM(oi.quantity * oi.price), 0) as total_revenue " +
+                "COALESCE(SUM(oi.quantity * oi.price), 0) as total_revenue, " +
+                "(SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.display_order, pi.id LIMIT 1) as image_url " +
                 "FROM products p " +
                 "JOIN product_variants v ON v.product_id = p.id " +
                 "JOIN order_items oi ON oi.variant_id = v.id " +
-                "JOIN orders o ON o.id = oi.order_id AND o.status IN ('PAID', 'COMPLETED') " +
+                "JOIN orders o ON o.id = oi.order_id AND o.status IN (:paidStatus, :completedStatus) " +
                 "WHERE p.is_active = true " +
                 "GROUP BY p.id " +
                 "ORDER BY total_sold DESC " +
                 "LIMIT :limit"
         );
+        query.setParameter("paidStatus", PAID_STATUS);
+        query.setParameter("completedStatus", COMPLETED_STATUS);
         query.setParameter("limit", safeLimit);
 
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
 
-        return results.stream().map(row -> {
-            Long productId = ((Number) row[0]).longValue();
-            return TopProductResponse.builder()
-                    .id(productId)
-                    .name((String) row[1])
-                    .slug((String) row[2])
-                    .imageUrl(getProductImageUrl(productId))
-                    .totalSold(((Number) row[3]).longValue())
-                    .totalRevenue(new BigDecimal(row[4].toString()))
-                    .build();
-        }).collect(Collectors.toList());
+        return results.stream().map(row -> TopProductResponse.builder()
+                .id(((Number) row[0]).longValue())
+                .name((String) row[1])
+                .slug((String) row[2])
+                .totalSold(((Number) row[3]).longValue())
+                .totalRevenue(new BigDecimal(row[4].toString()))
+                .imageUrl((String) row[5])
+                .build()
+        ).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -158,6 +171,7 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = CacheConfig.DASHBOARD_SALES_CHART_CACHE, key = "#period")
     public List<SalesChartResponse> getSalesChart(String period) {
         int days = switch (period) {
             case "30d" -> 30;
@@ -166,31 +180,46 @@ public class DashboardService {
         };
 
         LocalDate startDate = LocalDate.now().minusDays(days - 1);
+        LocalDate endDate = LocalDate.now();
         Instant startInstant = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant();
 
         Query query = entityManager.createNativeQuery(
                 "SELECT DATE(created_at) as order_date, COUNT(*) as order_count, COALESCE(SUM(total_amount), 0) as revenue " +
                 "FROM orders " +
-                "WHERE status IN ('PAID', 'COMPLETED') AND created_at >= :startDate " +
+                "WHERE status IN (:paidStatus, :completedStatus) AND created_at >= :startDate " +
                 "GROUP BY DATE(created_at) " +
                 "ORDER BY order_date ASC"
         );
+        query.setParameter("paidStatus", PAID_STATUS);
+        query.setParameter("completedStatus", COMPLETED_STATUS);
         query.setParameter("startDate", startInstant);
 
         @SuppressWarnings("unchecked")
         List<Object[]> results = query.getResultList();
 
-        return results.stream().map(row -> SalesChartResponse.builder()
-                .date(((Date) row[0]).toLocalDate())
-                .orderCount(((Number) row[1]).longValue())
-                .revenue(new BigDecimal(row[2].toString()))
-                .build()
-        ).collect(Collectors.toList());
-    }
+        // Convert results to a map for quick lookup
+        Map<LocalDate, SalesChartResponse> dataMap = new HashMap<>();
+        for (Object[] row : results) {
+            LocalDate date = ((Date) row[0]).toLocalDate();
+            dataMap.put(date, SalesChartResponse.builder()
+                    .date(date)
+                    .orderCount(((Number) row[1]).longValue())
+                    .revenue(new BigDecimal(row[2].toString()))
+                    .build());
+        }
 
-    private String getProductImageUrl(Long productId) {
-        return productRepository.findById(productId)
-                .map(productImageHelper::getDisplayImageUrl)
-                .orElse(null);
+        // Fill in missing dates with zero values
+        List<SalesChartResponse> filledData = new ArrayList<>();
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            SalesChartResponse dayData = dataMap.getOrDefault(date, 
+                    SalesChartResponse.builder()
+                            .date(date)
+                            .orderCount(0L)
+                            .revenue(BigDecimal.ZERO)
+                            .build());
+            filledData.add(dayData);
+        }
+
+        return filledData;
     }
 }
