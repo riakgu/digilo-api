@@ -14,6 +14,11 @@ app:
       - Authorization
     allow-credentials: true
     max-age: 3600
+  rate-limit:
+    default-limit: 60
+    authenticated-limit: 120
+    auth-endpoint-limit: 10
+    window-seconds: 60
   encryption:
     password: ${APP_ENCRYPTION_PASSWORD}
     salt: ${APP_ENCRYPTION_SALT}

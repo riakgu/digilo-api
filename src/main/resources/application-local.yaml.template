@@ -16,6 +16,11 @@ app:
       - Authorization
     allow-credentials: true
     max-age: 3600
+  rate-limit:
+    default-limit: 100
+    authenticated-limit: 200
+    auth-endpoint-limit: 20
+    window-seconds: 60
   encryption:
     password: "local-dev-password"
     salt: "deadbeef12345678"
