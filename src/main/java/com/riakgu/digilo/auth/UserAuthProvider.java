@@ -9,9 +9,14 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.Instant;
 
 @Entity
-@Table(name = "user_auth_providers", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"provider", "provider_id"})
-})
+@Table(name = "user_auth_providers",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"provider", "provider_id"})
+        },
+        indexes = {
+                @Index(name = "idx_auth_provider_user", columnList = "user_id")
+        }
+)
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter

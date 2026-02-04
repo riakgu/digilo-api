@@ -44,6 +44,10 @@ public class AuthService {
             throw new DuplicateResourceException("Email already exists");
         }
 
+        if (request.getPhone() != null && userRepository.existsByPhone(request.getPhone())) {
+            throw new DuplicateResourceException("Phone number already exists");
+        }
+
         User user = User.builder()
                 .email(request.getEmail())
                 .name(request.getName())
@@ -66,10 +70,15 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
+
+        if (user.getPassword() == null) {
+            throw new UnauthorizedException("Please use Google to login");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("Login failed: invalid password for email={}", request.getEmail());
@@ -120,13 +129,11 @@ public class AuthService {
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        String otp = otpService.generateAndSaveOtp("password:" + user.getEmail());
-        notificationSender.sendPasswordResetEmail(user.getEmail(), otp);
-
-        log.info("Password reset OTP sent to email={}", request.getEmail());
+        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+            String otp = otpService.generateAndSaveOtp("password:" + user.getEmail());
+            notificationSender.sendPasswordResetEmail(user.getEmail(), otp);
+            log.info("Password reset OTP sent to email={}", request.getEmail());
+        });
     }
 
     public ResetTokenResponse verifyResetOtp(VerifyResetOtpRequest request) {
