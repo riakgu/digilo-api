@@ -88,10 +88,11 @@ public class PaymentController {
     @GetMapping("/admin/payments")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getAllPayments(
+            @RequestParam(required = false) String orderNumber,
             @RequestParam(required = false) PaymentStatus status,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<PaymentResponse> payments = paymentService.getAllPayments(status, pageable);
+        Page<PaymentResponse> payments = paymentService.getAllPayments(orderNumber, status, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Payments retrieved", payments));
     }
 

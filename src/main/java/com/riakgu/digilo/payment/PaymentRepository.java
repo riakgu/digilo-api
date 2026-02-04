@@ -27,4 +27,13 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Payment p WHERE p.providerOrderId = :providerOrderId")
     Optional<Payment> findByProviderOrderIdWithLock(@Param("providerOrderId") String providerOrderId);
+
+    @Query("SELECT p FROM Payment p WHERE " +
+            "(:providerOrderId IS NULL OR p.providerOrderId LIKE %:providerOrderId%) " +
+            "AND (:status IS NULL OR p.status = :status)")
+    Page<Payment> findAllWithFilters(
+            @Param("providerOrderId") String providerOrderId,
+            @Param("status") PaymentStatus status,
+            Pageable pageable
+    );
 }

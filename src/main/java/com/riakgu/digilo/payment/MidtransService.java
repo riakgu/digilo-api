@@ -1,5 +1,6 @@
 package com.riakgu.digilo.payment;
 
+import com.riakgu.digilo.common.exception.PaymentGatewayException;
 import com.riakgu.digilo.config.MidtransProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class MidtransService {
             return response.getBody();
         } catch (Exception e) {
             log.error("Failed to create QRIS charge", e);
-            throw new RuntimeException("Failed to create payment: " + e.getMessage());
+            throw new PaymentGatewayException("Failed to create payment: " + e.getMessage(), e);
         }
     }
 
@@ -67,7 +68,7 @@ public class MidtransService {
             return response.getBody();
         } catch (Exception e) {
             log.error("Failed to get transaction status", e);
-            throw new RuntimeException("Failed to get payment status: " + e.getMessage());
+            throw new PaymentGatewayException("Failed to get payment status: " + e.getMessage(), e);
         }
     }
 

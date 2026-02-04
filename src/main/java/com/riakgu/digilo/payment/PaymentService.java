@@ -138,28 +138,7 @@ public class PaymentService {
         PaymentStatus oldStatus = payment.getStatus();
 
         if (oldStatus != newStatus) {
-            payment.setStatus(newStatus);
-
-            if (newStatus == PaymentStatus.SUCCESS) {
-                payment.setPaidAt(Instant.now());
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.PAID);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentSuccess(orderId, payment.getId(), payment.getAmount()));
-            } else if (newStatus == PaymentStatus.FAILED) {
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentFailed(orderId, payment.getId(), payment.getAmount()));
-            } else if (newStatus == PaymentStatus.EXPIRED) {
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentExpired(orderId, payment.getId(), payment.getAmount()));
-            } else if (newStatus == PaymentStatus.CANCELLED) {
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.CANCELLED);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentCancelled(orderId, payment.getId(), payment.getAmount()));
-            }
-
-            log.info("Payment {} status changed: {} -> {}", payment.getId(), oldStatus, newStatus);
+            processStatusChange(payment, newStatus, oldStatus);
         }
 
         paymentRepository.save(payment);
@@ -188,29 +167,7 @@ public class PaymentService {
         PaymentStatus oldStatus = payment.getStatus();
 
         if (oldStatus != newStatus) {
-            payment.setStatus(newStatus);
-            String orderId = payment.getProviderOrderId();
-
-            if (newStatus == PaymentStatus.SUCCESS) {
-                payment.setPaidAt(Instant.now());
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.PAID);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentSuccess(orderId, payment.getId(), payment.getAmount()));
-            } else if (newStatus == PaymentStatus.FAILED) {
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentFailed(orderId, payment.getId(), payment.getAmount()));
-            } else if (newStatus == PaymentStatus.EXPIRED) {
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentExpired(orderId, payment.getId(), payment.getAmount()));
-            } else if (newStatus == PaymentStatus.CANCELLED) {
-                updateOrderStatus(payment.getOrder().getId(), OrderStatus.CANCELLED);
-                eventPublisher.publishPaymentEvent(
-                        PaymentEvent.paymentCancelled(orderId, payment.getId(), payment.getAmount()));
-            }
-
-            log.info("Payment {} status updated from check: {} -> {}", payment.getId(), oldStatus, newStatus);
+            processStatusChange(payment, newStatus, oldStatus);
         }
 
         paymentRepository.save(payment);
@@ -250,14 +207,9 @@ public class PaymentService {
 
     // Admin methods
     @Transactional(readOnly = true)
-    public Page<PaymentResponse> getAllPayments(PaymentStatus status, Pageable pageable) {
-        Page<Payment> payments;
-        if (status != null) {
-            payments = paymentRepository.findByStatus(status, pageable);
-        } else {
-            payments = paymentRepository.findAll(pageable);
-        }
-        return payments.map(PaymentResponse::fromEntity);
+    public Page<PaymentResponse> getAllPayments(String orderNumber, PaymentStatus status, Pageable pageable) {
+        return paymentRepository.findAllWithFilters(orderNumber, status, pageable)
+                .map(PaymentResponse::fromEntity);
     }
 
     @Transactional(readOnly = true)
@@ -361,6 +313,32 @@ public class PaymentService {
         } else {
             log.warn("Failed to cancel payment {} via Midtrans, may already be expired or processed", payment.getId());
         }
+    }
+
+    private void processStatusChange(Payment payment, PaymentStatus newStatus, PaymentStatus oldStatus) {
+        payment.setStatus(newStatus);
+        String orderId = payment.getProviderOrderId();
+
+        if (newStatus == PaymentStatus.SUCCESS) {
+            payment.setPaidAt(Instant.now());
+            updateOrderStatus(payment.getOrder().getId(), OrderStatus.PAID);
+            eventPublisher.publishPaymentEvent(
+                    PaymentEvent.paymentSuccess(orderId, payment.getId(), payment.getAmount()));
+        } else if (newStatus == PaymentStatus.FAILED) {
+            updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
+            eventPublisher.publishPaymentEvent(
+                    PaymentEvent.paymentFailed(orderId, payment.getId(), payment.getAmount()));
+        } else if (newStatus == PaymentStatus.EXPIRED) {
+            updateOrderStatus(payment.getOrder().getId(), OrderStatus.FAILED);
+            eventPublisher.publishPaymentEvent(
+                    PaymentEvent.paymentExpired(orderId, payment.getId(), payment.getAmount()));
+        } else if (newStatus == PaymentStatus.CANCELLED) {
+            updateOrderStatus(payment.getOrder().getId(), OrderStatus.CANCELLED);
+            eventPublisher.publishPaymentEvent(
+                    PaymentEvent.paymentCancelled(orderId, payment.getId(), payment.getAmount()));
+        }
+
+        log.info("Payment {} status changed: {} -> {}", payment.getId(), oldStatus, newStatus);
     }
 
     private void updateOrderStatus(Long orderId, OrderStatus status) {
