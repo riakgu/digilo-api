@@ -11,9 +11,14 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "cart_items", uniqueConstraints = {
+@Table(name = "cart_items", 
+    uniqueConstraints = {
         @UniqueConstraint(columnNames = {"cart_id", "variant_id"})
-})
+    },
+    indexes = {
+        @Index(name = "idx_cart_item_cart_id", columnList = "cart_id")
+    }
+)
 public class CartItem extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,23 +48,28 @@ public class CartService {
             throw new BadRequestException("Variant is not available");
         }
 
-        if (variant.getDeliveryType() == DeliveryType.AUTO) {
-            long availableStock = inventoryRepository.countByVariantIdAndStatus(
-                    variant.getId(), InventoryStatus.AVAILABLE);
-            if (availableStock < request.getQuantity()) {
-                throw new BadRequestException("Not enough stock available");
-            }
-        }
-
+        // Check existing quantity in cart
         CartItem existingItem = cartItemRepository
                 .findByCartIdAndVariantId(cart.getId(), variant.getId())
                 .orElse(null);
 
+        int existingQuantity = existingItem != null ? existingItem.getQuantity() : 0;
+        int totalQuantity = existingQuantity + request.getQuantity();
+
+        // Validate stock for AUTO delivery type
+        if (variant.getDeliveryType() == DeliveryType.AUTO) {
+            long availableStock = inventoryRepository.countByVariantIdAndStatus(
+                    variant.getId(), InventoryStatus.AVAILABLE);
+            if (availableStock < totalQuantity) {
+                throw new BadRequestException("Not enough stock available");
+            }
+        }
+
         if (existingItem != null) {
-            existingItem.setQuantity(existingItem.getQuantity() + request.getQuantity());
+            existingItem.setQuantity(totalQuantity);
             cartItemRepository.save(existingItem);
             log.info("Cart item quantity updated: userId={}, variantId={}, newQuantity={}", 
-                    userId, variant.getId(), existingItem.getQuantity());
+                    userId, variant.getId(), totalQuantity);
         } else {
             CartItem newItem = CartItem.builder()
                     .cart(cart)
@@ -148,11 +154,26 @@ public class CartService {
     }
 
     private CartResponse buildCartResponse(Cart cart) {
+        if (cart.getItems().isEmpty()) {
+            return CartResponse.fromItems(cart.getId(), List.of());
+        }
+
+        // Batch fetch stock counts to avoid N+1 queries
+        List<Long> variantIds = cart.getItems().stream()
+                .map(item -> item.getVariant().getId())
+                .collect(Collectors.toList());
+
+        Map<Long, Long> stockMap = inventoryRepository
+                .countByVariantIdsAndStatus(variantIds, InventoryStatus.AVAILABLE)
+                .stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
         List<CartItemResponse> items = cart.getItems().stream()
                 .map(item -> {
-                    long stock = inventoryRepository.countByVariantIdAndStatus(
-                            item.getVariant().getId(), InventoryStatus.AVAILABLE);
-
+                    long stock = stockMap.getOrDefault(item.getVariant().getId(), 0L);
                     ProductVariantResponse variantResponse =
                             ProductVariantResponse.fromEntity(item.getVariant(), stock, productImageHelper.getDisplayImageUrl(item.getVariant().getProduct()));
                     return CartItemResponse.fromEntity(item, variantResponse);
