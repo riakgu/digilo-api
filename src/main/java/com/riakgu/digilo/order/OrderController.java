@@ -81,10 +81,12 @@ public class OrderController {
     @GetMapping("/admin/orders")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getAllOrders(
+            @RequestParam(required = false) String orderNumber,
+            @RequestParam(required = false) Long userId,
             @RequestParam(required = false) OrderStatus status,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<OrderResponse> orders = orderService.getAllOrders(status, pageable);
+        Page<OrderResponse> orders = orderService.getAllOrders(orderNumber, userId, status, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Orders retrieved", orders));
     }
 

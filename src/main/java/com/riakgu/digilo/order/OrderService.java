@@ -57,13 +57,27 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        // Validate stock for AUTO delivery BEFORE creating order
-        for (CartItem cartItem : cart.getItems()) {
-            if (cartItem.getVariant().getDeliveryType() == DeliveryType.AUTO) {
-                long availableStock = inventoryRepository.countByVariantIdAndStatus(
-                        cartItem.getVariant().getId(), InventoryStatus.AVAILABLE);
-                if (availableStock < cartItem.getQuantity()) {
-                    throw new BadRequestException("Not enough stock for " + cartItem.getVariant().getName());
+        // Validate stock for AUTO delivery BEFORE creating order (batch fetch)
+        List<Long> autoDeliveryVariantIds = cart.getItems().stream()
+                .filter(item -> item.getVariant().getDeliveryType() == DeliveryType.AUTO)
+                .map(item -> item.getVariant().getId())
+                .collect(Collectors.toList());
+
+        if (!autoDeliveryVariantIds.isEmpty()) {
+            Map<Long, Long> stockMap = inventoryRepository
+                    .countByVariantIdsAndStatus(autoDeliveryVariantIds, InventoryStatus.AVAILABLE)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            row -> (Long) row[0],
+                            row -> (Long) row[1]
+                    ));
+
+            for (CartItem cartItem : cart.getItems()) {
+                if (cartItem.getVariant().getDeliveryType() == DeliveryType.AUTO) {
+                    long availableStock = stockMap.getOrDefault(cartItem.getVariant().getId(), 0L);
+                    if (availableStock < cartItem.getQuantity()) {
+                        throw new BadRequestException("Not enough stock for " + cartItem.getVariant().getName());
+                    }
                 }
             }
         }
@@ -235,14 +249,9 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getAllOrders(OrderStatus status, Pageable pageable) {
-        Page<Order> orders;
-        if (status != null) {
-            orders = orderRepository.findByStatus(status, pageable);
-        } else {
-            orders = orderRepository.findAll(pageable);
-        }
-        return orders.map(OrderResponse::fromEntity);
+    public Page<OrderResponse> getAllOrders(String orderNumber, Long userId, OrderStatus status, Pageable pageable) {
+        return orderRepository.findAllWithFilters(orderNumber, userId, status, pageable)
+                .map(OrderResponse::fromEntity);
     }
 
     @Transactional
