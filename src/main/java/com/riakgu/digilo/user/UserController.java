@@ -85,9 +85,12 @@ public class UserController {
     @GetMapping("/admin/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Role role,
+            @RequestParam(required = false) UserStatus status,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<UserResponse> users = userService.getAll(pageable);
+        Page<UserResponse> users = userService.getAll(search, role, status, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all users successful", users));
     }
 
@@ -109,4 +112,14 @@ public class UserController {
         UserResponse user = userService.adminUpdate(id, request);
         return ResponseEntity.ok(ApiResponse.success("OK", "User updated successfully", user));
     }
+
+    @DeleteMapping("/admin/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @PathVariable Long id
+    ) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponse.success("OK", "User deleted successfully"));
+    }
 }
+

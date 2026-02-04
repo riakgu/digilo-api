@@ -12,7 +12,11 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_users_email", columnList = "email"),
+        @Index(name = "idx_users_phone", columnList = "phone"),
+        @Index(name = "idx_users_status", columnList = "status")
+})
 public class User extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 100)

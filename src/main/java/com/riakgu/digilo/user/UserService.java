@@ -44,7 +44,7 @@ public class UserService {
         }
 
         if (request.getEmail() != null) {
-            if (userRepository.existsByEmail(request.getEmail())) {
+            if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
                 throw new DuplicateResourceException("Email already exists");
             }
             user.setEmail(request.getEmail());
@@ -53,7 +53,7 @@ public class UserService {
         }
 
         if (request.getPhone() != null) {
-            if (userRepository.existsByPhone(request.getPhone())) {
+            if (!request.getPhone().equals(user.getPhone()) && userRepository.existsByPhone(request.getPhone())) {
                 throw new DuplicateResourceException("Phone number already exists");
             }
             user.setPhone(request.getPhone());
@@ -74,6 +74,10 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
+        if (user.getPassword() == null) {
+            throw new BadRequestException("Cannot change password for OAuth accounts");
+        }
+
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new BadRequestException("Old passwords don't match");
         }
@@ -87,8 +91,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserResponse> getAll(Pageable pageable) {
-        return userRepository.findAll(pageable)
+    public Page<UserResponse> getAll(String search, Role role, UserStatus status, Pageable pageable) {
+        return userRepository.findAllWithFilters(search, role, status, pageable)
                 .map(UserResponse::fromEntity);
     }
 
@@ -111,5 +115,16 @@ public class UserService {
 
         return UserResponse.fromEntity(user);
     }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        userRepository.delete(user);
+
+        log.info("User deleted: userId={}", userId);
+    }
 }
+
 
