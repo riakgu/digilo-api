@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageRequest;
 
 @Slf4j
 @Service
@@ -73,8 +74,8 @@ public class ProductInventoryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductInventoryResponse> getAll(Pageable pageable) {
-        return inventoryRepository.findAll(pageable)
+    public Page<ProductInventoryResponse> getAll(Long variantId, InventoryStatus status, Pageable pageable) {
+        return inventoryRepository.findAllWithFilters(variantId, status, pageable)
                 .map(inventory -> ProductInventoryResponse.fromEntity(inventory));
     }
 
@@ -113,10 +114,15 @@ public class ProductInventoryService {
 
     @Transactional
     public ProductInventoryResponse reserve(Long variantId, Long orderItemId) {
-        ProductInventory inventory = inventoryRepository
-                .findFirstByVariantIdAndStatus(variantId, InventoryStatus.AVAILABLE)
-                .orElseThrow(() -> new BadRequestException("No available stock for variant " + variantId));
+        // Use pessimistic lock to prevent race condition
+        List<ProductInventory> available = inventoryRepository.findAvailableForUpdate(
+                variantId, org.springframework.data.domain.PageRequest.of(0, 1));
 
+        if (available.isEmpty()) {
+            throw new BadRequestException("No available stock for variant " + variantId);
+        }
+
+        ProductInventory inventory = available.get(0);
         inventory.setStatus(InventoryStatus.RESERVED);
         inventory.setOrderItemId(orderItemId);
         inventory.setReservedAt(Instant.now());

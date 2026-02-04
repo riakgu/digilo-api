@@ -26,7 +26,7 @@ public class ProductInventoryResponse {
     private Instant reservedAt;
     private Instant soldAt;
     private Instant createdAt;
-    private  Instant updatedAt;
+    private Instant updatedAt;
 
     public static ProductInventoryResponse fromEntity(ProductInventory inventory) {
         return ProductInventoryResponse.builder()

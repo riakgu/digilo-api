@@ -1,6 +1,7 @@
 package com.riakgu.digilo.product;
 
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -38,4 +39,12 @@ public interface ProductInventoryRepository extends JpaRepository<ProductInvento
 
     long countByOrderItemIdAndStatus(Long orderItemId, InventoryStatus status);
 
+    @Query("SELECT pi FROM ProductInventory pi WHERE " +
+            "(:variantId IS NULL OR pi.variant.id = :variantId) " +
+            "AND (:status IS NULL OR pi.status = :status)")
+    Page<ProductInventory> findAllWithFilters(
+            @Param("variantId") Long variantId,
+            @Param("status") InventoryStatus status,
+            Pageable pageable
+    );
 }

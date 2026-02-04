@@ -5,7 +5,6 @@ import com.riakgu.digilo.product.dto.ProductInventoryBulkRequest;
 import com.riakgu.digilo.product.dto.ProductInventoryRequest;
 import com.riakgu.digilo.product.dto.ProductInventoryResponse;
 import com.riakgu.digilo.product.dto.ProductInventoryUpdateRequest;
-import com.riakgu.digilo.product.dto.ProductResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,9 +39,11 @@ public class ProductInventoryController {
     @GetMapping("/admin/inventories")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<ProductInventoryResponse>>> getAll(
+            @RequestParam(required = false) Long variantId,
+            @RequestParam(required = false) InventoryStatus status,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<ProductInventoryResponse> inventories = inventoryService.getAll(pageable);
+        Page<ProductInventoryResponse> inventories = inventoryService.getAll(variantId, status, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all inventories successful", inventories));
     }
 
