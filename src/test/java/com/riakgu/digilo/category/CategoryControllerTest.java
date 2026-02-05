@@ -198,7 +198,6 @@ class CategoryControllerTest {
             assertEquals("New Category", response.getData().getName());
             assertEquals("new-category", response.getData().getSlug());
 
-            // Verify in database
             assertTrue(categoryRepository.existsBySlug("new-category"));
         });
     }
@@ -228,7 +227,6 @@ class CategoryControllerTest {
         User admin = TestHelper.createAdminUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
 
-        // Create existing category
         categoryRepository.save(TestDataFactory.categoryBuilder().slug("existing-slug").build());
 
         CategoryRequest request = new CategoryRequest();
@@ -359,7 +357,6 @@ class CategoryControllerTest {
             assertEquals("Updated Name", response.getData().getName());
             assertEquals("updated-slug", response.getData().getSlug());
 
-            // Verify in database
             Category updated = categoryRepository.findById(category.getId()).orElseThrow();
             assertEquals("Updated Name", updated.getName());
         });
@@ -410,7 +407,6 @@ class CategoryControllerTest {
     // ==================== ADMIN: DELETE CATEGORY ====================
 
     @Test
-    @Disabled
     void adminDeleteCategorySuccess() throws Exception {
         User admin = TestHelper.createAdminUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
@@ -425,7 +421,6 @@ class CategoryControllerTest {
                 status().isOk()
         );
 
-        // Verify deleted
         assertFalse(categoryRepository.existsById(category.getId()));
     }
 
@@ -460,20 +455,19 @@ class CategoryControllerTest {
     }
 
     @Test
-    @Disabled
     void adminDeleteCategoryBadRequestWithProducts() throws Exception {
         User admin = TestHelper.createAdminUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
 
         Category category = categoryRepository.save(TestDataFactory.buildCategory());
 
-        // Add a product to the category
         Product product = productRepository.save(TestDataFactory.productBuilder().build());
         ProductCategory pc = new ProductCategory();
         pc.setId(new ProductCategoryId(product.getId(), category.getId()));
         pc.setProduct(product);
         pc.setCategory(category);
         product.getCategories().add(pc);
+        category.getProducts().add(pc);
         productRepository.save(product);
 
         mockMvc.perform(
@@ -484,7 +478,6 @@ class CategoryControllerTest {
                 status().isBadRequest()
         );
 
-        // Verify not deleted
         assertTrue(categoryRepository.existsById(category.getId()));
     }
 }

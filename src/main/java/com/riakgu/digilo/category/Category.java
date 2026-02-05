@@ -20,6 +20,7 @@ import java.util.Set;
 })
 public class Category extends BaseEntity {
 
+    @Builder.Default
     @OneToMany(mappedBy = "category")
     private Set<ProductCategory> products = new HashSet<>();
 
