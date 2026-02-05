@@ -235,9 +235,28 @@ PATCH /api/user/notifications/read-all     # Mark all as read
 
 ## Running Tests
 
+Tests use the `test` profile with a separate test database.
+
+### Prerequisites
+- PostgreSQL running on `localhost:5432`
+- Redis running on `localhost:6379`
+- Database `digilo_test` created with user `postgres`
+
+### Run Tests
+
 ```sh
-./mvnw test
+# Run all tests
+./mvnw test -D spring.profiles.active=test
+
+# Run specific test class
+./mvnw test -Dtest=AuthControllerTest -D spring.profiles.active=test
 ```
+
+### Test Configuration
+Tests use `application-test.yaml` which:
+- Uses hardcoded test database credentials
+- Disables Kafka listeners
+- Mocks external services (Email, Midtrans, WhatsApp, R2 Storage)
 
 ## License
 
