@@ -51,15 +51,15 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean compile -B
 
-      # - name: Run tests
-      #   run: ./mvnw test -B
-      #   env:
-      #     SPRING_PROFILES_ACTIVE: test
-      #     SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/digilo_test
-      #     SPRING_DATASOURCE_USERNAME: digilo
-      #     SPRING_DATASOURCE_PASSWORD: digilo123
-      #     SPRING_DATA_REDIS_HOST: localhost
-      #     SPRING_DATA_REDIS_PORT: 6379
+      - name: Run tests
+        run: ./mvnw test -B
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/digilo_test
+          SPRING_DATASOURCE_USERNAME: digilo
+          SPRING_DATASOURCE_PASSWORD: digilo123
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
 
       - name: Package
         run: ./mvnw package -DskipTests -B
