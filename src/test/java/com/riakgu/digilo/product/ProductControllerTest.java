@@ -299,6 +299,25 @@ class ProductControllerTest {
         );
     }
 
+    // ==================== ADMIN: GET ALL (PAGINATED) ====================
+
+    @Test
+    void adminGetAllProductsSuccess() throws Exception {
+        User admin = TestHelper.createAdminUser(userRepository);
+        String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
+
+        productRepository.save(TestDataFactory.buildProduct());
+        productRepository.save(TestDataFactory.buildProduct());
+
+        mockMvc.perform(
+                get("/api/admin/products")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("Authorization", authHeader)
+        ).andExpectAll(
+                status().isOk()
+        );
+    }
+
     // ==================== ADMIN: GET BY ID ====================
 
     @Test

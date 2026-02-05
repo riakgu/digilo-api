@@ -263,6 +263,25 @@ class CategoryControllerTest {
         );
     }
 
+    // ==================== ADMIN: GET ALL (PAGINATED) ====================
+
+    @Test
+    void adminGetAllCategoriesSuccess() throws Exception {
+        User admin = TestHelper.createAdminUser(userRepository);
+        String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
+
+        categoryRepository.save(TestDataFactory.buildCategory());
+        categoryRepository.save(TestDataFactory.buildCategory());
+
+        mockMvc.perform(
+                get("/api/admin/categories")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("Authorization", authHeader)
+        ).andExpectAll(
+                status().isOk()
+        );
+    }
+
     // ==================== ADMIN: GET BY ID ====================
 
     @Test
