@@ -55,7 +55,7 @@ public class DashboardService {
         // Order stats
         Query orderStatsQuery = entityManager.createNativeQuery(
                 "SELECT COUNT(*), " +
-                "SUM(CASE WHEN status = :pendingStatus THEN 1 ELSE 0 END), " +
+                "COALESCE(SUM(CASE WHEN status = :pendingStatus THEN 1 ELSE 0 END), 0), " +
                 "COALESCE(SUM(CASE WHEN status IN (:paidStatus, :completedStatus) THEN total_amount ELSE 0 END), 0), " +
                 "COALESCE(SUM(CASE WHEN status IN (:paidStatus, :completedStatus) AND created_at >= :today THEN total_amount ELSE 0 END), 0) " +
                 "FROM orders"
