@@ -23,8 +23,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByStatus(UserStatus status);
 
     @Query("SELECT u FROM User u WHERE " +
-            "(:search IS NULL OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "(:search IS NULL OR :search = '' OR LOWER(u.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) " +
+            "OR LOWER(u.email) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) " +
             "AND (:role IS NULL OR u.role = :role) " +
             "AND (:status IS NULL OR u.status = :status)")
     Page<User> findAllWithFilters(

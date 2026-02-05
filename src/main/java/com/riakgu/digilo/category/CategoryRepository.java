@@ -27,8 +27,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Page<Category> findAllByProductsProductSlugAndIsActive(String productSlug, Boolean isActive, Pageable pageable);
 
     @Query("SELECT c FROM Category c WHERE " +
-            "(:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(c.slug) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "(:search IS NULL OR :search = '' OR LOWER(c.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) " +
+            "OR LOWER(c.slug) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) " +
             "AND (:isActive IS NULL OR c.isActive = :isActive)")
     Page<Category> findAllWithFilters(
             @Param("search") String search,

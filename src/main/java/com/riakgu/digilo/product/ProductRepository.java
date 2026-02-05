@@ -29,8 +29,8 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     long countByIsActive(Boolean isActive);
 
     @Query("SELECT p FROM Product p WHERE " +
-            "(:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "OR LOWER(p.slug) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "(:search IS NULL OR :search = '' OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) " +
+            "OR LOWER(p.slug) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) " +
             "AND (:isActive IS NULL OR p.isActive = :isActive)")
     Page<Product> findAllWithFilters(
             @Param("search") String search,
