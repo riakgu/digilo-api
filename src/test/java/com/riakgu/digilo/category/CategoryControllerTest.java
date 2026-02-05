@@ -6,6 +6,7 @@ import com.riakgu.digilo.category.dto.CategoryRequest;
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.product.Product;
 import com.riakgu.digilo.product.ProductCategory;
 import com.riakgu.digilo.product.ProductCategoryId;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class CategoryControllerTest {
 

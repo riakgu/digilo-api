@@ -33,32 +33,24 @@ app:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/digilo_test}
-    username: ${SPRING_DATASOURCE_USERNAME:digilo}
-    password: ${SPRING_DATASOURCE_PASSWORD:digilo123}
-    driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 1
       maximum-pool-size: 5
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: false
 
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
       timeout: 60000ms
 
   kafka:
-    enabled: false
-    bootstrap-servers: localhost:9092
     listener:
-      auto-startup: false
+      auto-startup: true
 
   mail:
     host: localhost

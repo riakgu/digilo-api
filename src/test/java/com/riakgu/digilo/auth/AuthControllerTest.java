@@ -7,6 +7,7 @@ import com.riakgu.digilo.auth.dto.RefreshRequest;
 import com.riakgu.digilo.auth.dto.RegisterRequest;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.user.Role;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class AuthControllerTest {
 
@@ -54,10 +55,7 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Clear all users before each test
         userRepository.deleteAll();
-
-        // Clear Redis keys used by tests
         redisTemplate.delete(redisTemplate.keys("refresh:*"));
         redisTemplate.delete(redisTemplate.keys("blacklist:*"));
     }
@@ -91,7 +89,6 @@ class AuthControllerTest {
             assertEquals("newuser@example.com", response.getData().getUser().getEmail());
             assertEquals("New User", response.getData().getUser().getName());
 
-            // Verify user was saved to database
             assertTrue(userRepository.findByEmail("newuser@example.com").isPresent());
         });
     }
@@ -122,7 +119,6 @@ class AuthControllerTest {
 
     @Test
     void registerDuplicateEmail() throws Exception {
-        // Create existing user
         TestHelper.createTestUser(userRepository, "existing@example.com", "Existing User", Role.USER);
 
         RegisterRequest request = new RegisterRequest();
@@ -136,7 +132,7 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         ).andExpectAll(
-                status().isConflict() // 409 for duplicate email
+                status().isConflict()
         ).andDo(result -> {
             ApiResponse<String> response = objectMapper.readValue(
                     result.getResponse().getContentAsString(),
@@ -232,7 +228,6 @@ class AuthControllerTest {
     void refreshSuccess() throws Exception {
         User user = TestHelper.createTestUser(userRepository);
 
-        // Generate a valid refresh token (this stores it in Redis)
         String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getRole().name());
 
         RefreshRequest request = new RefreshRequest();
@@ -267,7 +262,6 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         ).andDo(result -> {
-            // Invalid token can return 401 or 500 depending on where it fails
             int status = result.getResponse().getStatus();
             assertTrue(status == 401 || status == 500, 
                     "Expected 401 or 500, got " + status);

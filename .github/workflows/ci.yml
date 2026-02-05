@@ -10,31 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_USER: digilo
-          POSTGRES_PASSWORD: digilo123
-          POSTGRES_DB: digilo_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:8
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -55,11 +30,6 @@ jobs:
         run: ./mvnw test -B
         env:
           SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/digilo_test
-          SPRING_DATASOURCE_USERNAME: digilo
-          SPRING_DATASOURCE_PASSWORD: digilo123
-          SPRING_DATA_REDIS_HOST: localhost
-          SPRING_DATA_REDIS_PORT: 6379
 
       - name: Package
         run: ./mvnw package -DskipTests -B

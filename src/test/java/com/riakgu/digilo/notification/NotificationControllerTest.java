@@ -4,6 +4,7 @@ import com.riakgu.digilo.TestDataFactory;
 import com.riakgu.digilo.TestHelper;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.notification.dto.NotificationResponse;
 import com.riakgu.digilo.notification.dto.UnreadCountResponse;
 import com.riakgu.digilo.user.User;
@@ -30,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class NotificationControllerTest {
 
@@ -59,7 +60,6 @@ class NotificationControllerTest {
         User user = TestHelper.createTestUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        // Create unread notifications
         notificationRepository.save(TestDataFactory.notificationBuilder(user).isRead(false).build());
         notificationRepository.save(TestDataFactory.notificationBuilder(user).isRead(false).build());
         notificationRepository.save(TestDataFactory.notificationBuilder(user).isRead(true).build());
@@ -100,7 +100,6 @@ class NotificationControllerTest {
                 status().isOk()
         );
 
-        // Verify via database
         Notification updated = notificationRepository.findById(notification.getId()).orElseThrow();
         assertTrue(updated.getIsRead());
     }
@@ -126,7 +125,6 @@ class NotificationControllerTest {
         User user = TestHelper.createTestUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        // Create unread notifications
         notificationRepository.save(TestDataFactory.notificationBuilder(user).isRead(false).build());
         notificationRepository.save(TestDataFactory.notificationBuilder(user).isRead(false).build());
 
@@ -138,7 +136,6 @@ class NotificationControllerTest {
                 status().isOk()
         );
 
-        // Verify all are read
         long unreadCount = notificationRepository.countByUserIdAndIsReadFalse(user.getId());
         assertEquals(0, unreadCount);
     }

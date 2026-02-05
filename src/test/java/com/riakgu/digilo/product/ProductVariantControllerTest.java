@@ -4,6 +4,7 @@ import com.riakgu.digilo.TestDataFactory;
 import com.riakgu.digilo.TestHelper;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.product.dto.ProductVariantRequest;
 import com.riakgu.digilo.product.dto.ProductVariantResponse;
 import com.riakgu.digilo.user.User;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class ProductVariantControllerTest {
 
@@ -65,7 +66,6 @@ class ProductVariantControllerTest {
     void getActiveVariantsByProductSuccess() throws Exception {
         Product product = productRepository.save(TestDataFactory.productBuilder().isActive(true).build());
 
-        // Create active variant
         ProductVariant variant = TestDataFactory.variantBuilder(product)
                 .isActive(true)
                 .build();
@@ -377,7 +377,6 @@ class ProductVariantControllerTest {
                 status().isOk()
         );
 
-        // Verify deleted
         assertFalse(variantRepository.existsById(variant.getId()));
     }
 

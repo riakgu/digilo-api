@@ -4,6 +4,7 @@ import com.riakgu.digilo.TestDataFactory;
 import com.riakgu.digilo.TestHelper;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.product.dto.ProductInventoryBulkRequest;
 import com.riakgu.digilo.product.dto.ProductInventoryRequest;
 import com.riakgu.digilo.product.dto.ProductInventoryResponse;
@@ -35,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class ProductInventoryControllerTest {
 
@@ -72,7 +73,6 @@ class ProductInventoryControllerTest {
         Product product = productRepository.save(TestDataFactory.buildProduct());
         ProductVariant variant = variantRepository.save(TestDataFactory.variantBuilder(product).build());
 
-        // Add some inventory
         inventoryRepository.save(TestDataFactory.inventoryBuilder(variant).status(InventoryStatus.AVAILABLE).build());
         inventoryRepository.save(TestDataFactory.inventoryBuilder(variant).status(InventoryStatus.AVAILABLE).build());
 
@@ -131,7 +131,6 @@ class ProductInventoryControllerTest {
         String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
 
         ProductInventoryRequest request = new ProductInventoryRequest();
-        // Missing variantId and credential
 
         mockMvc.perform(
                 post("/api/admin/inventories")
@@ -422,7 +421,6 @@ class ProductInventoryControllerTest {
                 status().isOk()
         );
 
-        // Verify status changed
         ProductInventory updated = inventoryRepository.findById(inventory.getId()).orElseThrow();
         assertEquals(InventoryStatus.AVAILABLE, updated.getStatus());
     }
@@ -446,7 +444,6 @@ class ProductInventoryControllerTest {
                 status().isOk()
         );
 
-        // Verify deleted
         assertFalse(inventoryRepository.existsById(inventory.getId()));
     }
 

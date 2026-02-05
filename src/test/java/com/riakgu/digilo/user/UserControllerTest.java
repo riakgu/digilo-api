@@ -3,6 +3,7 @@ package com.riakgu.digilo.user;
 import com.riakgu.digilo.TestHelper;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.user.dto.AdminUpdateUserRequest;
 import com.riakgu.digilo.user.dto.ChangePasswordRequest;
 import com.riakgu.digilo.user.dto.UpdateProfileRequest;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class UserControllerTest {
 
@@ -54,12 +55,10 @@ class UserControllerTest {
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
-        // Clear OTP keys
         var keys = redisTemplate.keys(OTP_PREFIX + "*");
         if (keys != null && !keys.isEmpty()) {
             redisTemplate.delete(keys);
         }
-        // Clear cooldown keys
         var cooldownKeys = redisTemplate.keys("otp:cooldown:*");
         if (cooldownKeys != null && !cooldownKeys.isEmpty()) {
             redisTemplate.delete(cooldownKeys);
@@ -129,7 +128,6 @@ class UserControllerTest {
             assertNull(response.getErrors());
             assertEquals("Updated Name", response.getData().getName());
 
-            // Verify in database
             User updated = userRepository.findById(user.getId()).orElseThrow();
             assertEquals("Updated Name", updated.getName());
         });
@@ -160,7 +158,7 @@ class UserControllerTest {
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
         UpdateProfileRequest request = new UpdateProfileRequest();
-        request.setPhone("123"); // Invalid phone format
+        request.setPhone("123");
 
         mockMvc.perform(
                 patch("/api/user/profile")
@@ -175,12 +173,10 @@ class UserControllerTest {
 
     @Test
     void updateProfileDuplicateEmail() throws Exception {
-        // Create two users
         User user1 = TestHelper.createTestUser(userRepository);
         User user2 = TestHelper.createTestUser(userRepository, "other@example.com", "Other User", Role.USER);
         String authHeader = TestHelper.getAuthHeader(user1.getId(), user1.getRole());
 
-        // Try to update user1's email to user2's email
         UpdateProfileRequest request = new UpdateProfileRequest();
         request.setEmail(user2.getEmail());
 
@@ -222,7 +218,6 @@ class UserControllerTest {
 
             assertNull(response.getErrors());
 
-            // Verify password was changed
             User updated = userRepository.findById(user.getId()).orElseThrow();
             assertTrue(TestHelper.getPasswordEncoder().matches("newpassword123", updated.getPassword()));
         });
@@ -255,7 +250,7 @@ class UserControllerTest {
 
         ChangePasswordRequest request = new ChangePasswordRequest();
         request.setOldPassword(TestHelper.DEFAULT_PASSWORD);
-        request.setNewPassword("short"); // Less than 8 characters
+        request.setNewPassword("short");
 
         mockMvc.perform(
                 patch("/api/user/password")
@@ -272,7 +267,6 @@ class UserControllerTest {
 
     @Test
     void sendEmailOtpSuccess() throws Exception {
-        // Create user with unverified email
         User user = User.builder()
                 .email("unverified@example.com")
                 .name("Unverified User")
@@ -310,7 +304,6 @@ class UserControllerTest {
 
     @Test
     void verifyEmailSuccess() throws Exception {
-        // Create user with unverified email
         User user = User.builder()
                 .email("unverified@example.com")
                 .name("Unverified User")
@@ -323,7 +316,6 @@ class UserControllerTest {
         user = userRepository.save(user);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        // Set OTP in Redis
         String otp = "123456";
         redisTemplate.opsForValue().set(OTP_PREFIX + "email:" + user.getEmail(), otp, Duration.ofMinutes(5));
 
@@ -348,7 +340,6 @@ class UserControllerTest {
             assertNull(response.getErrors());
             assertTrue(response.getData().getEmailVerified());
 
-            // Verify in database
             User updated = userRepository.findById(finalUser.getId()).orElseThrow();
             assertTrue(updated.getEmailVerified());
         });
@@ -368,11 +359,10 @@ class UserControllerTest {
         user = userRepository.save(user);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        // Set OTP in Redis
         redisTemplate.opsForValue().set(OTP_PREFIX + "email:" + user.getEmail(), "123456", Duration.ofMinutes(5));
 
         VerifyOtpRequest request = new VerifyOtpRequest();
-        request.setOtp("000000"); // Wrong OTP
+        request.setOtp("000000");
 
         mockMvc.perform(
                 post("/api/user/verify/email")
@@ -413,7 +403,7 @@ class UserControllerTest {
 
     @Test
     void sendPhoneOtpBadRequestNoPhone() throws Exception {
-        User user = TestHelper.createTestUser(userRepository); // No phone set
+        User user = TestHelper.createTestUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
         mockMvc.perform(
@@ -440,7 +430,6 @@ class UserControllerTest {
         user = userRepository.save(user);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        // Set OTP in Redis
         String otp = "654321";
         redisTemplate.opsForValue().set(OTP_PREFIX + "phone:" + user.getPhone(), otp, Duration.ofMinutes(5));
 
@@ -470,7 +459,6 @@ class UserControllerTest {
 
     @Test
     void adminGetAllUsersSuccess() throws Exception {
-        // Create admin and some users
         User admin = TestHelper.createAdminUser(userRepository);
         TestHelper.createTestUser(userRepository, "user1@example.com", "User One", Role.USER);
         TestHelper.createTestUser(userRepository, "user2@example.com", "User Two", Role.USER);
@@ -603,7 +591,6 @@ class UserControllerTest {
             assertNull(response.getErrors());
             assertEquals(Role.ADMIN.name(), response.getData().getRole());
 
-            // Verify in database
             User updated = userRepository.findById(targetUser.getId()).orElseThrow();
             assertEquals(Role.ADMIN, updated.getRole());
         });
@@ -674,7 +661,6 @@ class UserControllerTest {
                 status().isOk()
         );
 
-        // Verify user was deleted
         assertFalse(userRepository.existsById(targetUser.getId()));
     }
 

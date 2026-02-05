@@ -7,6 +7,7 @@ import com.riakgu.digilo.cart.dto.CartResponse;
 import com.riakgu.digilo.cart.dto.UpdateCartItemRequest;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.product.DeliveryType;
 import com.riakgu.digilo.product.Product;
 import com.riakgu.digilo.product.ProductRepository;
@@ -36,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class CartControllerTest {
 
@@ -143,7 +144,6 @@ class CartControllerTest {
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
         AddToCartRequest request = new AddToCartRequest();
-        // Missing variantId
 
         mockMvc.perform(
                 post("/api/user/cart/items")
@@ -186,7 +186,6 @@ class CartControllerTest {
         Product product = productRepository.save(TestDataFactory.buildProduct());
         ProductVariant variant = variantRepository.save(TestDataFactory.variantBuilder(product).isActive(true).deliveryType(DeliveryType.MANUAL).build());
 
-        // Create cart and add item
         Cart cart = cartRepository.save(TestDataFactory.cartBuilder(user).build());
         CartItem cartItem = cartItemRepository.save(TestDataFactory.cartItemBuilder(cart, variant).quantity(1).build());
 
@@ -251,7 +250,6 @@ class CartControllerTest {
                 status().isOk()
         );
 
-        // Verify removed
         assertFalse(cartItemRepository.existsById(cartItem.getId()));
     }
 

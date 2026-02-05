@@ -4,6 +4,7 @@ import com.riakgu.digilo.TestDataFactory;
 import com.riakgu.digilo.TestHelper;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.order.dto.OrderResponse;
 import com.riakgu.digilo.order.dto.UpdateOrderStatusRequest;
 import com.riakgu.digilo.user.User;
@@ -33,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class OrderControllerTest {
 
@@ -66,7 +67,6 @@ class OrderControllerTest {
         User user = TestHelper.createTestUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        // Create order for user
         orderRepository.save(TestDataFactory.orderBuilder(user)
                 .status(OrderStatus.PENDING)
                 .build());

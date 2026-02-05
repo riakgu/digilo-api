@@ -4,6 +4,7 @@ import com.riakgu.digilo.TestDataFactory;
 import com.riakgu.digilo.TestHelper;
 import com.riakgu.digilo.common.dto.ApiResponse;
 import com.riakgu.digilo.config.TestMockConfig;
+import com.riakgu.digilo.config.TestContainersConfig;
 import com.riakgu.digilo.promo.dto.ApplyPromoRequest;
 import com.riakgu.digilo.promo.dto.PromoRequest;
 import com.riakgu.digilo.promo.dto.PromoResponse;
@@ -35,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import(TestMockConfig.class)
+@Import({TestContainersConfig.class, TestMockConfig.class})
 @Transactional
 class PromoControllerTest {
 
@@ -68,10 +69,8 @@ class PromoControllerTest {
         User user = TestHelper.createTestUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        // Create cart (required for promo validation)
         cartRepository.save(com.riakgu.digilo.cart.Cart.builder().user(user).build());
 
-        // Create active promo
         promoRepository.save(TestDataFactory.promoBuilder()
                 .code("TESTCODE")
                 .isActive(true)
@@ -158,7 +157,6 @@ class PromoControllerTest {
         String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
 
         PromoRequest request = new PromoRequest();
-        // Missing required fields
 
         mockMvc.perform(
                 post("/api/admin/promos")
@@ -286,7 +284,6 @@ class PromoControllerTest {
                 status().isOk()
         );
 
-        // Verify deleted
         assertFalse(promoRepository.existsById(promo.getId()));
     }
 }

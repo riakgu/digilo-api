@@ -11,22 +11,18 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.kafka.core.KafkaTemplate;
+
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
-/**
- * Test configuration that provides mock beans for external services.
- * Import this class in tests that need mocked external dependencies.
- */
 @TestConfiguration
 public class TestMockConfig {
 
@@ -166,16 +162,4 @@ public class TestMockConfig {
         return mock;
     }
 
-    @Bean
-    @Primary
-    public KafkaTemplate<String, Object> kafkaTemplate() {
-        KafkaTemplate<String, Object> mock =
-                Mockito.mock(KafkaTemplate.class);
-
-        when(mock.send(anyString(), anyString(), any())).thenReturn(
-                CompletableFuture.completedFuture(null)
-        );
-
-        return mock;
-    }
 }
