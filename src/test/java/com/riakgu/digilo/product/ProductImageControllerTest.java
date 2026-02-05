@@ -64,11 +64,9 @@ class ProductImageControllerTest {
     // ==================== PUBLIC: GET IMAGES ====================
 
     @Test
-    @Disabled
     void getImagesSuccess() throws Exception {
         Product product = productRepository.save(TestDataFactory.buildProduct());
 
-        // Add images
         ProductImage image1 = ProductImage.builder()
                 .product(product)
                 .imageUrl("https://example.com/image1.jpg")
@@ -81,7 +79,9 @@ class ProductImageControllerTest {
                 .displayOrder(1)
                 .isPrimary(false)
                 .build();
-        imageRepository.saveAll(List.of(image1, image2));
+        product.getImages().add(image1);
+        product.getImages().add(image2);
+        productRepository.save(product);
 
         mockMvc.perform(
                 get("/api/public/products/" + product.getId() + "/images")
@@ -122,7 +122,6 @@ class ProductImageControllerTest {
                 status().isOk()
         );
 
-        // Verify image added
         List<ProductImage> images = imageRepository.findAllByProductId(product.getId());
         assertFalse(images.isEmpty());
     }
@@ -135,7 +134,6 @@ class ProductImageControllerTest {
         Product product = productRepository.save(TestDataFactory.buildProduct());
 
         ProductImageRequest request = new ProductImageRequest();
-        // Missing imageUrl
 
         mockMvc.perform(
                 post("/api/admin/products/" + product.getId() + "/images")
@@ -309,7 +307,6 @@ class ProductImageControllerTest {
                 status().isOk()
         );
 
-        // Verify deleted
         assertFalse(imageRepository.existsById(image.getId()));
     }
 
@@ -338,7 +335,6 @@ class ProductImageControllerTest {
                 status().isOk()
         );
 
-        // Verify primary set
         ProductImage updated = imageRepository.findById(image.getId()).orElseThrow();
         assertTrue(updated.getIsPrimary());
     }
@@ -346,30 +342,28 @@ class ProductImageControllerTest {
     // ==================== ADMIN: REORDER ====================
 
     @Test
-    @Disabled
     void adminReorderImagesSuccess() throws Exception {
         User admin = TestHelper.createAdminUser(userRepository);
         String authHeader = TestHelper.getAuthHeader(admin.getId(), admin.getRole());
 
         Product product = productRepository.save(TestDataFactory.buildProduct());
-        ProductImage image1 = imageRepository.save(
-                ProductImage.builder()
-                        .product(product)
-                        .imageUrl("https://example.com/image1.jpg")
-                        .displayOrder(0)
-                        .isPrimary(false)
-                        .build()
-        );
-        ProductImage image2 = imageRepository.save(
-                ProductImage.builder()
-                        .product(product)
-                        .imageUrl("https://example.com/image2.jpg")
-                        .displayOrder(1)
-                        .isPrimary(false)
-                        .build()
-        );
+        
+        ProductImage image1 = imageRepository.save(ProductImage.builder()
+                .product(product)
+                .imageUrl("https://example.com/image1.jpg")
+                .displayOrder(0)
+                .isPrimary(false)
+                .build());
+        ProductImage image2 = imageRepository.save(ProductImage.builder()
+                .product(product)
+                .imageUrl("https://example.com/image2.jpg")
+                .displayOrder(1)
+                .isPrimary(false)
+                .build());
+        
+        product.getImages().add(image1);
+        product.getImages().add(image2);
 
-        // Reorder: image2 first, then image1
         ReorderImagesRequest request = new ReorderImagesRequest();
         request.setImageIds(List.of(image2.getId(), image1.getId()));
 
