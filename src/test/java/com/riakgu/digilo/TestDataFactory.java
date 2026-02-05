@@ -172,6 +172,7 @@ public class TestDataFactory {
         String uniqueId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         return Promo.builder()
                 .code("PROMO" + uniqueId)
+                .name("Test Promo " + uniqueId)
                 .description("Test promo code")
                 .discountType(DiscountType.PERCENT)
                 .discountValue(new BigDecimal("10.00"))
