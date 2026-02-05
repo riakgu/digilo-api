@@ -33,6 +33,9 @@ app:
 
 spring:
   datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/digilo_test}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 1
@@ -47,7 +50,21 @@ spring:
 
   data:
     redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
       timeout: 60000ms
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    listener:
+      auto-startup: false
+
+  mail:
+    host: localhost
+    port: 25
+    username: test@test.com
+    password: testpassword
+    test-connection: false
 
 jwt:
   access-secret: test-access-secret-for-testing-only
