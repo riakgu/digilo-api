@@ -1,14 +1,17 @@
 package com.riakgu.digilo.config;
 
 import com.riakgu.digilo.auth.GoogleAuthService;
+import com.riakgu.digilo.common.service.EmailService;
 import com.riakgu.digilo.common.service.StorageService;
 import com.riakgu.digilo.common.service.WhatsAppService;
 import com.riakgu.digilo.payment.MidtransService;
 import com.riakgu.digilo.payment.PaymentStatus;
+import com.riakgu.digilo.product.EncryptionService;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -121,13 +124,42 @@ public class TestMockConfig {
 
     @Bean
     @Primary
-    public com.riakgu.digilo.common.service.EmailService emailService() {
-        com.riakgu.digilo.common.service.EmailService mock = 
-                Mockito.mock(com.riakgu.digilo.common.service.EmailService.class);
+    public EmailService emailService() {
+        EmailService mock =
+                Mockito.mock(EmailService.class);
 
         // Default behavior - just log without actually sending emails
         doNothing().when(mock).sendEmail(anyString(), anyString(), anyString());
         doNothing().when(mock).sendTextEmail(anyString(), anyString(), anyString());
+
+        return mock;
+    }
+
+    @Bean
+    @Primary
+    public EncryptionService encryptionService() {
+        EncryptionService mock =
+                Mockito.mock(EncryptionService.class);
+
+        // Mock encrypt to return a simple JSON string
+        when(mock.encrypt(any())).thenAnswer(invocation -> {
+            Map<String, Object> data = invocation.getArgument(0);
+            try {
+                return new ObjectMapper().writeValueAsString(data);
+            } catch (Exception e) {
+                return "{}";
+            }
+        });
+
+        // Mock decrypt to parse the JSON string back
+        when(mock.decrypt(anyString())).thenAnswer(invocation -> {
+            String data = invocation.getArgument(0);
+            try {
+                return new ObjectMapper().readValue(data, Map.class);
+            } catch (Exception e) {
+                return Map.of();
+            }
+        });
 
         return mock;
     }
