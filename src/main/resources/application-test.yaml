@@ -34,8 +34,8 @@ app:
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/digilo_test}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    username: ${SPRING_DATASOURCE_USERNAME:digilo}
+    password: ${SPRING_DATASOURCE_PASSWORD:digilo123}
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 1
@@ -55,6 +55,7 @@ spring:
       timeout: 60000ms
 
   kafka:
+    enabled: false
     bootstrap-servers: localhost:9092
     listener:
       auto-startup: false

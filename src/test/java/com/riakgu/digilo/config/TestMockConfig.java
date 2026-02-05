@@ -11,11 +11,13 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.kafka.core.KafkaTemplate;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
@@ -160,6 +162,19 @@ public class TestMockConfig {
                 return Map.of();
             }
         });
+
+        return mock;
+    }
+
+    @Bean
+    @Primary
+    public KafkaTemplate<String, Object> kafkaTemplate() {
+        KafkaTemplate<String, Object> mock =
+                Mockito.mock(KafkaTemplate.class);
+
+        when(mock.send(anyString(), anyString(), any())).thenReturn(
+                CompletableFuture.completedFuture(null)
+        );
 
         return mock;
     }
