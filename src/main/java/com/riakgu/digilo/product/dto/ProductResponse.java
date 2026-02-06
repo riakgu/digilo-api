@@ -1,9 +1,7 @@
 package com.riakgu.digilo.product.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.product.Product;
-import com.riakgu.digilo.product.ProductImage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,8 +28,8 @@ public class ProductResponse {
     private Boolean isActive;
     private Instant createdAt;
     private Instant updatedAt;
-    private List<String> categories;
-    private List<String> images;
+    private List<CategoryResponse> categories;
+    private List<ProductImageResponse> images;
     private List<ProductVariantResponse> variants;
 
     public static ProductResponse fromEntity(Product product, List<ProductVariantResponse> variants) {
@@ -60,10 +58,10 @@ public class ProductResponse {
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .categories(product.getCategories().stream()
-                        .map(pc -> pc.getCategory().getName())
+                        .map(pc -> CategoryResponse.fromEntity(pc.getCategory()))
                         .collect(Collectors.toList()))
                 .images(product.getImages().stream()
-                        .map(ProductImage::getImageUrl)
+                        .map(ProductImageResponse::fromEntity)
                         .collect(Collectors.toList()))
                 .variants(variants)
                 .build();
