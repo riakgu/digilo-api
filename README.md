@@ -67,11 +67,8 @@ It features product management, shopping cart, order processing, Midtrans QRIS p
 ## Getting Started
 
 ### Prerequisites
-* Java 25
-* PostgreSQL >= 18.0
-* Redis >= 8.0
-* Apache Kafka >= 3.0
-* Maven >= 3.9
+* Docker & Docker Compose
+* Maven >= 3.9 (for development only)
 
 ### Installation
 
@@ -81,47 +78,41 @@ It features product management, shopping cart, order processing, Midtrans QRIS p
    cd digilo-api
    ```
 
-2. Set up local configuration
-   ```sh
-   cp src/main/resources/application-local.yaml.template src/main/resources/application-local.yaml
-   ```
-
-   Edit `application-local.yaml` with your configuration.
-
-3. Start dependencies (PostgreSQL, Redis, Kafka)
-   ```sh
-   # Using Docker (optional)
-   docker run -d --name digilo-db -e POSTGRES_DB=digilo -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:18-alpine
-   docker run -d --name digilo-redis -p 6379:6379 redis:8-alpine
-   docker run -d --name digilo-kafka -p 9092:9092 apache/kafka:latest
-   ```
-
-4. Run the application
-   ```sh
-   ./mvnw spring-boot:run
-   ```
-
-   The API will be available at `http://localhost:8080`
-
-
-### Docker
-
-1. Set up environment variables
+2. Set up environment variables
    ```sh
    cp .env.example .env
    ```
-
    Edit `.env` with your configuration.
 
-2. Run with Docker Compose
+3. Start all services
    ```sh
    docker compose up -d
    ```
+   The API will be available at `http://localhost:8080`
 
-3. Build and run after code changes
+4. Rebuild after code changes
    ```sh
    docker compose up -d --build
    ```
+
+### Seed Data (Optional)
+
+To populate the database with dummy data for frontend development:
+
+```sh
+# Clear existing data (if re-seeding)
+docker exec -i digilo-db psql -U $POSTGRES_USER -d digilo < src/main/resources/db/clear-data.sql
+
+# Seed data
+docker exec -i digilo-db psql -U $POSTGRES_USER -d digilo < src/main/resources/db/seed-data.sql
+```
+
+**Regenerate encrypted credentials** (if encryption keys change):
+```sh
+# Update ENCRYPTION_PASSWORD & ENCRYPTION_SALT in CredentialGenerator.java
+mvn exec:java -D exec.mainClass="com.riakgu.digilo.util.CredentialGenerator" -D exec.classpathScope="test"
+# Copy the output to replace section 7 in seed-data.sql
+```
 
 
 ## Environment Profiles
@@ -235,28 +226,26 @@ PATCH /api/user/notifications/read-all     # Mark all as read
 
 ## Running Tests
 
-Tests use the `test` profile with a separate test database.
-
-### Prerequisites
-- PostgreSQL running on `localhost:5432`
-- Redis running on `localhost:6379`
-- Database `digilo_test` created with user `postgres`
+Tests use **Testcontainers** to automatically spin up PostgreSQL, Redis, and Kafka containers.
 
 ### Run Tests
 
 ```sh
 # Run all tests
-./mvnw test -D spring.profiles.active=test
+./mvnw test
 
 # Run specific test class
-./mvnw test -Dtest=AuthControllerTest -D spring.profiles.active=test
+./mvnw test -Dtest=AuthControllerTest
+
+# Run with verbose output
+./mvnw test -X
 ```
 
 ### Test Configuration
 Tests use `application-test.yaml` which:
-- Uses hardcoded test database credentials
-- Disables Kafka listeners
+- Uses **Testcontainers** for PostgreSQL, Redis, and Kafka (auto-managed)
 - Mocks external services (Email, Midtrans, WhatsApp, R2 Storage)
+- No manual database setup required
 
 ## License
 
