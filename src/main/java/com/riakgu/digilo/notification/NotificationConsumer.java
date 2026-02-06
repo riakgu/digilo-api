@@ -34,7 +34,7 @@ public class NotificationConsumer {
         log.info("[KAFKA] Order Event: type={}, orderNumber={}, userId={}",
                 event.eventType(), event.orderNumber(), event.userId());
 
-        Optional<Order> orderOpt = orderRepository.findByOrderNumber(event.orderNumber());
+        Optional<Order> orderOpt = orderRepository.findByOrderNumberWithDetails(event.orderNumber());
         if (orderOpt.isEmpty()) {
             log.warn("Order not found for notification: {}", event.orderNumber());
             return;
@@ -103,7 +103,7 @@ public class NotificationConsumer {
         log.info("[KAFKA] Payment Event: type={}, orderNumber={}, paymentId={}",
                 event.eventType(), event.orderNumber(), event.paymentId());
 
-        Optional<Order> orderOpt = orderRepository.findByOrderNumber(event.orderNumber());
+        Optional<Order> orderOpt = orderRepository.findByOrderNumberWithDetails(event.orderNumber());
         if (orderOpt.isEmpty()) {
             log.warn("Order not found for payment notification: {}", event.orderNumber());
             return;

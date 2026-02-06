@@ -12,7 +12,7 @@ Tanggal Pembayaran: [(${#temporals.format(payment.paidAt, 'dd MMM yyyy, HH:mm')}
 Item Pesanan
 ---
 [# th:each="item : ${order.items}"]
-• [(${item.productName})] ([(${item.variantName})]) x[(${item.quantity})] - [(${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')})] [(${payment.currency})]
+• [(${item.productName})] ([(${item.variantName})]) x[(${item.quantity})] - [(${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')})] [(${payment.currency})]
 [/]
 
 Ringkasan Pembayaran
