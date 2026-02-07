@@ -11,6 +11,7 @@ import com.riakgu.digilo.product.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +48,7 @@ public class ProductService {
                 .slug(newSlug)
                 .description(request.getDescription())
                 .isActive(true)
+                .isFeatured(Boolean.TRUE.equals(request.getIsFeatured()))
                 .build();
 
         productRepository.save(product);
@@ -134,9 +136,11 @@ public class ProductService {
         product.setSlug(newSlug);
         product.setDescription(request.getDescription());
 
-        // Update active status if provided
         if (request.getIsActive() != null) {
             product.setIsActive(request.getIsActive());
+        }
+        if (request.getIsFeatured() != null) {
+            product.setIsFeatured(request.getIsFeatured());
         }
 
         productRepository.save(product);
@@ -240,6 +244,48 @@ public class ProductService {
                     .collect(Collectors.toList());
             return ProductResponse.fromEntity(product, variants, imageUrl);
         });
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getFeatured(int limit) {
+        List<Product> result = new ArrayList<>();
+        Set<Long> seenIds = new HashSet<>();
+        
+        // Priority 1: Manually featured products
+        List<Product> featured = productRepository.findByIsFeaturedAndIsActive(true, true);
+        for (Product p : featured) {
+            if (result.size() >= limit) break;
+            if (seenIds.add(p.getId())) {
+                result.add(p);
+            }
+        }
+        
+        // Priority 2: Fill remaining with best-selling products
+        if (result.size() < limit) {
+            int remaining = limit - result.size();
+            Page<Product> trending = productRepository.findAllActiveOrderByTrending(
+                    PageRequest.of(0, remaining + 5));
+            for (Product p : trending.getContent()) {
+                if (result.size() >= limit) break;
+                if (seenIds.add(p.getId())) {
+                    result.add(p);
+                }
+            }
+        }
+        
+        Map<Long, Long> stockMap = getStockMapForProducts(result);
+        
+        return result.stream()
+                .map(product -> {
+                    String imageUrl = productImageHelper.getDisplayImageUrl(product);
+                    List<ProductVariantResponse> variants = product.getVariants().stream()
+                            .filter(ProductVariant::getIsActive)
+                            .map(variant -> ProductVariantResponse.fromEntity(
+                                    variant, stockMap.getOrDefault(variant.getId(), 0L), imageUrl))
+                            .collect(Collectors.toList());
+                    return ProductResponse.fromEntity(product, variants, imageUrl);
+                })
+                .collect(Collectors.toList());
     }
 
     private Map<Long, Long> getStockMapForProducts(List<Product> products) {

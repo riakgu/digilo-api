@@ -90,6 +90,8 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Query("SELECT p FROM Product p JOIN p.categories pc WHERE pc.category.slug = :slug AND p.isActive = true ORDER BY p.createdAt ASC")
     Page<Product> findByCategoryOrderByOldest(@Param("slug") String categorySlug, Pageable pageable);
 
+    List<Product> findByIsFeaturedAndIsActive(Boolean isFeatured, Boolean isActive);
+
     @Query(value = """
             SELECT * FROM (
                 SELECT DISTINCT p.* FROM products p

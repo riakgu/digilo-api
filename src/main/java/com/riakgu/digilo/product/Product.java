@@ -15,7 +15,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Table(name = "products", indexes = {
         @Index(name = "idx_product_slug", columnList = "slug"),
-        @Index(name = "idx_product_is_active", columnList = "is_active")
+        @Index(name = "idx_product_is_active", columnList = "is_active"),
+        @Index(name = "idx_product_is_featured", columnList = "is_featured")
 })
 public class Product extends BaseEntity {
 
@@ -41,6 +42,11 @@ public class Product extends BaseEntity {
     private String description;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
+
+    @Column(name = "is_featured", nullable = false)
+    @Builder.Default
+    private Boolean isFeatured = false;
 
 }

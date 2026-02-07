@@ -22,6 +22,8 @@ public class ProductRequest {
     private List<Long> categoryIds;
 
     private Boolean isActive;
+
+    private Boolean isFeatured;
 }
 
 

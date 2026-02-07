@@ -44,24 +44,24 @@ SELECT setval('categories_id_seq', 100);
 -- =====================================================
 -- 3. PRODUCTS
 -- =====================================================
-INSERT INTO products (id, name, slug, description, is_active, created_at, updated_at) VALUES
+INSERT INTO products (id, name, slug, description, is_active, is_featured, created_at, updated_at) VALUES
 -- Streaming
-(1, 'Netflix Premium', 'netflix-premium', 'Enjoy unlimited movies, TV shows, and Netflix Originals in Ultra HD quality. Stream on up to 4 devices simultaneously with downloads available on 6 devices.', true, NOW(), NOW()),
-(2, 'Spotify Premium', 'spotify-premium', 'Ad-free music streaming with unlimited skips, offline listening, and high-quality audio. Access millions of songs and podcasts.', true, NOW(), NOW()),
-(3, 'Disney+ Hotstar', 'disney-plus-hotstar', 'Stream Disney classics, Marvel, Star Wars, Pixar, National Geographic, and exclusive Indonesian content including live sports.', true, NOW(), NOW()),
-(4, 'YouTube Premium', 'youtube-premium', 'Watch videos ad-free, download for offline viewing, play in background, and get YouTube Music Premium included.', true, NOW(), NOW()),
+(1, 'Netflix Premium', 'netflix-premium', 'Enjoy unlimited movies, TV shows, and Netflix Originals in Ultra HD quality. Stream on up to 4 devices simultaneously with downloads available on 6 devices.', true, true, NOW(), NOW()),
+(2, 'Spotify Premium', 'spotify-premium', 'Ad-free music streaming with unlimited skips, offline listening, and high-quality audio. Access millions of songs and podcasts.', true, true, NOW(), NOW()),
+(3, 'Disney+ Hotstar', 'disney-plus-hotstar', 'Stream Disney classics, Marvel, Star Wars, Pixar, National Geographic, and exclusive Indonesian content including live sports.', true, false, NOW(), NOW()),
+(4, 'YouTube Premium', 'youtube-premium', 'Watch videos ad-free, download for offline viewing, play in background, and get YouTube Music Premium included.', true, false, NOW(), NOW()),
 -- Gaming
-(5, 'Steam Wallet', 'steam-wallet', 'Add funds to your Steam account to purchase games, DLC, and in-game items from the Steam store.', true, NOW(), NOW()),
-(6, 'Mobile Legends Diamonds', 'mobile-legends-diamonds', 'Purchase diamonds for Mobile Legends: Bang Bang to unlock heroes, skins, and battle passes.', true, NOW(), NOW()),
-(7, 'PUBG Mobile UC', 'pubg-mobile-uc', 'Unknown Cash (UC) for PUBG Mobile to purchase Royale Pass, outfits, weapon skins, and vehicle skins.', true, NOW(), NOW()),
-(8, 'Valorant Points', 'valorant-points', 'VP for Valorant to unlock agents, weapon skins, battle passes, and exclusive bundles.', true, NOW(), NOW()),
+(5, 'Steam Wallet', 'steam-wallet', 'Add funds to your Steam account to purchase games, DLC, and in-game items from the Steam store.', true, false, NOW(), NOW()),
+(6, 'Mobile Legends Diamonds', 'mobile-legends-diamonds', 'Purchase diamonds for Mobile Legends: Bang Bang to unlock heroes, skins, and battle passes.', true, true, NOW(), NOW()),
+(7, 'PUBG Mobile UC', 'pubg-mobile-uc', 'Unknown Cash (UC) for PUBG Mobile to purchase Royale Pass, outfits, weapon skins, and vehicle skins.', true, false, NOW(), NOW()),
+(8, 'Valorant Points', 'valorant-points', 'VP for Valorant to unlock agents, weapon skins, battle passes, and exclusive bundles.', true, false, NOW(), NOW()),
 -- Software
-(9, 'Microsoft 365', 'microsoft-365', 'Full access to Word, Excel, PowerPoint, Outlook, and 1TB OneDrive storage. Includes premium features and regular updates.', true, NOW(), NOW()),
-(10, 'Canva Pro', 'canva-pro', 'Professional design tools with premium templates, brand kit, background remover, resize magic, and unlimited storage.', true, NOW(), NOW()),
+(9, 'Microsoft 365', 'microsoft-365', 'Full access to Word, Excel, PowerPoint, Outlook, and 1TB OneDrive storage. Includes premium features and regular updates.', true, false, NOW(), NOW()),
+(10, 'Canva Pro', 'canva-pro', 'Professional design tools with premium templates, brand kit, background remover, resize magic, and unlimited storage.', true, false, NOW(), NOW()),
 -- VPN
-(11, 'NordVPN', 'nordvpn', 'Secure your internet connection with military-grade encryption. Access 5000+ servers in 60 countries with no-logs policy.', true, NOW(), NOW()),
+(11, 'NordVPN', 'nordvpn', 'Secure your internet connection with military-grade encryption. Access 5000+ servers in 60 countries with no-logs policy.', true, false, NOW(), NOW()),
 -- Cloud
-(12, 'Google One', 'google-one', 'Expand your Google storage for Drive, Gmail, and Photos. Get VPN access and exclusive member benefits.', true, NOW(), NOW());
+(12, 'Google One', 'google-one', 'Expand your Google storage for Drive, Gmail, and Photos. Get VPN access and exclusive member benefits.', true, false, NOW(), NOW());
 
 SELECT setval('products_id_seq', 100);
 

@@ -26,6 +26,7 @@ public class ProductResponse {
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
     private Boolean isActive;
+    private Boolean isFeatured;
     private Instant createdAt;
     private Instant updatedAt;
     private List<CategoryResponse> categories;
@@ -55,6 +56,7 @@ public class ProductResponse {
                 .minPrice(minPrice)
                 .maxPrice(maxPrice)
                 .isActive(product.getIsActive())
+                .isFeatured(product.getIsFeatured())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .categories(product.getCategories().stream()

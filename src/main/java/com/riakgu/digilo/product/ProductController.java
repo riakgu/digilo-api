@@ -42,6 +42,14 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all active products successful", products));
     }
 
+    @GetMapping("/public/products/featured")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getFeatured(
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        List<ProductResponse> featured = productService.getFeatured(limit);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Featured products", featured));
+    }
+
     @GetMapping("/public/products/search")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> search(
             @RequestParam String q,
