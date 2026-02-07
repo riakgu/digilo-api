@@ -82,6 +82,12 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
             countQuery = "SELECT COUNT(DISTINCT p.id) FROM products p JOIN product_categories pc ON pc.product_id = p.id JOIN categories c ON c.id = pc.category_id AND c.slug = :slug WHERE p.is_active = true",
             nativeQuery = true)
     Page<Product> findByCategoryOrderByTrending(@Param("slug") String categorySlug, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.isActive = true ORDER BY p.createdAt ASC")
+    Page<Product> findAllActiveOrderByOldest(Pageable pageable);
+
+    @Query("SELECT p FROM Product p JOIN p.categories pc WHERE pc.category.slug = :slug AND p.isActive = true ORDER BY p.createdAt ASC")
+    Page<Product> findByCategoryOrderByOldest(@Param("slug") String categorySlug, Pageable pageable);
 }
 
 

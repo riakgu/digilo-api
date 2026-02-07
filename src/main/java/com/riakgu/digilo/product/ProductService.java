@@ -191,33 +191,42 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getAllActive(String categorySlug, ProductSortOption sortBy, Pageable pageable) {
+    public Page<ProductResponse> getAllActive(String categorySlug, ProductSortOption sortKey, Boolean reverse, Pageable pageable) {
         Page<Product> products;
 
         boolean hasCategory = categorySlug != null && !categorySlug.isBlank();
+        boolean isReverse = Boolean.TRUE.equals(reverse);
 
         if (hasCategory) {
             categoryRepository.findBySlugAndIsActive(categorySlug, true)
                     .orElseThrow(() -> new NotFoundException("Category not found: " + categorySlug));
             
-            if (sortBy == null) {
+            if (sortKey == null || sortKey == ProductSortOption.RELEVANCE) {
                 products = productRepository.findAllByCategoriesCategorySlugAndIsActive(categorySlug, true, pageable);
             } else {
-                products = switch (sortBy) {
-                    case LATEST -> productRepository.findByCategoryOrderByLatest(categorySlug, pageable);
-                    case TRENDING -> productRepository.findByCategoryOrderByTrending(categorySlug, pageable);
-                    case PRICE_ASC -> productRepository.findByCategoryOrderByPriceAsc(categorySlug, pageable);
-                    case PRICE_DESC -> productRepository.findByCategoryOrderByPriceDesc(categorySlug, pageable);
+                products = switch (sortKey) {
+                    case BEST_SELLING -> productRepository.findByCategoryOrderByTrending(categorySlug, pageable);
+                    case CREATED_AT -> isReverse 
+                            ? productRepository.findByCategoryOrderByLatest(categorySlug, pageable)
+                            : productRepository.findByCategoryOrderByOldest(categorySlug, pageable);
+                    case PRICE -> isReverse 
+                            ? productRepository.findByCategoryOrderByPriceDesc(categorySlug, pageable)
+                            : productRepository.findByCategoryOrderByPriceAsc(categorySlug, pageable);
+                    default -> productRepository.findAllByCategoriesCategorySlugAndIsActive(categorySlug, true, pageable);
                 };
             }
-        } else if (sortBy == null) {
+        } else if (sortKey == null || sortKey == ProductSortOption.RELEVANCE) {
             products = productRepository.findAllByIsActive(true, pageable);
         } else {
-            products = switch (sortBy) {
-                case LATEST -> productRepository.findAllActiveOrderByLatest(pageable);
-                case TRENDING -> productRepository.findAllActiveOrderByTrending(pageable);
-                case PRICE_ASC -> productRepository.findAllActiveOrderByPriceAsc(pageable);
-                case PRICE_DESC -> productRepository.findAllActiveOrderByPriceDesc(pageable);
+            products = switch (sortKey) {
+                case BEST_SELLING -> productRepository.findAllActiveOrderByTrending(pageable);
+                case CREATED_AT -> isReverse 
+                        ? productRepository.findAllActiveOrderByLatest(pageable)
+                        : productRepository.findAllActiveOrderByOldest(pageable);
+                case PRICE -> isReverse 
+                        ? productRepository.findAllActiveOrderByPriceDesc(pageable)
+                        : productRepository.findAllActiveOrderByPriceAsc(pageable);
+                default -> productRepository.findAllByIsActive(true, pageable);
             };
         }
 

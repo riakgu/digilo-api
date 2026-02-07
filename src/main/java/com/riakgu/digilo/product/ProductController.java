@@ -34,10 +34,11 @@ public class ProductController {
     @GetMapping("/public/products")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getAllActive(
             @RequestParam(required = false) String categorySlug,
-            @RequestParam(required = false) ProductSortOption sortBy,
+            @RequestParam(required = false) ProductSortOption sortKey,
+            @RequestParam(required = false, defaultValue = "false") Boolean reverse,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<ProductResponse> products = productService.getAllActive(categorySlug, sortBy, pageable);
+        Page<ProductResponse> products = productService.getAllActive(categorySlug, sortKey, reverse, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Get all active products successful", products));
     }
 
