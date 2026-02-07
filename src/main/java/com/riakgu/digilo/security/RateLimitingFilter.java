@@ -51,7 +51,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         String rateLimitKey = buildRateLimitKey(request, path);
 
         // Get current request count using sliding window
-        RateLimitResult result = checkRateLimit(rateLimitKey, limit);
+        RateLimitResult result;
+        try {
+            result = checkRateLimit(rateLimitKey, limit);
+        } catch (Exception e) {
+            // Fail-open: allow request if Redis is unavailable
+            log.warn("Rate limiting unavailable (Redis connection issue): {}. Allowing request.", e.getMessage());
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Always add rate limit headers
         addRateLimitHeaders(response, limit, result.remaining(), result.resetSeconds());
