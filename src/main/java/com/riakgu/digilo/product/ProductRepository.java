@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
@@ -88,6 +89,35 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Query("SELECT p FROM Product p JOIN p.categories pc WHERE pc.category.slug = :slug AND p.isActive = true ORDER BY p.createdAt ASC")
     Page<Product> findByCategoryOrderByOldest(@Param("slug") String categorySlug, Pageable pageable);
+
+    @Query(value = """
+            SELECT * FROM (
+                SELECT DISTINCT p.* FROM products p
+                JOIN product_categories pc ON pc.product_id = p.id
+                WHERE pc.category_id IN (
+                    SELECT pc2.category_id FROM product_categories pc2
+                    JOIN products p2 ON p2.id = pc2.product_id
+                    WHERE p2.slug = :slug
+                )
+                AND p.slug != :slug
+                AND p.is_active = true
+            ) subq
+            ORDER BY RANDOM()
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Product> findRecommendationsByCategory(@Param("slug") String slug, @Param("limit") int limit);
+
+    @Query(value = """
+            SELECT p.* FROM products p
+            LEFT JOIN product_variants v ON v.product_id = p.id
+            LEFT JOIN order_items oi ON oi.variant_id = v.id
+            LEFT JOIN orders o ON o.id = oi.order_id AND o.status IN ('PAID', 'COMPLETED')
+            WHERE p.is_active = true AND p.slug != :excludeSlug
+            GROUP BY p.id
+            ORDER BY COALESCE(SUM(oi.quantity), 0) DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Product> findTrendingExcluding(@Param("excludeSlug") String excludeSlug, @Param("limit") int limit);
 }
 
 

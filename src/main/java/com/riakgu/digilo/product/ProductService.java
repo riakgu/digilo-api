@@ -15,8 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -298,6 +297,50 @@ public class ProductService {
 
         return categoryRepository.findAllByProductsProductSlugAndIsActive(slug, true, pageable)
                 .map(CategoryResponse::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getRecommendations(String slug, int limit) {
+        productRepository.findBySlugAndIsActive(slug, true)
+                .orElseThrow(() -> new NotFoundException("Product with slug " + slug + " not found"));
+
+        List<Product> recommendations = new ArrayList<>();
+        Set<Long> seenIds = new HashSet<>();
+
+        // Priority 1: Same category products (randomized)
+        List<Product> sameCategory = productRepository.findRecommendationsByCategory(slug, limit);
+        for (Product p : sameCategory) {
+            if (recommendations.size() >= limit) break;
+            if (seenIds.add(p.getId())) {
+                recommendations.add(p);
+            }
+        }
+
+        // Priority 2: Fill remaining with trending products
+        if (recommendations.size() < limit) {
+            int remaining = limit - recommendations.size();
+            List<Product> trending = productRepository.findTrendingExcluding(slug, remaining + 5);
+            for (Product p : trending) {
+                if (recommendations.size() >= limit) break;
+                if (seenIds.add(p.getId())) {
+                    recommendations.add(p);
+                }
+            }
+        }
+
+        // Map to response with stock info
+        Map<Long, Long> stockMap = getStockMapForProducts(recommendations);
+        return recommendations.stream()
+                .map(product -> {
+                    String imageUrl = productImageHelper.getDisplayImageUrl(product);
+                    List<ProductVariantResponse> variants = product.getVariants().stream()
+                            .filter(ProductVariant::getIsActive)
+                            .map(variant -> ProductVariantResponse.fromEntity(
+                                    variant, stockMap.getOrDefault(variant.getId(), 0L), imageUrl))
+                            .collect(Collectors.toList());
+                    return ProductResponse.fromEntity(product, variants, imageUrl);
+                })
+                .collect(Collectors.toList());
     }
 
 }

@@ -60,6 +60,15 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Categories found", categories));
     }
 
+    @GetMapping("/public/products/{slug}/recommendations")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getRecommendations(
+            @PathVariable String slug,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        List<ProductResponse> recommendations = productService.getRecommendations(slug, limit);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Product recommendations", recommendations));
+    }
+
     @PostMapping("/admin/products")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<ProductResponse>> create(
