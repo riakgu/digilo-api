@@ -100,12 +100,20 @@ public class AuthService {
 
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse refresh(RefreshRequest request) {
+        JwtService.RefreshResult result = jwtService.refreshTokens(request.getRefreshToken());
+
+        User user = userRepository.findById(result.userId())
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
+
+        log.info("Token refreshed: userId={}", result.userId());
 
         return AuthResponse.builder()
-                .accessToken(jwtService.refreshAccessToken(request.getRefreshToken()))
+                .user(UserResponse.fromEntity(user))
+                .accessToken(result.accessToken())
+                .refreshToken(result.refreshToken())
                 .build();
-
     }
 
     public void logout(String authHeader) {

@@ -41,8 +41,7 @@ public class JwtService {
         redisTemplate.opsForValue().set(
                 "refresh:" + userId,
                 token,
-                Duration.ofSeconds(properties.refreshExpiration())
-        );
+                Duration.ofSeconds(properties.refreshExpiration()));
 
         return token;
     }
@@ -76,13 +75,19 @@ public class JwtService {
         return decoded;
     }
 
-    public String refreshAccessToken(String refreshToken) {
+    public record RefreshResult(Long userId, String accessToken, String refreshToken) {
+    }
+
+    public RefreshResult refreshTokens(String refreshToken) {
         DecodedJWT decoded = verifyRefreshToken(refreshToken);
 
         Long userId = Long.valueOf(decoded.getSubject());
-        String role =  decoded.getClaim("role").asString();
+        String role = decoded.getClaim("role").asString();
 
-        return generateAccessToken(userId, role);
+        String newAccessToken = generateAccessToken(userId, role);
+        String newRefreshToken = generateRefreshToken(userId, role);
+
+        return new RefreshResult(userId, newAccessToken, newRefreshToken);
     }
 
     public void blacklistAccessToken(String token) {

@@ -19,10 +19,4 @@ public class AuthResponse {
     private String accessToken;
     private String refreshToken;
 
-    public static AuthResponse refresh(String accessToken) {
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .build();
-    }
-
 }

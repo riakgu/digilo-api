@@ -34,270 +34,272 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @AutoConfigureJson
 @ActiveProfiles("test")
-@Import({TestContainersConfig.class, TestMockConfig.class})
+@Import({ TestContainersConfig.class, TestMockConfig.class })
 @Transactional
 class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private UserRepository userRepository;
+        @Autowired
+        private UserRepository userRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Autowired
-    private JwtService jwtService;
+        @Autowired
+        private JwtService jwtService;
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+        @Autowired
+        private StringRedisTemplate redisTemplate;
 
-    @BeforeEach
-    void setUp() {
-        userRepository.deleteAll();
-        redisTemplate.delete(redisTemplate.keys("refresh:*"));
-        redisTemplate.delete(redisTemplate.keys("blacklist:*"));
-    }
+        @BeforeEach
+        void setUp() {
+                userRepository.deleteAll();
+                redisTemplate.delete(redisTemplate.keys("refresh:*"));
+                redisTemplate.delete(redisTemplate.keys("blacklist:*"));
+        }
 
-    // ==================== REGISTER ====================
+        // ==================== REGISTER ====================
 
-    @Test
-    void registerSuccess() throws Exception {
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("newuser@example.com");
-        request.setPassword("password123");
-        request.setName("New User");
+        @Test
+        void registerSuccess() throws Exception {
+                RegisterRequest request = new RegisterRequest();
+                request.setEmail("newuser@example.com");
+                request.setPassword("password123");
+                request.setName("New User");
 
-        mockMvc.perform(
-                post("/api/auth/register")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
-                status().isCreated()
-        ).andDo(result -> {
-            ApiResponse<AuthResponse> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/register")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpectAll(
+                                                status().isCreated())
+                                .andDo(result -> {
+                                        ApiResponse<AuthResponse> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNull(response.getErrors());
-            assertNotNull(response.getData().getAccessToken());
-            assertNotNull(response.getData().getRefreshToken());
-            assertNotNull(response.getData().getUser());
-            assertEquals("newuser@example.com", response.getData().getUser().getEmail());
-            assertEquals("New User", response.getData().getUser().getName());
+                                        assertNull(response.getErrors());
+                                        assertNotNull(response.getData().getAccessToken());
+                                        assertNotNull(response.getData().getRefreshToken());
+                                        assertNotNull(response.getData().getUser());
+                                        assertEquals("newuser@example.com", response.getData().getUser().getEmail());
+                                        assertEquals("New User", response.getData().getUser().getName());
 
-            assertTrue(userRepository.findByEmail("newuser@example.com").isPresent());
-        });
-    }
+                                        assertTrue(userRepository.findByEmail("newuser@example.com").isPresent());
+                                });
+        }
 
-    @Test
-    void registerBadRequestEmptyFields() throws Exception {
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("");
-        request.setPassword("");
-        request.setName("");
+        @Test
+        void registerBadRequestEmptyFields() throws Exception {
+                RegisterRequest request = new RegisterRequest();
+                request.setEmail("");
+                request.setPassword("");
+                request.setName("");
 
-        mockMvc.perform(
-                post("/api/auth/register")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
-                status().isBadRequest()
-        ).andDo(result -> {
-            ApiResponse<String> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/register")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpectAll(
+                                                status().isBadRequest())
+                                .andDo(result -> {
+                                        ApiResponse<String> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNotNull(response.getErrors());
-        });
-    }
+                                        assertNotNull(response.getErrors());
+                                });
+        }
 
-    @Test
-    void registerDuplicateEmail() throws Exception {
-        TestHelper.createTestUser(userRepository, "existing@example.com", "Existing User", Role.USER);
+        @Test
+        void registerDuplicateEmail() throws Exception {
+                TestHelper.createTestUser(userRepository, "existing@example.com", "Existing User", Role.USER);
 
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("existing@example.com");
-        request.setPassword("password123");
-        request.setName("Duplicate User");
+                RegisterRequest request = new RegisterRequest();
+                request.setEmail("existing@example.com");
+                request.setPassword("password123");
+                request.setName("Duplicate User");
 
-        mockMvc.perform(
-                post("/api/auth/register")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
-                status().isConflict()
-        ).andDo(result -> {
-            ApiResponse<String> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/register")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpectAll(
+                                                status().isConflict())
+                                .andDo(result -> {
+                                        ApiResponse<String> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNotNull(response.getMessage());
-        });
-    }
+                                        assertNotNull(response.getMessage());
+                                });
+        }
 
-    // ==================== LOGIN ====================
+        // ==================== LOGIN ====================
 
-    @Test
-    void loginSuccess() throws Exception {
-        User user = TestHelper.createTestUser(userRepository);
+        @Test
+        void loginSuccess() throws Exception {
+                User user = TestHelper.createTestUser(userRepository);
 
-        LoginRequest request = new LoginRequest();
-        request.setEmail(user.getEmail());
-        request.setPassword(TestHelper.DEFAULT_PASSWORD);
+                LoginRequest request = new LoginRequest();
+                request.setEmail(user.getEmail());
+                request.setPassword(TestHelper.DEFAULT_PASSWORD);
 
-        mockMvc.perform(
-                post("/api/auth/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
-                status().isOk()
-        ).andDo(result -> {
-            ApiResponse<AuthResponse> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/login")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpectAll(
+                                                status().isOk())
+                                .andDo(result -> {
+                                        ApiResponse<AuthResponse> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNull(response.getErrors());
-            assertNotNull(response.getData().getAccessToken());
-            assertNotNull(response.getData().getRefreshToken());
-            assertNotNull(response.getData().getUser());
-            assertEquals(user.getEmail(), response.getData().getUser().getEmail());
-        });
-    }
+                                        assertNull(response.getErrors());
+                                        assertNotNull(response.getData().getAccessToken());
+                                        assertNotNull(response.getData().getRefreshToken());
+                                        assertNotNull(response.getData().getUser());
+                                        assertEquals(user.getEmail(), response.getData().getUser().getEmail());
+                                });
+        }
 
-    @Test
-    void loginFailedUserNotFound() throws Exception {
-        LoginRequest request = new LoginRequest();
-        request.setEmail("nonexistent@example.com");
-        request.setPassword("password123");
+        @Test
+        void loginFailedUserNotFound() throws Exception {
+                LoginRequest request = new LoginRequest();
+                request.setEmail("nonexistent@example.com");
+                request.setPassword("password123");
 
-        mockMvc.perform(
-                post("/api/auth/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
-                status().isUnauthorized()
-        ).andDo(result -> {
-            ApiResponse<String> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/login")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpectAll(
+                                                status().isUnauthorized())
+                                .andDo(result -> {
+                                        ApiResponse<String> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNotNull(response.getMessage());
-        });
-    }
+                                        assertNotNull(response.getMessage());
+                                });
+        }
 
-    @Test
-    void loginFailedWrongPassword() throws Exception {
-        User user = TestHelper.createTestUser(userRepository);
+        @Test
+        void loginFailedWrongPassword() throws Exception {
+                User user = TestHelper.createTestUser(userRepository);
 
-        LoginRequest request = new LoginRequest();
-        request.setEmail(user.getEmail());
-        request.setPassword("wrongpassword");
+                LoginRequest request = new LoginRequest();
+                request.setEmail(user.getEmail());
+                request.setPassword("wrongpassword");
 
-        mockMvc.perform(
-                post("/api/auth/login")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
-                status().isUnauthorized()
-        ).andDo(result -> {
-            ApiResponse<String> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/login")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpectAll(
+                                                status().isUnauthorized())
+                                .andDo(result -> {
+                                        ApiResponse<String> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNotNull(response.getMessage());
-        });
-    }
+                                        assertNotNull(response.getMessage());
+                                });
+        }
 
-    // ==================== REFRESH ====================
+        // ==================== REFRESH ====================
 
-    @Test
-    void refreshSuccess() throws Exception {
-        User user = TestHelper.createTestUser(userRepository);
+        @Test
+        void refreshSuccess() throws Exception {
+                User user = TestHelper.createTestUser(userRepository);
 
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getRole().name());
+                String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getRole().name());
 
-        RefreshRequest request = new RefreshRequest();
-        request.setRefreshToken(refreshToken);
+                RefreshRequest request = new RefreshRequest();
+                request.setRefreshToken(refreshToken);
 
-        mockMvc.perform(
-                post("/api/auth/refresh")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andExpectAll(
-                status().isOk()
-        ).andDo(result -> {
-            ApiResponse<AuthResponse> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/refresh")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpectAll(
+                                                status().isOk())
+                                .andDo(result -> {
+                                        ApiResponse<AuthResponse> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNull(response.getErrors());
-            assertNotNull(response.getData().getAccessToken());
-        });
-    }
+                                        assertNull(response.getErrors());
+                                        assertNotNull(response.getData().getAccessToken());
+                                        assertNotNull(response.getData().getRefreshToken());
+                                        assertNotNull(response.getData().getUser());
+                                        assertEquals(user.getEmail(), response.getData().getUser().getEmail());
+                                });
+        }
 
-    @Test
-    void refreshFailedInvalidToken() throws Exception {
-        RefreshRequest request = new RefreshRequest();
-        request.setRefreshToken("invalid.token.here");
+        @Test
+        void refreshFailedInvalidToken() throws Exception {
+                RefreshRequest request = new RefreshRequest();
+                request.setRefreshToken("invalid.token.here");
 
-        mockMvc.perform(
-                post("/api/auth/refresh")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-        ).andDo(result -> {
-            int status = result.getResponse().getStatus();
-            assertTrue(status == 401 || status == 500, 
-                    "Expected 401 or 500, got " + status);
-        });
-    }
+                mockMvc.perform(
+                                post("/api/auth/refresh")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(request)))
+                                .andDo(result -> {
+                                        int status = result.getResponse().getStatus();
+                                        assertTrue(status == 401 || status == 500,
+                                                        "Expected 401 or 500, got " + status);
+                                });
+        }
 
-    // ==================== LOGOUT ====================
+        // ==================== LOGOUT ====================
 
-    @Test
-    void logoutSuccess() throws Exception {
-        User user = TestHelper.createTestUser(userRepository);
-        String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
+        @Test
+        void logoutSuccess() throws Exception {
+                User user = TestHelper.createTestUser(userRepository);
+                String authHeader = TestHelper.getAuthHeader(user.getId(), user.getRole());
 
-        mockMvc.perform(
-                post("/api/auth/logout")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("Authorization", authHeader)
-        ).andExpectAll(
-                status().isOk()
-        ).andDo(result -> {
-            ApiResponse<Void> response = objectMapper.readValue(
-                    result.getResponse().getContentAsString(),
-                    new TypeReference<>() {}
-            );
+                mockMvc.perform(
+                                post("/api/auth/logout")
+                                                .accept(MediaType.APPLICATION_JSON)
+                                                .header("Authorization", authHeader))
+                                .andExpectAll(
+                                                status().isOk())
+                                .andDo(result -> {
+                                        ApiResponse<Void> response = objectMapper.readValue(
+                                                        result.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {
+                                                        });
 
-            assertNull(response.getErrors());
-        });
-    }
+                                        assertNull(response.getErrors());
+                                });
+        }
 
-    @Test
-    void logoutUnauthorized() throws Exception {
-        mockMvc.perform(
-                post("/api/auth/logout")
-                        .accept(MediaType.APPLICATION_JSON)
-        ).andExpectAll(
-                status().isUnauthorized()
-        );
-    }
+        @Test
+        void logoutUnauthorized() throws Exception {
+                mockMvc.perform(
+                                post("/api/auth/logout")
+                                                .accept(MediaType.APPLICATION_JSON))
+                                .andExpectAll(
+                                                status().isUnauthorized());
+        }
 }
