@@ -37,8 +37,7 @@ public class GoogleAuthService {
     public void init() {
         verifier = new GoogleIdTokenVerifier.Builder(
                 new NetHttpTransport(),
-                GsonFactory.getDefaultInstance()
-        )
+                GsonFactory.getDefaultInstance())
                 .setAudience(Collections.singletonList(googleProperties.clientId()))
                 .build();
     }
@@ -82,10 +81,11 @@ public class GoogleAuthService {
             throw new UnauthorizedException("Your account has been suspended");
         }
 
+        String sessionId = java.util.UUID.randomUUID().toString();
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
-                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name()))
+                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name(), sessionId))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, null))
                 .build();
     }
 
@@ -108,7 +108,7 @@ public class GoogleAuthService {
                 .name(name != null ? name : email.split("@")[0])
                 .role(Role.USER)
                 .status(UserStatus.ACTIVE)
-                .emailVerified(true)  // Google email is verified
+                .emailVerified(true) // Google email is verified
                 .phoneVerified(false)
                 .build();
 

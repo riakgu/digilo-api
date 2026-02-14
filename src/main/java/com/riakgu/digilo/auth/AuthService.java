@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -63,10 +64,11 @@ public class AuthService {
 
         log.info("User registered: email={}", user.getEmail());
 
+        String sessionId = UUID.randomUUID().toString();
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
-                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name()))
+                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name(), sessionId))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, null))
                 .build();
     }
 
@@ -92,22 +94,23 @@ public class AuthService {
 
         log.info("User logged in: userId={}, email={}", user.getId(), user.getEmail());
 
+        String sessionId = UUID.randomUUID().toString();
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
-                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name()))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name()))
+                .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name(), sessionId))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, null))
                 .build();
 
     }
 
     @Transactional(readOnly = true)
     public AuthResponse refresh(RefreshRequest request) {
-        JwtService.RefreshResult result = jwtService.refreshTokens(request.getRefreshToken());
+        JwtService.RefreshResult result = jwtService.refreshTokens(request.getRefreshToken(), null);
 
         User user = userRepository.findById(result.userId())
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
 
-        log.info("Token refreshed: userId={}", result.userId());
+        log.info("Token refreshed: userId={}, sessionId={}", result.userId(), result.sessionId());
 
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
@@ -128,12 +131,78 @@ public class AuthService {
             DecodedJWT decoded = jwtService.verifyAccessToken(token);
 
             Long userId = Long.valueOf(decoded.getSubject());
+            String sessionId = decoded.getClaim("sid").asString();
+
+            jwtService.blacklistAccessToken(token);
+
+            if (sessionId != null) {
+                jwtService.revokeSession(userId, sessionId);
+            } else {
+                // Fallback for old tokens without sessionId
+                jwtService.revokeUserTokens(userId);
+            }
+
+            log.info("User logged out: userId={}, sessionId={}", userId, sessionId);
+        }
+    }
+
+    public void logoutAll(String authHeader) {
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+
+            if (jwtService.isBlacklisted(token)) {
+                throw new UnauthorizedException("Invalid token");
+            }
+
+            DecodedJWT decoded = jwtService.verifyAccessToken(token);
+            Long userId = Long.valueOf(decoded.getSubject());
 
             jwtService.blacklistAccessToken(token);
             jwtService.revokeUserTokens(userId);
 
-            log.info("User logged out: userId={}", userId);
+            log.info("All sessions revoked: userId={}", userId);
         }
+    }
+
+    public List<SessionResponse> getSessions(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        String token = authHeader.substring(7);
+
+        if (jwtService.isBlacklisted(token)) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        DecodedJWT decoded = jwtService.verifyAccessToken(token);
+        Long userId = Long.valueOf(decoded.getSubject());
+        String currentSessionId = decoded.getClaim("sid").asString();
+
+        return jwtService.getActiveSessions(userId, currentSessionId);
+    }
+
+    public void revokeSession(String authHeader, String sessionId) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        String token = authHeader.substring(7);
+
+        if (jwtService.isBlacklisted(token)) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        DecodedJWT decoded = jwtService.verifyAccessToken(token);
+        Long userId = Long.valueOf(decoded.getSubject());
+        String currentSessionId = decoded.getClaim("sid").asString();
+
+        if (sessionId.equals(currentSessionId)) {
+            throw new BadRequestException("Cannot revoke current session. Use /logout instead.");
+        }
+
+        jwtService.revokeSession(userId, sessionId);
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
@@ -175,6 +244,7 @@ public class AuthService {
 
         redisTemplate.delete(tokenKey);
 
+        // Revoke ALL sessions on password reset
         jwtService.revokeUserTokens(userId);
 
         log.info("Password reset successful for userId={}", userId);

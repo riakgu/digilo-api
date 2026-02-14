@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -46,6 +48,27 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("OK", "Logged out successfully"));
     }
 
+    @PostMapping("/logout-all")
+    public ResponseEntity<ApiResponse<Void>> logoutAll(@RequestHeader("Authorization") String authHeader) {
+        authService.logoutAll(authHeader);
+        return ResponseEntity.ok(ApiResponse.success("OK", "All sessions revoked"));
+    }
+
+    @GetMapping("/sessions")
+    public ResponseEntity<ApiResponse<List<SessionResponse>>> getSessions(
+            @RequestHeader("Authorization") String authHeader) {
+        List<SessionResponse> sessions = authService.getSessions(authHeader);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Active sessions retrieved", sessions));
+    }
+
+    @DeleteMapping("/sessions/{sessionId}")
+    public ResponseEntity<ApiResponse<Void>> revokeSession(
+            @RequestHeader("Authorization") String authHeader,
+            @PathVariable String sessionId) {
+        authService.revokeSession(authHeader, sessionId);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Session revoked"));
+    }
+
     @PostMapping("/password/forgot")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         authService.forgotPassword(request);
@@ -53,7 +76,8 @@ public class AuthController {
     }
 
     @PostMapping("/password/verify")
-    public ResponseEntity<ApiResponse<ResetTokenResponse>> verifyResetOtp(@Valid @RequestBody VerifyResetOtpRequest request) {
+    public ResponseEntity<ApiResponse<ResetTokenResponse>> verifyResetOtp(
+            @Valid @RequestBody VerifyResetOtpRequest request) {
         ResetTokenResponse response = authService.verifyResetOtp(request);
         return ResponseEntity.ok(ApiResponse.success("OK", "OTP verified", response));
     }

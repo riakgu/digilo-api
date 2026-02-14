@@ -60,11 +60,19 @@ public class TestHelper {
      * Generates a valid JWT access token for testing.
      */
     public static String generateAccessToken(Long userId, Role role) {
+        return generateAccessToken(userId, role, java.util.UUID.randomUUID().toString());
+    }
+
+    /**
+     * Generates a valid JWT access token with explicit sessionId.
+     */
+    public static String generateAccessToken(Long userId, Role role, String sessionId) {
         return JWT.create()
                 .withIssuer(ISSUER)
                 .withSubject(userId.toString())
                 .withClaim("role", role.name())
                 .withClaim("type", "access")
+                .withClaim("sid", sessionId)
                 .withExpiresAt(Instant.now().plusSeconds(ACCESS_EXPIRATION))
                 .sign(Algorithm.HMAC256(ACCESS_SECRET));
     }
