@@ -30,5 +30,6 @@ public class CartItem extends BaseEntity {
     private ProductVariant variant;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer quantity = 1;
 }

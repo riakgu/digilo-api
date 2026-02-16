@@ -27,6 +27,7 @@ public class ProductInventory extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private InventoryStatus status = InventoryStatus.AVAILABLE;
 
     @Column(name = "order_item_id")

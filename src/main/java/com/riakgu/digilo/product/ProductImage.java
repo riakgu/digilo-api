@@ -23,8 +23,10 @@ public class ProductImage extends BaseEntity {
     private String imageUrl;
 
     @Column(name = "is_primary", nullable = false)
+    @Builder.Default
     private Boolean isPrimary = false;
 
     @Column(name = "display_order")
+    @Builder.Default
     private Integer displayOrder = 0;
 }

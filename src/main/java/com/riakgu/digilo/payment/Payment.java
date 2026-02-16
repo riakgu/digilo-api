@@ -29,6 +29,7 @@ public class Payment extends BaseEntity {
     private Order order;
 
     @Column(nullable = false, length = 30)
+    @Builder.Default
     private String provider = "MIDTRANS";
 
     @Column(name = "payment_type", nullable = false, length = 30)
@@ -44,10 +45,12 @@ public class Payment extends BaseEntity {
     private BigDecimal amount;
 
     @Column(nullable = false, length = 3)
+    @Builder.Default
     private String currency = "IDR";
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Column(name = "paid_at")

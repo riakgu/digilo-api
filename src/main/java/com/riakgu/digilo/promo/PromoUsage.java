@@ -42,5 +42,6 @@ public class PromoUsage {
     private Order order;
 
     @Column(name = "used_at")
+    @Builder.Default
     private Instant usedAt = Instant.now();
 }

@@ -40,5 +40,6 @@ public class OrderItem extends BaseEntity {
     private BigDecimal price;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer quantity = 1;
 }

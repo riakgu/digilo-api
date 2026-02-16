@@ -33,19 +33,23 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private Role role = Role.USER;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private UserStatus status = UserStatus.ACTIVE;
 
     @Column(name = "email_verified")
+    @Builder.Default
     private Boolean emailVerified = false;
 
     @Column(name = "email_verified_at")
     private Instant emailVerifiedAt;
 
     @Column(name = "phone_verified")
+    @Builder.Default
     private Boolean phoneVerified = false;
 
     @Column(name = "phone_verified_at")

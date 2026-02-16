@@ -45,9 +45,11 @@ public class Promo extends BaseEntity {
     private Integer maxTotalUsage;
 
     @Column(name = "max_usage_per_user")
+    @Builder.Default
     private Integer maxUsagePerUser = 1;
 
     @Column(name = "used_count")
+    @Builder.Default
     private Integer usedCount = 0;
 
     @Column(name = "starts_at")
@@ -57,5 +59,6 @@ public class Promo extends BaseEntity {
     private Instant expiresAt;
 
     @Column(name = "is_active")
+    @Builder.Default
     private Boolean isActive = true;
 }

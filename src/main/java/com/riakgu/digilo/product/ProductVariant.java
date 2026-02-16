@@ -37,6 +37,7 @@ public class ProductVariant extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_type", nullable = false)
+    @Builder.Default
     private DeliveryType deliveryType = DeliveryType.AUTO;
 
     @Column(name = "duration_days")
@@ -46,6 +47,7 @@ public class ProductVariant extends BaseEntity {
     private Integer warrantyDays;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @JdbcTypeCode(SqlTypes.JSON)
