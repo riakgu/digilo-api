@@ -58,7 +58,7 @@ public class PromoService {
         promoRepository.save(promo);
         log.info("Promo created: {}", code);
 
-        return PromoResponse.fromEntity(promo);
+        return PromoResponse.fromEntity(promo, promoUsageRepository.countByPromoId(promo.getId()));
     }
 
     @Transactional
@@ -88,20 +88,20 @@ public class PromoService {
 
         log.info("Promo updated: id={}, code={}", id, newCode);
 
-        return PromoResponse.fromEntity(promo);
+        return PromoResponse.fromEntity(promo, promoUsageRepository.countByPromoId(promo.getId()));
     }
 
     @Transactional(readOnly = true)
     public PromoResponse getById(Long id) {
         Promo promo = promoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Promo not found"));
-        return PromoResponse.fromEntity(promo);
+        return PromoResponse.fromEntity(promo, promoUsageRepository.countByPromoId(promo.getId()));
     }
 
     @Transactional(readOnly = true)
     public Page<PromoResponse> getAll(String code, Boolean isActive, DiscountType discountType, Pageable pageable) {
         return promoRepository.findAllWithFilters(code, isActive, discountType, pageable)
-                .map(PromoResponse::fromEntity);
+                .map(p -> PromoResponse.fromEntity(p, promoUsageRepository.countByPromoId(p.getId())));
     }
 
     @Transactional
@@ -109,7 +109,7 @@ public class PromoService {
         Promo promo = promoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Promo not found"));
 
-        if (promo.getUsedCount() != null && promo.getUsedCount() > 0) {
+        if (promoUsageRepository.countByPromoId(promo.getId()) > 0) {
             throw new BadRequestException("Cannot delete promo that has been used");
         }
 
@@ -170,9 +170,11 @@ public class PromoService {
         }
 
         // Check total usage limit
-        Integer usedCount = promo.getUsedCount() != null ? promo.getUsedCount() : 0;
-        if (promo.getMaxTotalUsage() != null && usedCount >= promo.getMaxTotalUsage()) {
-            throw new BadRequestException("Promo usage limit reached");
+        if (promo.getMaxTotalUsage() != null) {
+            long usedCount = promoUsageRepository.countByPromoId(promo.getId());
+            if (usedCount >= promo.getMaxTotalUsage()) {
+                throw new BadRequestException("Promo usage limit reached");
+            }
         }
 
         // Check per-user usage limit
@@ -223,9 +225,6 @@ public class PromoService {
                 .build();
 
         promoUsageRepository.save(usage);
-
-        // Atomic increment to avoid race conditions
-        promoRepository.incrementUsedCount(promo.getId());
 
         log.info("Promo {} used by user {} on order {}", promo.getCode(), userId, orderId);
     }

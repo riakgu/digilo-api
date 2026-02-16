@@ -183,7 +183,6 @@ public class TestDataFactory {
                 .minOrderAmount(new BigDecimal("50000.00"))
                 .maxDiscount(new BigDecimal("50000.00"))
                 .maxUsagePerUser(100)
-                .usedCount(0)
                 .startsAt(Instant.now().minusSeconds(86400))
                 .expiresAt(Instant.now().plusSeconds(86400 * 30))
                 .isActive(true);

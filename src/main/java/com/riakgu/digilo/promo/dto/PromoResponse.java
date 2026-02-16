@@ -26,13 +26,13 @@ public class PromoResponse {
     private BigDecimal minOrderAmount;
     private Integer maxTotalUsage;
     private Integer maxUsagePerUser;
-    private Integer usedCount;
+    private Long usedCount;
     private Instant startsAt;
     private Instant expiresAt;
     private Boolean isActive;
     private Instant createdAt;
 
-    public static PromoResponse fromEntity(Promo promo) {
+    public static PromoResponse fromEntity(Promo promo, long usedCount) {
         return PromoResponse.builder()
                 .id(promo.getId())
                 .code(promo.getCode())
@@ -44,7 +44,7 @@ public class PromoResponse {
                 .minOrderAmount(promo.getMinOrderAmount())
                 .maxTotalUsage(promo.getMaxTotalUsage())
                 .maxUsagePerUser(promo.getMaxUsagePerUser())
-                .usedCount(promo.getUsedCount())
+                .usedCount(usedCount)
                 .startsAt(promo.getStartsAt())
                 .expiresAt(promo.getExpiresAt())
                 .isActive(promo.getIsActive())

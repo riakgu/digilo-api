@@ -48,10 +48,6 @@ public class Promo extends BaseEntity {
     @Builder.Default
     private Integer maxUsagePerUser = 1;
 
-    @Column(name = "used_count")
-    @Builder.Default
-    private Integer usedCount = 0;
-
     @Column(name = "starts_at")
     private Instant startsAt;
 
