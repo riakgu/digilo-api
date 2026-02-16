@@ -25,8 +25,6 @@ public class JwtService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
-    // --- Token Generation ---
-
     public String generateAccessToken(Long userId, String role, String sessionId) {
         return JWT.create()
                 .withIssuer(properties.issuer())
@@ -49,28 +47,9 @@ public class JwtService {
                 .withExpiresAt(Instant.now().plusSeconds(properties.refreshExpiration()))
                 .sign(Algorithm.HMAC256(properties.refreshSecret()));
 
-        // Store session data as JSON in Redis
-        String sessionKey = "refresh:" + userId + ":" + sessionId;
-        try {
-            Map<String, Object> sessionData = new LinkedHashMap<>();
-            sessionData.put("token", token);
-            sessionData.put("deviceInfo", deviceInfo != null ? deviceInfo : "Unknown");
-            sessionData.put("createdAt", Instant.now().toString());
-
-            String json = objectMapper.writeValueAsString(sessionData);
-            redisTemplate.opsForValue().set(sessionKey, json,
-                    Duration.ofSeconds(properties.refreshExpiration()));
-        } catch (Exception e) {
-            log.error("Failed to store session data: {}", e.getMessage());
-            // Fallback: store just the token
-            redisTemplate.opsForValue().set(sessionKey, token,
-                    Duration.ofSeconds(properties.refreshExpiration()));
-        }
-
+        storeSession(userId, sessionId, token, deviceInfo);
         return token;
     }
-
-    // --- Token Verification ---
 
     public DecodedJWT verifyAccessToken(String token) {
         return verify(token, properties.accessSecret(), "access");
@@ -86,39 +65,20 @@ public class JwtService {
             throw new UnauthorizedException("Invalid refresh token: missing session");
         }
 
-        String sessionKey = "refresh:" + userId + ":" + sessionId;
-        String stored = redisTemplate.opsForValue().get(sessionKey);
+        SessionData session = getSessionData(sessionKey(userId, sessionId));
 
-        if (stored == null) {
+        if (session == null) {
             throw new UnauthorizedException("Session expired or revoked");
         }
 
-        // Extract token from JSON or plain string
-        String storedToken = extractTokenFromStored(stored);
-
-        if (!token.equals(storedToken)) {
-            // Reuse detection: this token was already rotated
+        if (!token.equals(session.token())) {
             log.warn("Refresh token reuse detected: userId={}, sessionId={}", userId, sessionId);
-            redisTemplate.delete(sessionKey);
+            redisTemplate.delete(sessionKey(userId, sessionId));
             throw new UnauthorizedException("Refresh token reuse detected. Session revoked.");
         }
 
         return decoded;
     }
-
-    private DecodedJWT verify(String token, String secret, String expectedType) {
-        DecodedJWT decoded = JWT.require(Algorithm.HMAC256(secret))
-                .build()
-                .verify(token);
-
-        if (!expectedType.equals(decoded.getClaim("type").asString())) {
-            throw new UnauthorizedException("Invalid token type");
-        }
-
-        return decoded;
-    }
-
-    // --- Refresh Token Rotation ---
 
     public record RefreshResult(Long userId, String sessionId, String accessToken, String refreshToken) {
     }
@@ -136,17 +96,12 @@ public class JwtService {
         return new RefreshResult(userId, sessionId, newAccessToken, newRefreshToken);
     }
 
-    // --- Token Blacklisting ---
-
     public void blacklistAccessToken(String token) {
         DecodedJWT decoded = JWT.decode(token);
-
-        long ttl = decoded.getExpiresAt().toInstant().getEpochSecond()
-                - Instant.now().getEpochSecond();
+        long ttl = decoded.getExpiresAt().toInstant().getEpochSecond() - Instant.now().getEpochSecond();
 
         if (ttl > 0) {
-            redisTemplate.opsForValue()
-                    .set("blacklist:" + token, "true", Duration.ofSeconds(ttl));
+            redisTemplate.opsForValue().set("blacklist:" + token, "true", Duration.ofSeconds(ttl));
         }
     }
 
@@ -154,11 +109,8 @@ public class JwtService {
         return Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:" + token));
     }
 
-    // --- Session Management ---
-
     public void revokeSession(Long userId, String sessionId) {
-        String sessionKey = "refresh:" + userId + ":" + sessionId;
-        redisTemplate.delete(sessionKey);
+        redisTemplate.delete(sessionKey(userId.toString(), sessionId));
         log.info("Session revoked: userId={}, sessionId={}", userId, sessionId);
     }
 
@@ -179,56 +131,74 @@ public class JwtService {
         List<SessionResponse> sessions = new ArrayList<>();
         for (String key : keys) {
             String sessionId = key.substring(key.lastIndexOf(":") + 1);
-            String stored = redisTemplate.opsForValue().get(key);
-            if (stored == null)
-                continue;
+            SessionData data = getSessionData(key);
+            if (data == null) continue;
 
-            SessionResponse session = parseSessionResponse(sessionId, stored, currentSessionId);
-            sessions.add(session);
+            sessions.add(SessionResponse.builder()
+                    .sessionId(sessionId)
+                    .deviceInfo(data.deviceInfo())
+                    .createdAt(data.createdAt())
+                    .current(sessionId.equals(currentSessionId))
+                    .build());
         }
 
         return sessions;
     }
 
-    // --- Helpers ---
-
-    private String extractTokenFromStored(String stored) {
-        if (stored.startsWith("{")) {
-            try {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> data = objectMapper.readValue(stored, Map.class);
-                return (String) data.get("token");
-            } catch (Exception e) {
-                log.warn("Failed to parse session JSON, treating as raw token");
-                return stored;
-            }
-        }
-        return stored;
+    private record SessionData(String token, String deviceInfo, Instant createdAt) {
     }
 
-    private SessionResponse parseSessionResponse(String sessionId, String stored, String currentSessionId) {
-        String deviceInfo = "Unknown";
-        Instant createdAt = null;
+    private String sessionKey(Object userId, String sessionId) {
+        return "refresh:" + userId + ":" + sessionId;
+    }
+
+    private void storeSession(Long userId, String sessionId, String token, String deviceInfo) {
+        String key = sessionKey(userId, sessionId);
+        try {
+            Map<String, Object> sessionData = new LinkedHashMap<>();
+            sessionData.put("token", token);
+            sessionData.put("deviceInfo", deviceInfo != null ? deviceInfo : "Unknown");
+            sessionData.put("createdAt", Instant.now().toString());
+
+            String json = objectMapper.writeValueAsString(sessionData);
+            redisTemplate.opsForValue().set(key, json, Duration.ofSeconds(properties.refreshExpiration()));
+        } catch (Exception e) {
+            log.error("Failed to store session data: {}", e.getMessage());
+            redisTemplate.opsForValue().set(key, token, Duration.ofSeconds(properties.refreshExpiration()));
+        }
+    }
+
+    private SessionData getSessionData(String key) {
+        String stored = redisTemplate.opsForValue().get(key);
+        if (stored == null) return null;
 
         if (stored.startsWith("{")) {
             try {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> data = objectMapper.readValue(stored, Map.class);
-                deviceInfo = (String) data.getOrDefault("deviceInfo", "Unknown");
+                String token = (String) data.get("token");
+                String deviceInfo = (String) data.getOrDefault("deviceInfo", "Unknown");
                 String createdAtStr = (String) data.get("createdAt");
-                if (createdAtStr != null) {
-                    createdAt = Instant.parse(createdAtStr);
-                }
+                Instant createdAt = createdAtStr != null ? Instant.parse(createdAtStr) : null;
+                return new SessionData(token, deviceInfo, createdAt);
             } catch (Exception e) {
-                log.warn("Failed to parse session metadata for sessionId={}", sessionId);
+                log.warn("Failed to parse session JSON, treating as raw token");
+                return new SessionData(stored, "Unknown", null);
             }
         }
 
-        return SessionResponse.builder()
-                .sessionId(sessionId)
-                .deviceInfo(deviceInfo)
-                .createdAt(createdAt)
-                .current(sessionId.equals(currentSessionId))
-                .build();
+        return new SessionData(stored, "Unknown", null);
+    }
+
+    private DecodedJWT verify(String token, String secret, String expectedType) {
+        DecodedJWT decoded = JWT.require(Algorithm.HMAC256(secret))
+                .build()
+                .verify(token);
+
+        if (!expectedType.equals(decoded.getClaim("type").asString())) {
+            throw new UnauthorizedException("Invalid token type");
+        }
+
+        return decoded;
     }
 }
