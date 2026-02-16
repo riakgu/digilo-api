@@ -1,6 +1,7 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.variant;
 
 import com.riakgu.digilo.common.base.BaseEntity;
+import com.riakgu.digilo.product.Product;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;

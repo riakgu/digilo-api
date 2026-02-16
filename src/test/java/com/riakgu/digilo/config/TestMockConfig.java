@@ -1,12 +1,10 @@
 package com.riakgu.digilo.config;
 
-import com.riakgu.digilo.auth.GoogleAuthService;
 import com.riakgu.digilo.common.service.EmailService;
 import com.riakgu.digilo.common.service.StorageService;
 import com.riakgu.digilo.common.service.WhatsAppService;
 import com.riakgu.digilo.payment.MidtransService;
-import com.riakgu.digilo.payment.PaymentStatus;
-import com.riakgu.digilo.product.EncryptionService;
+import com.riakgu.digilo.common.service.EncryptionService;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

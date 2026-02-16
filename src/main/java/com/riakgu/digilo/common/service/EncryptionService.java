@@ -1,10 +1,9 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.common.service;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.core.type.TypeReference;
 import com.riakgu.digilo.config.EncryptionProperties;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;

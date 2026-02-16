@@ -1,8 +1,14 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.inventory;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
-import com.riakgu.digilo.product.dto.*;
+import com.riakgu.digilo.common.service.EncryptionService;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryBulkRequest;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryRequest;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryResponse;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryUpdateRequest;
+import com.riakgu.digilo.product.variant.ProductVariant;
+import com.riakgu.digilo.product.variant.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,7 +20,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.data.domain.PageRequest;
 
 @Slf4j
 @Service

@@ -1,8 +1,7 @@
-package com.riakgu.digilo.product.dto;
+package com.riakgu.digilo.product.variant.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.riakgu.digilo.product.DeliveryType;
-import com.riakgu.digilo.product.ProductVariant;
+import com.riakgu.digilo.product.variant.DeliveryType;
+import com.riakgu.digilo.product.variant.ProductVariant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

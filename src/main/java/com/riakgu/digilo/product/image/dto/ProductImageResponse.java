@@ -1,6 +1,6 @@
-package com.riakgu.digilo.product.dto;
+package com.riakgu.digilo.product.image.dto;
 
-import com.riakgu.digilo.product.ProductImage;
+import com.riakgu.digilo.product.image.ProductImage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.riakgu.digilo.product.dto;
+package com.riakgu.digilo.product.image.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

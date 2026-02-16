@@ -1,10 +1,10 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.inventory;
 
 import com.riakgu.digilo.common.dto.ApiResponse;
-import com.riakgu.digilo.product.dto.ProductInventoryBulkRequest;
-import com.riakgu.digilo.product.dto.ProductInventoryRequest;
-import com.riakgu.digilo.product.dto.ProductInventoryResponse;
-import com.riakgu.digilo.product.dto.ProductInventoryUpdateRequest;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryBulkRequest;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryRequest;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryResponse;
+import com.riakgu.digilo.product.inventory.dto.ProductInventoryUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")

@@ -1,4 +1,4 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.variant;
 
 public enum DeliveryType {
     AUTO,

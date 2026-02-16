@@ -1,8 +1,8 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.variant;
 
 import com.riakgu.digilo.common.dto.ApiResponse;
-import com.riakgu.digilo.product.dto.ProductVariantRequest;
-import com.riakgu.digilo.product.dto.ProductVariantResponse;
+import com.riakgu.digilo.product.variant.dto.ProductVariantRequest;
+import com.riakgu.digilo.product.variant.dto.ProductVariantResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

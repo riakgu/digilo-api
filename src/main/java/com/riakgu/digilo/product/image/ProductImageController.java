@@ -1,9 +1,9 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.image;
 
 import com.riakgu.digilo.common.dto.ApiResponse;
-import com.riakgu.digilo.product.dto.ProductImageRequest;
-import com.riakgu.digilo.product.dto.ProductImageResponse;
-import com.riakgu.digilo.product.dto.ReorderImagesRequest;
+import com.riakgu.digilo.product.image.dto.ProductImageRequest;
+import com.riakgu.digilo.product.image.dto.ProductImageResponse;
+import com.riakgu.digilo.product.image.dto.ReorderImagesRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

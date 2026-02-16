@@ -1,7 +1,7 @@
-package com.riakgu.digilo.product.dto;
+package com.riakgu.digilo.product.inventory.dto;
 
-import com.riakgu.digilo.product.InventoryStatus;
-import com.riakgu.digilo.product.ProductInventory;
+import com.riakgu.digilo.product.inventory.InventoryStatus;
+import com.riakgu.digilo.product.inventory.ProductInventory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

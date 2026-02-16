@@ -2,7 +2,7 @@ package com.riakgu.digilo.cart.dto;
 
 
 import com.riakgu.digilo.cart.CartItem;
-import com.riakgu.digilo.product.dto.ProductVariantResponse;
+import com.riakgu.digilo.product.variant.dto.ProductVariantResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

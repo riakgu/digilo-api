@@ -1,6 +1,8 @@
 package com.riakgu.digilo.product;
 
 import com.riakgu.digilo.common.base.BaseEntity;
+import com.riakgu.digilo.product.image.ProductImage;
+import com.riakgu.digilo.product.variant.ProductVariant;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,6 +1,7 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.image;
 
 import com.riakgu.digilo.config.ImagesProperties;
+import com.riakgu.digilo.product.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

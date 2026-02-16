@@ -1,13 +1,16 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.variant;
 
 import com.riakgu.digilo.common.exception.DuplicateResourceException;
 import com.riakgu.digilo.common.exception.NotFoundException;
-import com.riakgu.digilo.product.dto.ProductVariantRequest;
-import com.riakgu.digilo.product.dto.ProductVariantResponse;
+import com.riakgu.digilo.product.inventory.InventoryStatus;
+import com.riakgu.digilo.product.Product;
+import com.riakgu.digilo.product.ProductRepository;
+import com.riakgu.digilo.product.variant.dto.ProductVariantRequest;
+import com.riakgu.digilo.product.variant.dto.ProductVariantResponse;
+import com.riakgu.digilo.product.image.ProductImageHelper;
+import com.riakgu.digilo.product.inventory.ProductInventoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

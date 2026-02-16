@@ -2,6 +2,8 @@ package com.riakgu.digilo.product.dto;
 
 import com.riakgu.digilo.category.dto.CategoryResponse;
 import com.riakgu.digilo.product.Product;
+import com.riakgu.digilo.product.image.dto.ProductImageResponse;
+import com.riakgu.digilo.product.variant.dto.ProductVariantResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

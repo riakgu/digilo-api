@@ -1,7 +1,7 @@
 package com.riakgu.digilo.cart;
 
 import com.riakgu.digilo.common.base.BaseEntity;
-import com.riakgu.digilo.product.ProductVariant;
+import com.riakgu.digilo.product.variant.ProductVariant;
 import jakarta.persistence.*;
 import lombok.*;
 

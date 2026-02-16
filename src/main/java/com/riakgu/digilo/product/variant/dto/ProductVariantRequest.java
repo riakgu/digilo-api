@@ -1,6 +1,6 @@
-package com.riakgu.digilo.product.dto;
+package com.riakgu.digilo.product.variant.dto;
 
-import com.riakgu.digilo.product.DeliveryType;
+import com.riakgu.digilo.product.variant.DeliveryType;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 

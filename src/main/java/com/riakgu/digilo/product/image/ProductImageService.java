@@ -1,10 +1,12 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.image;
 
 import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.common.service.StorageService;
-import com.riakgu.digilo.product.dto.ProductImageRequest;
-import com.riakgu.digilo.product.dto.ProductImageResponse;
+import com.riakgu.digilo.product.Product;
+import com.riakgu.digilo.product.ProductRepository;
+import com.riakgu.digilo.product.image.dto.ProductImageRequest;
+import com.riakgu.digilo.product.image.dto.ProductImageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

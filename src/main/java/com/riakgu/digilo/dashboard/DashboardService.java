@@ -4,7 +4,7 @@ package com.riakgu.digilo.dashboard;
 import com.riakgu.digilo.dashboard.dto.*;
 import com.riakgu.digilo.order.Order;
 import com.riakgu.digilo.order.OrderRepository;
-import com.riakgu.digilo.product.ProductImageHelper;
+import com.riakgu.digilo.product.image.ProductImageHelper;
 import com.riakgu.digilo.product.ProductRepository;
 import com.riakgu.digilo.user.UserRepository;
 import com.riakgu.digilo.user.UserStatus;

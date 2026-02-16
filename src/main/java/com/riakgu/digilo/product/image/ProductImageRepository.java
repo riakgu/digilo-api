@@ -1,4 +1,4 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.image;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,4 +1,4 @@
-package com.riakgu.digilo.product;
+package com.riakgu.digilo.product.inventory;
 
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
