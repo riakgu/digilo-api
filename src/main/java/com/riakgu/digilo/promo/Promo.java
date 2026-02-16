@@ -57,4 +57,8 @@ public class Promo extends BaseEntity {
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;
+
+    @Column(name = "is_public")
+    @Builder.Default
+    private Boolean isPublic = false;
 }

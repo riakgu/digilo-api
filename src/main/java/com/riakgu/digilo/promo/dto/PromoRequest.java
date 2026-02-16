@@ -40,4 +40,6 @@ public class PromoRequest {
     private Instant expiresAt;
 
     private Boolean isActive = true;
+
+    private Boolean isPublic = false;
 }

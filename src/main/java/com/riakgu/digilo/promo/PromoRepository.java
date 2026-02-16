@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Optional;
 
 public interface PromoRepository extends JpaRepository<Promo, Long> {
@@ -28,4 +29,9 @@ public interface PromoRepository extends JpaRepository<Promo, Long> {
             @Param("discountType") DiscountType discountType,
             Pageable pageable
     );
+
+    @Query("SELECT p FROM Promo p WHERE p.isActive = true AND p.isPublic = true " +
+            "AND (p.startsAt IS NULL OR p.startsAt <= :now) " +
+            "AND (p.expiresAt IS NULL OR p.expiresAt > :now)")
+    Page<Promo> findPublicActivePromos(@Param("now") Instant now, Pageable pageable);
 }

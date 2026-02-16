@@ -22,6 +22,15 @@ public class PromoController {
 
     private final PromoService promoService;
 
+    @GetMapping("/user/promos")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<List<PublicPromoResponse>>> getPublicPromos(
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        Page<PublicPromoResponse> promos = promoService.getPublicPromos(pageable);
+        return ResponseEntity.ok(ApiResponse.success("OK", "Public promos retrieved", promos));
+    }
+
     @PostMapping("/user/promos/validate")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<ApiResponse<PromoValidationResponse>> validatePromo(

@@ -8,6 +8,7 @@ import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.order.Order;
 import com.riakgu.digilo.order.OrderRepository;
 import com.riakgu.digilo.promo.dto.*;
+import com.riakgu.digilo.promo.dto.PublicPromoResponse;
 import com.riakgu.digilo.user.User;
 import com.riakgu.digilo.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,7 @@ public class PromoService {
                 .startsAt(request.getStartsAt())
                 .expiresAt(request.getExpiresAt())
                 .isActive(request.getIsActive())
+                .isPublic(request.getIsPublic())
                 .build();
 
         promoRepository.save(promo);
@@ -86,6 +88,7 @@ public class PromoService {
         promo.setStartsAt(request.getStartsAt());
         promo.setExpiresAt(request.getExpiresAt());
         promo.setIsActive(request.getIsActive());
+        promo.setIsPublic(request.getIsPublic());
 
         promoRepository.save(promo);
 
@@ -99,6 +102,12 @@ public class PromoService {
         Promo promo = promoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Promo not found"));
         return PromoResponse.fromEntity(promo, promoUsageRepository.countByPromoId(promo.getId()));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PublicPromoResponse> getPublicPromos(Pageable pageable) {
+        return promoRepository.findPublicActivePromos(Instant.now(), pageable)
+                .map(PublicPromoResponse::fromEntity);
     }
 
     @Transactional(readOnly = true)

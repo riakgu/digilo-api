@@ -14,9 +14,8 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PromoResponse {
+public class PublicPromoResponse {
 
-    private Long id;
     private String code;
     private String name;
     private String description;
@@ -24,18 +23,10 @@ public class PromoResponse {
     private BigDecimal discountValue;
     private BigDecimal maxDiscount;
     private BigDecimal minOrderAmount;
-    private Integer maxTotalUsage;
-    private Integer maxUsagePerUser;
-    private Long usedCount;
-    private Instant startsAt;
     private Instant expiresAt;
-    private Boolean isActive;
-    private Boolean isPublic;
-    private Instant createdAt;
 
-    public static PromoResponse fromEntity(Promo promo, long usedCount) {
-        return PromoResponse.builder()
-                .id(promo.getId())
+    public static PublicPromoResponse fromEntity(Promo promo) {
+        return PublicPromoResponse.builder()
                 .code(promo.getCode())
                 .name(promo.getName())
                 .description(promo.getDescription())
@@ -43,14 +34,7 @@ public class PromoResponse {
                 .discountValue(promo.getDiscountValue())
                 .maxDiscount(promo.getMaxDiscount())
                 .minOrderAmount(promo.getMinOrderAmount())
-                .maxTotalUsage(promo.getMaxTotalUsage())
-                .maxUsagePerUser(promo.getMaxUsagePerUser())
-                .usedCount(usedCount)
-                .startsAt(promo.getStartsAt())
                 .expiresAt(promo.getExpiresAt())
-                .isActive(promo.getIsActive())
-                .isPublic(promo.getIsPublic())
-                .createdAt(promo.getCreatedAt())
                 .build();
     }
 }
