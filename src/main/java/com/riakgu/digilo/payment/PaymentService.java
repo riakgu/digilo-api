@@ -31,6 +31,7 @@ import java.util.Optional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final PaymentLogRepository paymentLogRepository;
     private final OrderRepository orderRepository;
     private final OrderService orderService;
     private final MidtransService midtransService;
@@ -90,7 +91,11 @@ public class PaymentService {
         // Update payment with Midtrans data
         payment.setProviderTransactionId(transactionId);
         payment.setQrCodeUrl(qrCodeUrl);
-        payment.setRawChargeResponse(chargeResponse);
+        paymentLogRepository.save(PaymentLog.builder()
+                .payment(payment)
+                .eventType(PaymentLogEventType.CHARGE_RESPONSE)
+                .payload(chargeResponse)
+                .build());
 
         payment = paymentRepository.save(payment);
 
@@ -127,7 +132,11 @@ public class PaymentService {
                 .orElseThrow(() -> new NotFoundException("Payment not found for order: " + orderId));
 
         // Store raw notification
-        payment.setRawNotificationPayload(payload);
+        paymentLogRepository.save(PaymentLog.builder()
+                .payment(payment)
+                .eventType(PaymentLogEventType.NOTIFICATION)
+                .payload(payload)
+                .build());
 
         // Update transaction ID if not set
         if (payment.getProviderTransactionId() == null && transactionId != null) {
@@ -159,7 +168,11 @@ public class PaymentService {
                 payment.getProviderOrderId()
         );
 
-        payment.setRawStatusResponse(statusResponse);
+        paymentLogRepository.save(PaymentLog.builder()
+                .payment(payment)
+                .eventType(PaymentLogEventType.STATUS_CHECK)
+                .payload(statusResponse)
+                .build());
 
         String transactionStatus = (String) statusResponse.get("transaction_status");
         String fraudStatus = (String) statusResponse.get("fraud_status");
