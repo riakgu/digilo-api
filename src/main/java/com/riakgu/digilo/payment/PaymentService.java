@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -348,11 +349,10 @@ public class PaymentService {
     }
 
     private String extractQrCodeUrl(Map<String, Object> response) {
-        // QRIS response has actions array with QR code URL
-        if (response.containsKey("actions")) {
-            var actions = (java.util.List<Map<String, Object>>) response.get("actions");
-            for (Map<String, Object> action : actions) {
-                if ("generate-qr-code".equals(action.get("name"))) {
+        if (response.get("actions") instanceof List<?> actions) {
+            for (Object item : actions) {
+                if (item instanceof Map<?, ?> action
+                        && "generate-qr-code".equals(action.get("name"))) {
                     return (String) action.get("url");
                 }
             }

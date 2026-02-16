@@ -1,7 +1,8 @@
 package com.riakgu.digilo.product;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
 import com.riakgu.digilo.config.EncryptionProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.encrypt.Encryptors;
@@ -24,7 +25,7 @@ public class EncryptionService {
         try {
             String json = objectMapper.writeValueAsString(data);
             return encryptor.encrypt(json);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException("Failed to serialize credential", e);
         }
     }
@@ -32,8 +33,8 @@ public class EncryptionService {
     public Map<String, Object> decrypt(String encryptedData) {
         try {
             String json = encryptor.decrypt(encryptedData);
-            return objectMapper.readValue(json, Map.class);
-        } catch (JsonProcessingException e) {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+        } catch (JacksonException e) {
             throw new RuntimeException("Failed to deserialize credential", e);
         }
     }

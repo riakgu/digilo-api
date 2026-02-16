@@ -27,7 +27,7 @@ public class NotificationConsumer {
     private final OrderService orderService;
     private final PaymentRepository paymentRepository;
 
-    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
+    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("id", "ID"));
 
     @KafkaListener(topics = "digilo.orders", groupId = "digilo-notification-group")
     public void handleOrderEvent(OrderEvent event) {
