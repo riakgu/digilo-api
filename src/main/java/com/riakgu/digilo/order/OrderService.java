@@ -32,6 +32,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -64,109 +65,38 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        // Validate stock for AUTO delivery BEFORE creating order (batch fetch)
-        List<Long> autoDeliveryVariantIds = cart.getItems().stream()
-                .filter(item -> item.getVariant().getDeliveryType() == DeliveryType.AUTO)
-                .map(item -> item.getVariant().getId())
-                .collect(Collectors.toList());
+        validateAutoDeliveryStock(cart.getItems());
 
-        if (!autoDeliveryVariantIds.isEmpty()) {
-            Map<Long, Long> stockMap = inventoryRepository
-                    .countByVariantIdsAndStatus(autoDeliveryVariantIds, InventoryStatus.AVAILABLE)
-                    .stream()
-                    .collect(Collectors.toMap(
-                            row -> (Long) row[0],
-                            row -> (Long) row[1]
-                    ));
+        BigDecimal subtotal = calculateSubtotal(cart.getItems());
 
-            for (CartItem cartItem : cart.getItems()) {
-                if (cartItem.getVariant().getDeliveryType() == DeliveryType.AUTO) {
-                    long availableStock = stockMap.getOrDefault(cartItem.getVariant().getId(), 0L);
-                    if (availableStock < cartItem.getQuantity()) {
-                        throw new BadRequestException("Not enough stock for " + cartItem.getVariant().getName());
-                    }
-                }
-            }
-        }
-
-        // Calculate subtotal
-        BigDecimal subtotal = cart.getItems().stream()
-                .map(item -> item.getVariant().getPrice()
-                        .multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // Apply promo
         Promo promo = null;
         BigDecimal discountAmount = BigDecimal.ZERO;
-
         if (request != null && request.getPromoCode() != null) {
             promo = promoService.getValidPromo(request.getPromoCode(), userId, subtotal);
             discountAmount = promoService.calculateDiscount(promo, subtotal);
         }
 
-        BigDecimal totalAmount = subtotal.subtract(discountAmount);
-
-        // Create order
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
                 .user(user)
                 .status(OrderStatus.PENDING)
                 .subtotal(subtotal)
                 .discountAmount(discountAmount)
-                .totalAmount(totalAmount)
+                .totalAmount(subtotal.subtract(discountAmount))
                 .promo(promo)
                 .notes(request != null ? request.getNotes() : null)
                 .build();
 
         orderRepository.save(order);
-
         log.info("Order created: orderNumber={}, userId={}, itemCount={}, totalAmount={}",
-                order.getOrderNumber(), userId, cart.getItems().size(), totalAmount);
+                order.getOrderNumber(), userId, cart.getItems().size(), order.getTotalAmount());
 
-        for (CartItem cartItem : cart.getItems()) {
-            ProductVariant variant = cartItem.getVariant();
-            Product product = variant.getProduct();
-            
-            String productImageUrl = productImageHelper.getDisplayImageUrl(product);
-            
-            OrderItem orderItem = OrderItem.builder()
-                    .order(order)
-                    .variant(variant)
-                    .variantName(variant.getName())
-                    .productName(product.getName())
-                    .productImageUrl(productImageUrl)
-                    .price(variant.getPrice())
-                    .quantity(cartItem.getQuantity())
-                    .build();
-
-            orderItemRepository.save(orderItem);
-            order.getItems().add(orderItem);
-        }
-
-        for (OrderItem orderItem : order.getItems()) {
-            DeliveryType deliveryType = orderItem.getVariant().getDeliveryType();
-            Long variantId = orderItem.getVariant().getId();
-            int quantity = orderItem.getQuantity();
-
-            if (deliveryType == DeliveryType.AUTO) {
-                reserveInventory(orderItem.getId(), variantId, quantity);
-
-            } else if (deliveryType == DeliveryType.HYBRID) {
-                long availableStock = inventoryRepository.countByVariantIdAndStatus(
-                        variantId, InventoryStatus.AVAILABLE);
-
-                int toReserve = (int) Math.min(availableStock, quantity);
-
-                if (toReserve > 0) {
-                    reserveInventory(orderItem.getId(), variantId, toReserve);
-                }
-            }
-        }
+        createOrderItems(order, cart.getItems());
+        reserveOrderInventory(order);
 
         cart.getItems().clear();
         cartRepository.save(cart);
 
-        // Record promo usage after order created
         if (promo != null) {
             promoService.recordUsage(promo, userId, order.getId());
         }
@@ -174,11 +104,78 @@ public class OrderService {
         log.info("Order {} completed processing: status={}, promoApplied={}",
                 order.getOrderNumber(), order.getStatus(), promo != null);
 
-        // Publish order created event
         eventPublisher.publishOrderEvent(
-                OrderEvent.orderCreated(order.getOrderNumber(), userId, totalAmount));
+                OrderEvent.orderCreated(order.getOrderNumber(), userId, order.getTotalAmount()));
 
         return OrderResponse.fromEntity(order);
+    }
+
+    private void validateAutoDeliveryStock(Collection<CartItem> items) {
+        List<Long> autoVariantIds = items.stream()
+                .filter(item -> item.getVariant().getDeliveryType() == DeliveryType.AUTO)
+                .map(item -> item.getVariant().getId())
+                .collect(Collectors.toList());
+
+        if (autoVariantIds.isEmpty()) return;
+
+        Map<Long, Long> stockMap = inventoryRepository
+                .countByVariantIdsAndStatus(autoVariantIds, InventoryStatus.AVAILABLE)
+                .stream()
+                .collect(Collectors.toMap(row -> (Long) row[0], row -> (Long) row[1]));
+
+        for (CartItem item : items) {
+            if (item.getVariant().getDeliveryType() == DeliveryType.AUTO) {
+                long available = stockMap.getOrDefault(item.getVariant().getId(), 0L);
+                if (available < item.getQuantity()) {
+                    throw new BadRequestException("Not enough stock for " + item.getVariant().getName());
+                }
+            }
+        }
+    }
+
+    private BigDecimal calculateSubtotal(Collection<CartItem> items) {
+        return items.stream()
+                .map(item -> item.getVariant().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private void createOrderItems(Order order, Collection<CartItem> cartItems) {
+        for (CartItem cartItem : cartItems) {
+            ProductVariant variant = cartItem.getVariant();
+            Product product = variant.getProduct();
+
+            OrderItem orderItem = OrderItem.builder()
+                    .order(order)
+                    .variant(variant)
+                    .variantName(variant.getName())
+                    .productName(product.getName())
+                    .productImageUrl(productImageHelper.getDisplayImageUrl(product))
+                    .price(variant.getPrice())
+                    .quantity(cartItem.getQuantity())
+                    .build();
+
+            orderItemRepository.save(orderItem);
+            order.getItems().add(orderItem);
+        }
+    }
+
+    private void reserveOrderInventory(Order order) {
+        for (OrderItem orderItem : order.getItems()) {
+            DeliveryType deliveryType = orderItem.getVariant().getDeliveryType();
+            Long variantId = orderItem.getVariant().getId();
+            int quantity = orderItem.getQuantity();
+
+            if (deliveryType == DeliveryType.AUTO) {
+                reserveInventory(orderItem.getId(), variantId, quantity);
+            } else if (deliveryType == DeliveryType.HYBRID) {
+                long availableStock = inventoryRepository.countByVariantIdAndStatus(
+                        variantId, InventoryStatus.AVAILABLE);
+                int toReserve = (int) Math.min(availableStock, quantity);
+                if (toReserve > 0) {
+                    reserveInventory(orderItem.getId(), variantId, toReserve);
+                }
+            }
+        }
     }
 
 
