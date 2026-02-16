@@ -81,6 +81,11 @@ public class NotificationSenderService {
     }
 
     public void sendPaymentSuccessEmail(Order order, Payment payment) {
+        if (!order.getUser().canReceiveEmail()) {
+            log.info("User email not verified, skipping payment success email for orderId={}", order.getId());
+            return;
+        }
+
         Context context = new Context();
         context.setVariable("order", order);
         context.setVariable("payment", payment);
@@ -97,9 +102,8 @@ public class NotificationSenderService {
     }
 
     public void sendPaymentSuccessWhatsApp(Order order, Payment payment) {
-        String phone = order.getUser().getPhone();
-        if (phone == null || phone.isBlank()) {
-            log.info("User has no phone number, skipping WhatsApp notification");
+        if (!order.getUser().canReceiveWhatsApp()) {
+            log.info("User phone not verified or missing, skipping payment success WhatsApp for orderId={}", order.getId());
             return;
         }
 
@@ -111,12 +115,18 @@ public class NotificationSenderService {
         context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String message = templateEngine.process("whatsapp/payment-success.txt", context);
+        String phone = order.getUser().getPhone();
         whatsAppService.sendMessage(phone, message);
 
         log.info("Payment success WhatsApp sent to {}", phone);
     }
 
     public void sendCredentialsDeliveryEmail(Order order, List<OrderCredentialResponse> credentials) {
+        if (!order.getUser().canReceiveEmail()) {
+            log.info("User email not verified, skipping credentials delivery email for orderId={}", order.getId());
+            return;
+        }
+
         Context context = new Context();
         context.setVariable("orderNumber", order.getOrderNumber());
         context.setVariable("credentials", credentials);
@@ -133,9 +143,8 @@ public class NotificationSenderService {
     }
 
     public void sendCredentialsDeliveryWhatsApp(Order order, List<OrderCredentialResponse> credentials) {
-        String phone = order.getUser().getPhone();
-        if (phone == null || phone.isBlank()) {
-            log.info("User has no phone number, skipping WhatsApp notification");
+        if (!order.getUser().canReceiveWhatsApp()) {
+            log.info("User phone not verified or missing, skipping credentials delivery WhatsApp for orderId={}", order.getId());
             return;
         }
 
@@ -147,6 +156,7 @@ public class NotificationSenderService {
         context.setVariable("supportUrl", siteProperties.supportUrl());
 
         String message = templateEngine.process("whatsapp/credentials-delivery.txt", context);
+        String phone = order.getUser().getPhone();
         whatsAppService.sendMessage(phone, message);
 
         log.info("Credentials delivery WhatsApp sent to {}", phone);

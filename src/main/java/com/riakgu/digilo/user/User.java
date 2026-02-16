@@ -54,5 +54,13 @@ public class User extends BaseEntity {
 
     @Column(name = "phone_verified_at")
     private Instant phoneVerifiedAt;
+
+    public boolean canReceiveEmail() {
+        return email != null && !email.isBlank() && Boolean.TRUE.equals(emailVerified);
+    }
+
+    public boolean canReceiveWhatsApp() {
+        return phone != null && !phone.isBlank() && Boolean.TRUE.equals(phoneVerified);
+    }
 }
 
