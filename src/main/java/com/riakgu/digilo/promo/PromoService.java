@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -100,8 +103,19 @@ public class PromoService {
 
     @Transactional(readOnly = true)
     public Page<PromoResponse> getAll(String code, Boolean isActive, DiscountType discountType, Pageable pageable) {
-        return promoRepository.findAllWithFilters(code, isActive, discountType, pageable)
-                .map(p -> PromoResponse.fromEntity(p, promoUsageRepository.countByPromoId(p.getId())));
+        Page<Promo> promos = promoRepository.findAllWithFilters(code, isActive, discountType, pageable);
+
+        List<Long> promoIds = promos.getContent().stream()
+                .map(Promo::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, Long> usageCountMap = promoUsageRepository.countByPromoIds(promoIds).stream()
+                .collect(Collectors.toMap(
+                        row -> (Long) row[0],
+                        row -> (Long) row[1]
+                ));
+
+        return promos.map(p -> PromoResponse.fromEntity(p, usageCountMap.getOrDefault(p.getId(), 0L)));
     }
 
     @Transactional
