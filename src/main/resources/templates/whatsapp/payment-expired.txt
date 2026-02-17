@@ -1,0 +1,16 @@
+*Digilo - Payment Expired*
+
+Hi [(${name})],
+
+Your payment for order *[(${orderNumber})]* was not completed within the time limit and has expired.
+
+*Order Items:*
+[# th:each="item : ${items}"]
+- [(${item.productName})] ([(${item.variantName})]) x[(${item.quantity})] — [(${item.subtotal})]
+[/]
+
+*Total:* [(${totalAmount})]
+
+If you'd still like to purchase these items, please create a new order from our store. Product availability may vary.
+
+_This is an automated message from Digilo._

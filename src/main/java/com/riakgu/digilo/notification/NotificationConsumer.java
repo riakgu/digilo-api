@@ -27,7 +27,7 @@ public class NotificationConsumer {
     private final OrderService orderService;
     private final PaymentRepository paymentRepository;
 
-    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.of("id", "ID"));
+
 
     @KafkaListener(topics = "digilo.orders", groupId = "digilo-notification-group")
     public void handleOrderEvent(OrderEvent event) {
@@ -42,7 +42,7 @@ public class NotificationConsumer {
 
         Order order = orderOpt.get();
         Long orderId = order.getId();
-        String amount = CURRENCY_FORMAT.format(event.totalAmount());
+        String amount = NumberFormat.getCurrencyInstance(Locale.of("id", "ID")).format(event.totalAmount());
 
         switch (event.eventType()) {
             case OrderEvent.ORDER_CREATED -> notificationService.createNotification(
@@ -61,14 +61,23 @@ public class NotificationConsumer {
                     ReferenceType.ORDER,
                     orderId
             );
-            case OrderEvent.ORDER_CANCELLED -> notificationService.createNotification(
-                    event.userId(),
-                    NotificationType.ORDER_CANCELLED,
-                    "Order Cancelled",
-                    "Your order #" + event.orderNumber() + " has been cancelled.",
-                    ReferenceType.ORDER,
-                    orderId
-            );
+            case OrderEvent.ORDER_CANCELLED -> {
+                notificationService.createNotification(
+                        event.userId(),
+                        NotificationType.ORDER_CANCELLED,
+                        "Order Cancelled",
+                        "Your order #" + event.orderNumber() + " has been cancelled.",
+                        ReferenceType.ORDER,
+                        orderId
+                );
+
+                try {
+                    notificationSenderService.sendOrderCancelledEmail(order);
+                    notificationSenderService.sendOrderCancelledWhatsApp(order);
+                } catch (Exception e) {
+                    log.error("Failed to send order cancelled notification: {}", e.getMessage());
+                }
+            }
             case OrderEvent.ORDER_FAILED -> notificationService.createNotification(
                     event.userId(),
                     NotificationType.ORDER_FAILED,
@@ -89,10 +98,10 @@ public class NotificationConsumer {
 
                 try {
                     var credentials = orderService.getOrderCredentialsAdmin(orderId);
-                    notificationSenderService.sendCredentialsDeliveryEmail(order, credentials);
-                    notificationSenderService.sendCredentialsDeliveryWhatsApp(order, credentials);
+                    notificationSenderService.sendOrderCompletedEmail(order, credentials);
+                    notificationSenderService.sendOrderCompletedWhatsApp(order, credentials);
                 } catch (Exception e) {
-                    log.error("Failed to send credentials delivery notification: {}", e.getMessage());
+                    log.error("Failed to send order completed notification: {}", e.getMessage());
                 }
             }
         }
@@ -111,7 +120,7 @@ public class NotificationConsumer {
 
         Order order = orderOpt.get();
         Long userId = order.getUser().getId();
-        String amount = CURRENCY_FORMAT.format(event.amount());
+        String amount = NumberFormat.getCurrencyInstance(Locale.of("id", "ID")).format(event.amount());
 
         switch (event.eventType()) {
             case PaymentEvent.PAYMENT_CREATED -> notificationService.createNotification(
@@ -151,14 +160,23 @@ public class NotificationConsumer {
                     ReferenceType.ORDER,
                     order.getId()
             );
-            case PaymentEvent.PAYMENT_EXPIRED -> notificationService.createNotification(
-                    userId,
-                    NotificationType.PAYMENT_EXPIRED,
-                    "Payment Expired",
-                    "Payment for order #" + event.orderNumber() + " has expired.",
-                    ReferenceType.ORDER,
-                    order.getId()
-            );
+            case PaymentEvent.PAYMENT_EXPIRED -> {
+                notificationService.createNotification(
+                        userId,
+                        NotificationType.PAYMENT_EXPIRED,
+                        "Payment Expired",
+                        "Payment for order #" + event.orderNumber() + " has expired.",
+                        ReferenceType.ORDER,
+                        order.getId()
+                );
+
+                try {
+                    notificationSenderService.sendPaymentExpiredEmail(order);
+                    notificationSenderService.sendPaymentExpiredWhatsApp(order);
+                } catch (Exception e) {
+                    log.error("Failed to send payment expired notification: {}", e.getMessage());
+                }
+            }
         }
     }
 }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Payment Successful - Digilo</title>
+    <title>Payment Expired - Digilo</title>
     <!--[if mso]>
   <noscript>
     <xml>
@@ -71,7 +71,7 @@
 
     <!-- Preheader -->
     <div style="display: none; max-height: 0; overflow: hidden;">
-        Your payment has been confirmed. Thank you for your purchase!
+        Your payment has expired. Please create a new order if you'd like to continue.
         &zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
     </div>
 
@@ -155,29 +155,29 @@
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
                                 style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06);">
 
-                                <!-- Green accent -->
+                                <!-- Amber accent -->
                                 <tr>
                                     <td
-                                        style="height: 4px; background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #4ade80 100%);">
+                                        style="height: 4px; background: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);">
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td class="content-padding" style="padding: 48px 40px 44px;">
 
-                                        <!-- Success icon -->
+                                        <!-- Clock icon -->
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0"
                                             width="100%">
                                             <tr>
                                                 <td align="center" style="padding-bottom: 28px;">
                                                     <div
-                                                        style="width: 64px; height: 64px; background-color: #f0fdf4; border-radius: 50%; text-align: center; line-height: 64px;">
+                                                        style="width: 64px; height: 64px; background-color: #fffbeb; border-radius: 50%; text-align: center; line-height: 64px;">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-                                                            viewBox="0 0 24 24" fill="none" stroke="#16a34a"
-                                                            stroke-width="2" stroke-linecap="round"
+                                                            viewBox="0 0 24 24" fill="none" stroke="#d97706"
+                                                            stroke-width="1.5" stroke-linecap="round"
                                                             stroke-linejoin="round" style="vertical-align: middle;">
-                                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                                            <polyline points="22 4 12 14.01 9 11.01" />
+                                                            <circle cx="12" cy="12" r="10" />
+                                                            <polyline points="12 6 12 12 16 14" />
                                                         </svg>
                                                     </div>
                                                 </td>
@@ -187,64 +187,29 @@
                                         <!-- Heading -->
                                         <h1 class="heading"
                                             style="margin: 0 0 12px; font-size: 26px; font-weight: 800; color: #111827; text-align: center; line-height: 1.2;">
-                                            Payment Successful
+                                            Payment Expired
                                         </h1>
                                         <p
-                                            style="margin: 0 0 36px; font-size: 15px; color: #6b7280; text-align: center; line-height: 1.6;">
+                                            style="margin: 0 0 12px; font-size: 15px; color: #6b7280; text-align: center; line-height: 1.6;">
                                             Hi <strong style="color: #374151;" th:text="${name}">John</strong>, your
-                                            payment has been confirmed. Here's your receipt.
+                                            payment for the following order was not completed within the time limit and
+                                            has expired.
                                         </p>
 
-                                        <!-- Payment Details -->
+                                        <!-- Order number badge -->
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0"
-                                            width="100%"
-                                            style="background-color: #f9fafb; border-radius: 12px; margin-bottom: 28px;">
+                                            width="100%">
                                             <tr>
-                                                <td style="padding: 20px 24px;">
-                                                    <table role="presentation" cellspacing="0" cellpadding="0"
-                                                        border="0" width="100%">
-                                                        <tr>
-                                                            <td
-                                                                style="padding-bottom: 12px; font-size: 13px; color: #6b7280;">
-                                                                Order Number</td>
-                                                            <td
-                                                                style="padding-bottom: 12px; font-size: 13px; color: #111827; font-weight: 600; text-align: right;">
-                                                                <span th:text="${orderNumber}">ORD-20260217-A1B2</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td
-                                                                style="padding-bottom: 12px; font-size: 13px; color: #6b7280;">
-                                                                Payment Method</td>
-                                                            <td
-                                                                style="padding-bottom: 12px; font-size: 13px; color: #111827; font-weight: 600; text-align: right;">
-                                                                <span th:text="${paymentType}">QRIS</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td
-                                                                style="padding-bottom: 12px; font-size: 13px; color: #6b7280;">
-                                                                Transaction ID</td>
-                                                            <td
-                                                                style="padding-bottom: 12px; font-size: 13px; color: #111827; font-weight: 600; text-align: right;">
-                                                                <span th:text="${transactionId}">TXN-123456789</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td style="font-size: 13px; color: #6b7280;">Payment Date
-                                                            </td>
-                                                            <td
-                                                                style="font-size: 13px; color: #111827; font-weight: 600; text-align: right;">
-                                                                <span th:text="${paidAt}">17 Feb 2026, 13:00
-                                                                    WIB</span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
+                                                <td align="center" style="padding-bottom: 36px;">
+                                                    <span
+                                                        style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 24px; padding: 6px 16px; font-size: 13px; font-weight: 600; color: #d97706;"
+                                                        th:text="'Order ' + ${orderNumber}">Order
+                                                        ORD-20260217-A1B2</span>
                                                 </td>
                                             </tr>
                                         </table>
 
-                                        <!-- Order Items -->
+                                        <!-- Expired Items -->
                                         <p
                                             style="margin: 0 0 12px; font-size: 12px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px;">
                                             Order Items
@@ -270,12 +235,11 @@
                                             </tr>
 
                                             <!-- Items (Thymeleaf loop) -->
-                                            <!-- th:each will repeat this <tr> for each item -->
                                             <tr th:each="item, stat : ${items}"
                                                 th:style="${!stat.last ? 'border-bottom: 1px solid #f3f4f6;' : ''}">
                                                 <td style="padding: 14px 16px;">
                                                     <p class="item-name"
-                                                        style="margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #111827;"
+                                                        style="margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #6b7280;"
                                                         th:text="${item.productName}">
                                                         Digital Marketing Course
                                                     </p>
@@ -285,100 +249,104 @@
                                                     </p>
                                                 </td>
                                                 <td class="hide-mobile"
-                                                    style="padding: 14px 16px; font-size: 13px; color: #6b7280; text-align: center;"
+                                                    style="padding: 14px 16px; font-size: 13px; color: #9ca3af; text-align: center;"
                                                     th:text="${item.quantity}">
                                                     1
                                                 </td>
-                                                <td style="padding: 14px 16px; font-size: 13px; font-weight: 600; color: #111827; text-align: right; white-space: nowrap;"
+                                                <td style="padding: 14px 16px; font-size: 13px; color: #9ca3af; text-align: right; white-space: nowrap;"
                                                     th:text="${item.subtotal}">
                                                     Rp 150.000
                                                 </td>
                                             </tr>
 
-                                            <!-- Static preview rows (removed by Thymeleaf in production) -->
+                                            <!-- Static preview rows (removed by Thymeleaf) -->
                                             <tr th:if="false" style="border-bottom: 1px solid #f3f4f6;">
                                                 <td style="padding: 14px 16px;">
                                                     <p class="item-name"
-                                                        style="margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #111827;">
+                                                        style="margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #6b7280;">
                                                         Digital Marketing Course</p>
                                                     <p style="margin: 0; font-size: 12px; color: #9ca3af;">Premium Plan
                                                     </p>
                                                 </td>
                                                 <td class="hide-mobile"
-                                                    style="padding: 14px 16px; font-size: 13px; color: #6b7280; text-align: center;">
+                                                    style="padding: 14px 16px; font-size: 13px; color: #9ca3af; text-align: center;">
                                                     1</td>
                                                 <td
-                                                    style="padding: 14px 16px; font-size: 13px; font-weight: 600; color: #111827; text-align: right; white-space: nowrap;">
+                                                    style="padding: 14px 16px; font-size: 13px; color: #9ca3af; text-align: right; white-space: nowrap;">
                                                     Rp 150.000</td>
                                             </tr>
                                             <tr th:if="false">
                                                 <td style="padding: 14px 16px;">
                                                     <p class="item-name"
-                                                        style="margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #111827;">
+                                                        style="margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #6b7280;">
                                                         SEO Fundamentals</p>
                                                     <p style="margin: 0; font-size: 12px; color: #9ca3af;">Basic Plan
                                                     </p>
                                                 </td>
                                                 <td class="hide-mobile"
-                                                    style="padding: 14px 16px; font-size: 13px; color: #6b7280; text-align: center;">
+                                                    style="padding: 14px 16px; font-size: 13px; color: #9ca3af; text-align: center;">
                                                     1</td>
                                                 <td
-                                                    style="padding: 14px 16px; font-size: 13px; font-weight: 600; color: #111827; text-align: right; white-space: nowrap;">
+                                                    style="padding: 14px 16px; font-size: 13px; color: #9ca3af; text-align: right; white-space: nowrap;">
                                                     Rp 75.000</td>
                                             </tr>
                                         </table>
 
-                                        <!-- Price Breakdown -->
+                                        <!-- Total -->
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0"
                                             width="100%">
                                             <tr>
-                                                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Subtotal
+                                                <td
+                                                    style="padding: 6px 0; font-size: 15px; font-weight: 700; color: #6b7280;">
+                                                    Total
                                                 </td>
                                                 <td
-                                                    style="padding: 6px 0; font-size: 14px; color: #374151; text-align: right;">
-                                                    <span th:text="${subtotal}">Rp 225.000</span>
+                                                    style="padding: 6px 0; font-size: 15px; font-weight: 700; color: #6b7280; text-align: right;">
+                                                    <span th:text="${totalAmount}">Rp 225.000</span>
                                                 </td>
                                             </tr>
-                                            <!-- Discount row (only shown if promo applied) -->
-                                            <tr th:if="${promoCode != null}">
-                                                <td style="padding: 6px 0; font-size: 14px; color: #16a34a;">
-                                                    Discount
-                                                    <span
-                                                        style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; margin-left: 4px;"
-                                                        th:text="${promoCode}">SAVE20</span>
-                                                </td>
-                                                <td
-                                                    style="padding: 6px 0; font-size: 14px; color: #16a34a; text-align: right;">
-                                                    -<span th:text="${discountAmount}">Rp 45.000</span>
-                                                </td>
-                                            </tr>
-                                            <!-- Static preview discount (removed by Thymeleaf) -->
-                                            <tr th:if="false">
-                                                <td style="padding: 6px 0; font-size: 14px; color: #16a34a;">
-                                                    Discount
-                                                    <span
-                                                        style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; margin-left: 4px;">SAVE20</span>
-                                                </td>
-                                                <td
-                                                    style="padding: 6px 0; font-size: 14px; color: #16a34a; text-align: right;">
-                                                    -Rp 45.000</td>
-                                            </tr>
-                                            <!-- Divider -->
+                                        </table>
+
+                                        <!-- New order notice -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0"
+                                            width="100%">
                                             <tr>
-                                                <td colspan="2" style="padding: 8px 0;">
-                                                    <hr
-                                                        style="border: none; border-top: 1px solid #e5e7eb; margin: 0;" />
-                                                </td>
-                                            </tr>
-                                            <!-- Total -->
-                                            <tr>
-                                                <td
-                                                    style="padding: 6px 0; font-size: 16px; font-weight: 800; color: #111827;">
-                                                    Total Paid
-                                                </td>
-                                                <td
-                                                    style="padding: 6px 0; font-size: 16px; font-weight: 800; color: #155dfc; text-align: right;">
-                                                    <span th:text="${totalAmount}">Rp 180.000</span>
+                                                <td style="padding: 28px 0 0;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0"
+                                                        border="0" width="100%">
+                                                        <tr>
+                                                            <td
+                                                                style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px 20px;">
+                                                                <table role="presentation" cellspacing="0"
+                                                                    cellpadding="0" border="0" width="100%">
+                                                                    <tr>
+                                                                        <td valign="top" style="width: 24px;">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                                width="18" height="18"
+                                                                                viewBox="0 0 24 24" fill="none"
+                                                                                stroke="#2563eb" stroke-width="1.5"
+                                                                                stroke-linecap="round"
+                                                                                stroke-linejoin="round">
+                                                                                <circle cx="12" cy="12" r="10" />
+                                                                                <path d="M12 16v-4M12 8h.01" />
+                                                                            </svg>
+                                                                        </td>
+                                                                        <td style="padding-left: 10px;">
+                                                                            <p
+                                                                                style="margin: 0 0 2px; font-size: 13px; font-weight: 700; color: #1e40af;">
+                                                                                Still interested?</p>
+                                                                            <p
+                                                                                style="margin: 0; font-size: 12px; color: #1d4ed8; line-height: 1.5;">
+                                                                                If you'd still like to purchase these
+                                                                                items, please create a new order from
+                                                                                our store. Product availability may
+                                                                                vary.</p>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
                                                 </td>
                                             </tr>
                                         </table>
@@ -386,7 +354,7 @@
                                     </td>
                                 </tr>
 
-                                <!-- Security Note -->
+                                <!-- Footer note -->
                                 <tr>
                                     <td style="padding: 0 40px;">
                                         <hr style="border: none; border-top: 1px solid #f3f4f6; margin: 0;" />
@@ -396,7 +364,6 @@
                                     <td style="padding: 20px 40px 32px;">
                                         <p
                                             style="margin: 0; font-size: 13px; color: #9ca3af; line-height: 1.7; text-align: center;">
-                                            This is your payment receipt. Please keep it for your records.<br />
                                             If you have any questions, feel free to contact our support team.
                                         </p>
                                     </td>

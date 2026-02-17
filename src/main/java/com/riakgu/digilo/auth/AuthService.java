@@ -208,7 +208,7 @@ public class AuthService {
     public void forgotPassword(ForgotPasswordRequest request) {
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
             String otp = otpService.generateAndSaveOtp("password:" + user.getEmail());
-            notificationSender.sendPasswordResetEmail(user.getEmail(), otp);
+            notificationSender.sendPasswordResetEmail(user.getName(), user.getEmail(), otp);
             log.info("Password reset OTP sent to email={}", request.getEmail());
         });
     }

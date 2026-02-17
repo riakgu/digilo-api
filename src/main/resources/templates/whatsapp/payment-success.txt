@@ -1,30 +1,25 @@
-*Pembayaran Berhasil*
+*Digilo - Payment Successful*
 
-Terima kasih atas pembelian Anda. Pembayaran telah dikonfirmasi.
+Hi [(${name})],
 
-Detail Pesanan
----
-Nomor Pesanan: [(${order.orderNumber})]
-Tanggal Pesanan: [(${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')})]
-Metode Pembayaran: [(${payment.paymentType})]
-Tanggal Pembayaran: [(${#temporals.format(payment.paidAt, 'dd MMM yyyy, HH:mm')})]
+Your payment has been confirmed! Here are the details:
 
-Item Pesanan
----
-[# th:each="item : ${order.items}"]
-• [(${item.productName})] ([(${item.variantName})]) x[(${item.quantity})] - [(${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')})] [(${payment.currency})]
+*Order:* [(${orderNumber})]
+*Payment Method:* [(${paymentType})]
+*Transaction ID:* [(${transactionId})]
+*Date:* [(${paidAt})]
+
+*Order Items:*
+[# th:each="item : ${items}"]
+- [(${item.productName})] ([(${item.variantName})]) x[(${item.quantity})] — [(${item.subtotal})]
 [/]
 
-Ringkasan Pembayaran
----
-Subtotal: [(${#numbers.formatDecimal(order.subtotal, 0, 'COMMA', 0, 'POINT')})] [(${payment.currency})]
-[# th:if="${order.discountAmount != null and order.discountAmount > 0}"]
-Diskon ([(${order.promo.code})]): -[(${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')})] [(${payment.currency})]
+*Subtotal:* [(${subtotal})]
+[# th:if="${promoCode != null}"]
+*Discount ([(${promoCode})]):* -[(${discountAmount})]
 [/]
-Total Dibayar: [(${#numbers.formatDecimal(payment.amount, 0, 'COMMA', 0, 'POINT')})] [(${payment.currency})]
+*Total Paid:* [(${totalAmount})]
 
-Lihat detail pesanan: [(${orderUrl})]
+Thank you for your purchase!
 
-Butuh bantuan? [(${supportUrl})]
-
-[(${siteName})]
+_This is an automated message from Digilo._

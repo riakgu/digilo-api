@@ -29,7 +29,7 @@ public class UserVerificationService {
         }
 
         String otp = otpService.generateAndSaveOtp("email:" + user.getEmail());
-        notificationSender.sendEmailOtp(user.getEmail(), otp);
+        notificationSender.sendEmailOtp(user.getName(), user.getEmail(), otp);
 
         log.info("Email OTP sent to userId={}", userId);
     }
@@ -64,7 +64,7 @@ public class UserVerificationService {
         }
 
         String otp = otpService.generateAndSaveOtp("phone:" + user.getPhone());
-        notificationSender.sendWhatsAppOtp(user.getPhone(), otp);
+        notificationSender.sendWhatsAppOtp(user.getName(), user.getPhone(), otp);
 
         log.info("Phone OTP sent to userId={}", userId);
     }

@@ -1,0 +1,22 @@
+*Digilo - Order Completed*
+
+Hi [(${name})],
+
+Your order *[(${orderNumber})]* has been fulfilled! Your digital product credentials are below.
+
+[# th:each="itemCredential : ${credentials}"]
+*[(${itemCredential.variantName})]* ([(${itemCredential.quantity})] credential(s))
+[# th:each="cred : ${itemCredential.credentials}"]
+```
+[# th:each="entry : ${cred.credential}"]
+[(${entry.key})]: [(${entry.value})]
+[/]
+```
+[/]
+[/]
+
+⚠️ *Keep your credentials safe.* Do not share these credentials with anyone. Digilo will never ask for your credentials via email or chat.
+
+You can also view your credentials anytime from your account dashboard.
+
+_This is an automated message from Digilo._

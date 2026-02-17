@@ -1,0 +1,16 @@
+*Digilo - Order Cancelled*
+
+Hi [(${name})],
+
+Your order *[(${orderNumber})]* has been cancelled. Here's a summary:
+
+*Cancelled Items:*
+[# th:each="item : ${items}"]
+- ~[(${item.productName})]~ ([(${item.variantName})]) x[(${item.quantity})] — [(${item.subtotal})]
+[/]
+
+~*Total:* [(${totalAmount})]~
+
+If you have any questions about this cancellation, feel free to contact our support team.
+
+_This is an automated message from Digilo._

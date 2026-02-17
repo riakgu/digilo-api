@@ -1,17 +1,13 @@
-*Kode Verifikasi*
+*Digilo - Verification Code*
 
-Gunakan kode berikut untuk memverifikasi akun Anda:
+Hi [(${name})],
 
----
-[(${otpCode})]
----
+Your OTP verification code is:
 
-Kode ini berlaku selama [(${expiryMinutes})] menit.
+*[(${otpCode})]*
 
-Jangan bagikan kode ini kepada siapapun. Kami tidak pernah meminta kode verifikasi Anda.
+This code expires in *5 minutes*. Please do not share this code with anyone.
 
-Tidak merasa meminta kode ini? Abaikan pesan ini.
+If you didn't request this code, you can safely ignore this message.
 
-Butuh bantuan? [(${supportUrl})]
-
-[(${siteName})]
+_This is an automated message from Digilo._
