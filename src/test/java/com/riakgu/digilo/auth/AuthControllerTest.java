@@ -230,7 +230,7 @@ class AuthControllerTest {
                 String sessionId = java.util.UUID.randomUUID().toString();
 
                 String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId,
-                                "Test Device");
+                                "TestAgent", "127.0.0.1");
 
                 RefreshRequest request = new RefreshRequest();
                 request.setRefreshToken(refreshToken);
@@ -279,7 +279,7 @@ class AuthControllerTest {
                 String sessionId = java.util.UUID.randomUUID().toString();
 
                 String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId,
-                                "Test Device");
+                                "TestAgent", "127.0.0.1");
 
                 // First refresh should succeed and rotate the token
                 RefreshRequest request = new RefreshRequest();

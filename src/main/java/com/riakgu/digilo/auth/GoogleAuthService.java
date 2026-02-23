@@ -43,7 +43,7 @@ public class GoogleAuthService {
     }
 
     @Transactional
-    public AuthResponse authenticate(GoogleAuthRequest request) {
+    public AuthResponse authenticate(GoogleAuthRequest request, String userAgent, String ip) {
         GoogleIdToken.Payload payload = verifyIdToken(request.getIdToken());
 
         String googleId = payload.getSubject();
@@ -85,7 +85,7 @@ public class GoogleAuthService {
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name(), sessionId))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, null))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, userAgent, ip))
                 .build();
     }
 

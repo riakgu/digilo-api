@@ -36,7 +36,7 @@ public class JwtService {
                 .sign(Algorithm.HMAC256(properties.accessSecret()));
     }
 
-    public String generateRefreshToken(Long userId, String role, String sessionId, String deviceInfo) {
+    public String generateRefreshToken(Long userId, String role, String sessionId, String userAgent, String ip) {
         String token = JWT.create()
                 .withIssuer(properties.issuer())
                 .withSubject(userId.toString())
@@ -47,7 +47,7 @@ public class JwtService {
                 .withExpiresAt(Instant.now().plusSeconds(properties.refreshExpiration()))
                 .sign(Algorithm.HMAC256(properties.refreshSecret()));
 
-        storeSession(userId, sessionId, token, deviceInfo);
+        storeSession(userId, sessionId, token, userAgent, ip);
         return token;
     }
 
@@ -83,7 +83,7 @@ public class JwtService {
     public record RefreshResult(Long userId, String sessionId, String accessToken, String refreshToken) {
     }
 
-    public RefreshResult refreshTokens(String refreshToken, String deviceInfo) {
+    public RefreshResult refreshTokens(String refreshToken, String userAgent, String ip) {
         DecodedJWT decoded = verifyRefreshToken(refreshToken);
 
         Long userId = Long.valueOf(decoded.getSubject());
@@ -91,7 +91,7 @@ public class JwtService {
         String sessionId = decoded.getClaim("sid").asString();
 
         String newAccessToken = generateAccessToken(userId, role, sessionId);
-        String newRefreshToken = generateRefreshToken(userId, role, sessionId, deviceInfo);
+        String newRefreshToken = generateRefreshToken(userId, role, sessionId, userAgent, ip);
 
         return new RefreshResult(userId, sessionId, newAccessToken, newRefreshToken);
     }
@@ -136,7 +136,8 @@ public class JwtService {
 
             sessions.add(SessionResponse.builder()
                     .sessionId(sessionId)
-                    .deviceInfo(data.deviceInfo())
+                    .userAgent(data.userAgent())
+                    .ip(data.ip())
                     .createdAt(data.createdAt())
                     .current(sessionId.equals(currentSessionId))
                     .build());
@@ -145,19 +146,20 @@ public class JwtService {
         return sessions;
     }
 
-    private record SessionData(String token, String deviceInfo, Instant createdAt) {
+    private record SessionData(String token, String userAgent, String ip, Instant createdAt) {
     }
 
     private String sessionKey(Object userId, String sessionId) {
         return "refresh:" + userId + ":" + sessionId;
     }
 
-    private void storeSession(Long userId, String sessionId, String token, String deviceInfo) {
+    private void storeSession(Long userId, String sessionId, String token, String userAgent, String ip) {
         String key = sessionKey(userId, sessionId);
         try {
             Map<String, Object> sessionData = new LinkedHashMap<>();
             sessionData.put("token", token);
-            sessionData.put("deviceInfo", deviceInfo != null ? deviceInfo : "Unknown");
+            sessionData.put("userAgent", userAgent != null ? userAgent : "Unknown");
+            sessionData.put("ip", ip != null ? ip : "Unknown");
             sessionData.put("createdAt", Instant.now().toString());
 
             String json = objectMapper.writeValueAsString(sessionData);
@@ -177,17 +179,18 @@ public class JwtService {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> data = objectMapper.readValue(stored, Map.class);
                 String token = (String) data.get("token");
-                String deviceInfo = (String) data.getOrDefault("deviceInfo", "Unknown");
+                String userAgent = (String) data.getOrDefault("userAgent", "Unknown");
+                String ip = (String) data.getOrDefault("ip", "Unknown");
                 String createdAtStr = (String) data.get("createdAt");
                 Instant createdAt = createdAtStr != null ? Instant.parse(createdAtStr) : null;
-                return new SessionData(token, deviceInfo, createdAt);
+                return new SessionData(token, userAgent, ip, createdAt);
             } catch (Exception e) {
                 log.warn("Failed to parse session JSON, treating as raw token");
-                return new SessionData(stored, "Unknown", null);
+                return new SessionData(stored, "Unknown", "Unknown", null);
             }
         }
 
-        return new SessionData(stored, "Unknown", null);
+        return new SessionData(stored, "Unknown", "Unknown", null);
     }
 
     private DecodedJWT verify(String token, String secret, String expectedType) {

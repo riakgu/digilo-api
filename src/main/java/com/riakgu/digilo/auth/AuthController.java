@@ -2,8 +2,11 @@ package com.riakgu.digilo.auth;
 
 import com.riakgu.digilo.auth.dto.*;
 import com.riakgu.digilo.common.dto.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import static com.riakgu.digilo.common.util.HttpRequestUtils.getUserAgent;
+import static com.riakgu.digilo.common.util.HttpRequestUtils.getClientIp;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,27 +21,35 @@ public class AuthController {
     private final GoogleAuthService googleAuthService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
-        AuthResponse register = authService.register(request);
+    public ResponseEntity<ApiResponse<AuthResponse>> register(
+            @Valid @RequestBody RegisterRequest request,
+            HttpServletRequest httpRequest) {
+        AuthResponse register = authService.register(request, getUserAgent(httpRequest), getClientIp(httpRequest));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("CREATED", "Register successful", register));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-        AuthResponse login = authService.login(request);
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
+        AuthResponse login = authService.login(request, getUserAgent(httpRequest), getClientIp(httpRequest));
         return ResponseEntity.ok(ApiResponse.success("OK", "Login successful", login));
     }
 
     @PostMapping("/google")
-    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
-        AuthResponse response = googleAuthService.authenticate(request);
+    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(
+            @Valid @RequestBody GoogleAuthRequest request,
+            HttpServletRequest httpRequest) {
+        AuthResponse response = googleAuthService.authenticate(request, getUserAgent(httpRequest), getClientIp(httpRequest));
         return ResponseEntity.ok(ApiResponse.success("OK", "Google login successful", response));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody RefreshRequest request) {
-        AuthResponse refresh = authService.refresh(request);
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(
+            @Valid @RequestBody RefreshRequest request,
+            HttpServletRequest httpRequest) {
+        AuthResponse refresh = authService.refresh(request, getUserAgent(httpRequest), getClientIp(httpRequest));
         return ResponseEntity.ok(ApiResponse.success("OK", "Refresh token successful", refresh));
     }
 

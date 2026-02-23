@@ -14,7 +14,8 @@ import java.time.Instant;
 public class SessionResponse {
 
     private String sessionId;
-    private String deviceInfo;
+    private String userAgent;
+    private String ip;
     private Instant createdAt;
     private boolean current;
 }

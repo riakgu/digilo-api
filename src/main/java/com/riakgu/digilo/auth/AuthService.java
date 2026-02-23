@@ -40,7 +40,7 @@ public class AuthService {
     private static final Duration RESET_TOKEN_EXPIRY = Duration.ofMinutes(10);
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request, String userAgent, String ip) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already exists");
         }
@@ -68,12 +68,12 @@ public class AuthService {
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name(), sessionId))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, null))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, userAgent, ip))
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, String userAgent, String ip) {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
@@ -98,14 +98,14 @@ public class AuthService {
         return AuthResponse.builder()
                 .user(UserResponse.fromEntity(user))
                 .accessToken(jwtService.generateAccessToken(user.getId(), user.getRole().name(), sessionId))
-                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, null))
+                .refreshToken(jwtService.generateRefreshToken(user.getId(), user.getRole().name(), sessionId, userAgent, ip))
                 .build();
 
     }
 
     @Transactional(readOnly = true)
-    public AuthResponse refresh(RefreshRequest request) {
-        JwtService.RefreshResult result = jwtService.refreshTokens(request.getRefreshToken(), null);
+    public AuthResponse refresh(RefreshRequest request, String userAgent, String ip) {
+        JwtService.RefreshResult result = jwtService.refreshTokens(request.getRefreshToken(), userAgent, ip);
 
         User user = userRepository.findById(result.userId())
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
