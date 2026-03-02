@@ -230,7 +230,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderResponse> getMyOrders(Long userId, String orderNumber, Pageable pageable) {
+    public Page<OrderResponse> getMyOrders(Long userId, String orderNumber, OrderStatus status, Pageable pageable) {
         if (orderNumber != null && !orderNumber.isBlank()) {
             // Return single order if found
             Order order = orderRepository.findByOrderNumber(orderNumber)
@@ -241,7 +241,19 @@ public class OrderService {
             return new org.springframework.data.domain.PageImpl<>(
                     List.of(OrderResponse.fromEntity(order)), pageable, 1);
         }
-        return orderRepository.findByUserId(userId, pageable)
+
+        // Enforce sort by createdAt descending (newest first)
+        Pageable sortedPageable = org.springframework.data.domain.PageRequest.of(
+                pageable.getPageNumber(), pageable.getPageSize(),
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+        );
+
+        if (status != null) {
+            return orderRepository.findByUserIdAndStatus(userId, status, sortedPageable)
+                    .map(OrderResponse::fromEntity);
+        }
+
+        return orderRepository.findByUserId(userId, sortedPageable)
                 .map(OrderResponse::fromEntity);
     }
 

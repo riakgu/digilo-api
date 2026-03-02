@@ -41,9 +41,10 @@ public class OrderController {
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(
             @AuthenticationPrincipal Long userId,
             @RequestParam(required = false) String orderNumber,
+            @RequestParam(required = false) OrderStatus status,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Page<OrderResponse> orders = orderService.getMyOrders(userId, orderNumber, pageable);
+        Page<OrderResponse> orders = orderService.getMyOrders(userId, orderNumber, status, pageable);
         return ResponseEntity.ok(ApiResponse.success("OK", "Orders retrieved", orders));
     }
 
