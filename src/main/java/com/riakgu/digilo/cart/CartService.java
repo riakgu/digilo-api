@@ -5,7 +5,6 @@ import com.riakgu.digilo.common.exception.BadRequestException;
 import com.riakgu.digilo.common.exception.NotFoundException;
 import com.riakgu.digilo.product.inventory.InventoryStatus;
 import com.riakgu.digilo.product.variant.DeliveryType;
-import com.riakgu.digilo.product.variant.dto.ProductVariantResponse;
 import com.riakgu.digilo.product.image.ProductImageHelper;
 import com.riakgu.digilo.product.inventory.ProductInventoryRepository;
 import com.riakgu.digilo.product.variant.ProductVariant;
@@ -179,9 +178,8 @@ public class CartService {
         List<CartItemResponse> items = cart.getItems().stream()
                 .map(item -> {
                     long stock = stockMap.getOrDefault(item.getVariant().getId(), 0L);
-                    ProductVariantResponse variantResponse =
-                            ProductVariantResponse.fromEntity(item.getVariant(), stock, productImageHelper.getDisplayImageUrl(item.getVariant().getProduct()));
-                    return CartItemResponse.fromEntity(item, variantResponse);
+                    String imageUrl = productImageHelper.getDisplayImageUrl(item.getVariant().getProduct());
+                    return CartItemResponse.fromEntity(item, stock, imageUrl);
                 })
                 .collect(Collectors.toList());
 
