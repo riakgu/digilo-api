@@ -43,8 +43,8 @@ public class UserService {
             user.setName(request.getName());
         }
 
-        if (request.getEmail() != null) {
-            if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+        if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
                 throw new DuplicateResourceException("Email already exists");
             }
             user.setEmail(request.getEmail());
@@ -52,8 +52,8 @@ public class UserService {
             user.setEmailVerifiedAt(null);
         }
 
-        if (request.getPhone() != null) {
-            if (!request.getPhone().equals(user.getPhone()) && userRepository.existsByPhone(request.getPhone())) {
+        if (request.getPhone() != null && !request.getPhone().equals(user.getPhone())) {
+            if (userRepository.existsByPhone(request.getPhone())) {
                 throw new DuplicateResourceException("Phone number already exists");
             }
             user.setPhone(request.getPhone());
