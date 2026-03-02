@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,8 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -33,6 +33,28 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private static final String HEADER_LIMIT = "X-RateLimit-Limit";
     private static final String HEADER_REMAINING = "X-RateLimit-Remaining";
     private static final String HEADER_RESET = "X-RateLimit-Reset";
+
+    /**
+     * Atomic Lua script for rate limiting.
+     * KEYS[1] = rate limit key
+     * ARGV[1] = limit (max requests per window)
+     * ARGV[2] = window size in seconds
+     *
+     * Returns: "current_count ttl"
+     * - current_count: the request count after incrementing
+     * - ttl: seconds until the window resets
+     */
+    private static final RedisScript<String> RATE_LIMIT_SCRIPT = RedisScript.of("""
+            local current = redis.call('INCR', KEYS[1])
+            if current == 1 then
+                redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]))
+            end
+            local ttl = redis.call('TTL', KEYS[1])
+            if ttl < 0 then
+                ttl = tonumber(ARGV[2])
+            end
+            return current .. ' ' .. ttl
+            """, String.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -50,7 +72,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         int limit = determineLimit(path);
         String rateLimitKey = buildRateLimitKey(request, path);
 
-        // Get current request count using sliding window
+        // Check rate limit atomically via Lua script
         RateLimitResult result;
         try {
             result = checkRateLimit(rateLimitKey, limit);
@@ -122,38 +144,22 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private RateLimitResult checkRateLimit(String key, int limit) {
         int windowSeconds = rateLimitProperties.windowSeconds();
-        long now = Instant.now().getEpochSecond();
-        long windowStart = now - windowSeconds;
 
-        String countKey = key + ":count";
-        String timestampKey = key + ":timestamp";
+        String scriptResult = redisTemplate.execute(
+                RATE_LIMIT_SCRIPT,
+                List.of(key),
+                String.valueOf(limit),
+                String.valueOf(windowSeconds)
+        );
 
-        // Get current count and window start timestamp
-        String countStr = redisTemplate.opsForValue().get(countKey);
-        String timestampStr = redisTemplate.opsForValue().get(timestampKey);
+        String[] parts = scriptResult.split(" ");
+        long currentCount = Long.parseLong(parts[0]);
+        int ttl = Integer.parseInt(parts[1]);
 
-        long windowTimestamp = timestampStr != null ? Long.parseLong(timestampStr) : now;
-        int currentCount = countStr != null ? Integer.parseInt(countStr) : 0;
+        int remaining = Math.max(0, limit - (int) currentCount);
+        boolean exceeded = currentCount > limit;
 
-        // Check if we're in a new window
-        if (windowTimestamp < windowStart) {
-            // Reset the window
-            redisTemplate.opsForValue().set(countKey, "1", windowSeconds, TimeUnit.SECONDS);
-            redisTemplate.opsForValue().set(timestampKey, String.valueOf(now), windowSeconds, TimeUnit.SECONDS);
-            return new RateLimitResult(false, limit - 1, windowSeconds);
-        }
-
-        // Increment count
-        Long newCount = redisTemplate.opsForValue().increment(countKey);
-        if (newCount != null && newCount == 1) {
-            redisTemplate.expire(countKey, windowSeconds, TimeUnit.SECONDS);
-            redisTemplate.opsForValue().set(timestampKey, String.valueOf(now), windowSeconds, TimeUnit.SECONDS);
-        }
-
-        int remaining = Math.max(0, limit - newCount.intValue());
-        int resetSeconds = (int) (windowTimestamp + windowSeconds - now);
-        
-        return new RateLimitResult(newCount > limit, remaining, Math.max(1, resetSeconds));
+        return new RateLimitResult(exceeded, remaining, Math.max(1, ttl));
     }
 
     private void addRateLimitHeaders(HttpServletResponse response, int limit, int remaining, int resetSeconds) {
